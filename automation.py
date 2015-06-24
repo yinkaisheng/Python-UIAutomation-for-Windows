@@ -2615,6 +2615,7 @@ def usage():
     sys.stdout.write('''usage
 -h      show command help
 -t      delay time, begin to enumerate after Value seconds, this must be an integer
+        you can delay a few seconds and make a window active so automation can enumerate the active window
 -d      enumerate tree depth, this must be an integer, if it is null, enumerate the whole tree
 -r      enumerate from root:desktop window, if it is null, enumerate from foreground window
 -f      enumerate from focused control, if it is null, enumerate from foreground window
