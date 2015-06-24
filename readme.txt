@@ -9,4 +9,4 @@ Run 'automation.py -h' for help.
 
 This module is free to use.
 
-Open automation_desktop.png or automation_qq.png to see the result.
+Open automation_desktop.png, automation_firefox.png or automation_qq.png to see the result.
