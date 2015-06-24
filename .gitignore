@@ -1,2 +1,3 @@
 *.pyc
 @AutomationLog.txt
+__pycache__
