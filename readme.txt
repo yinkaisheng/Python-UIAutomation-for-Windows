@@ -8,3 +8,5 @@ The details: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
 Run 'automation.py -h' for help.
 
 This module is free to use.
+
+Open automation_desktop.png or automation_qq.png to see the result.
