@@ -1,5 +1,5 @@
 #!python2
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 import time
 import subprocess
 import ctypes
