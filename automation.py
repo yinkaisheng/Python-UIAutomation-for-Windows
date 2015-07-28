@@ -2478,7 +2478,7 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     Logger.Write(name, ConsoleColor.DarkGreen)
     Logger.Write('    Handle: ')
     handle = control.Handle32
-    Logger.Write('0x{0:x}({1})'.format(handle, handle), ConsoleColor.DarkGreen)
+    Logger.Write('0x{0:X}({1})'.format(handle, handle), ConsoleColor.DarkGreen)
     if showMore:
         Logger.Write('    SupportedPattern:')
         for key in PatternDict:
