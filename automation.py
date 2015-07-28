@@ -1837,7 +1837,7 @@ class ValuePattern():
 
 class ScrollItemPattern():
     def ScrollIntoView(self):
-        '''Scroll the contorl into view, so it can be seen'''
+        '''Scroll the control into view, so it can be seen'''
         pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId)
         if pattern:
             ClientObject.dll.ScrollItemPatternScrollIntoView(pattern)
@@ -2443,13 +2443,21 @@ def GetForegroundControl():
     return Control.CreateControlFromElement(parentEle)
 
 def ControlFromPoint(x, y):
+    '''use IUIAutomation ElementFromPoint x,y'''
     element = ClientObject.dll.ElementFromPoint(x, y)
     return Control.CreateControlFromElement(element)
 
+def ControlFromPoint2(x, y):
+    '''use Win32API.WindowFromPoint x,y'''
+    return Control.CreateControlFromElement(ClientObject.dll.ElementFromHandle(Win32API.WindowFromPoint(x, y)))
+    
 def ControlFromCursor():
     x, y = Win32API.GetCursorPos()
     return ControlFromPoint(x, y)
-    # return Control.CreateControlFromElement(ClientObject.dll.ElementFromHandle(Win32API.WindowFromPoint(x, y)))
+    
+def ControlFromCursor2():
+    x, y = Win32API.GetCursorPos()
+    return ControlFromPoint2(x, y)
 
 def ControlFromHandle(handle):
     return Control.CreateControlFromElement(ClientObject.dll.ElementFromHandle(handle))
@@ -2488,8 +2496,7 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
                 Logger.Write(' ' + PatternDict[key], ConsoleColor.DarkGreen)
     Logger.Write(Logger.LineSep)
 
-def EnumContorlUnderCursor(showAllName = True, showMore = False):
-    control = ControlFromCursor()
+def EnumControlAncestor(control, showAllName = True, showMore = False):
     lists = []
     while control:
         lists.insert(0, control)
@@ -2624,7 +2631,7 @@ def usage():
 -r      enumerate from root:desktop window, if it is null, enumerate from foreground window
 -f      enumerate from focused control, if it is null, enumerate from foreground window
 -c      enumerate the control under cursor
--s      show tree of the the control under cursor
+-a      show ancestors of the control under cursor
 -n      show control full name
 -m      show more properties
 
@@ -2637,13 +2644,13 @@ automation.py -c -t3
 
 def main():
     import getopt
-    sys.stdout.write(str(sys.argv))
-    options, args = getopt.getopt(sys.argv[1:], 'hrfcsmnd:t:',
-                                  ['help', 'root', 'focus', 'cursor', 'cursorTree', 'showMore', 'showAllName', 'depth=', 'time='])
+    sys.stdout.write(str(sys.argv) + '\n')
+    options, args = getopt.getopt(sys.argv[1:], 'hrfcamnd:t:',
+                                  ['help', 'root', 'focus', 'cursor', 'ancestor', 'showMore', 'showAllName', 'depth=', 'time='])
     root = False
     focus = False
     cursor = False
-    cursorTree = False
+    ancestor = False
     showAllName = False
     showMore = False
     depth = 10000
@@ -2658,8 +2665,8 @@ def main():
             focus = True
         elif o in ('-c', '-cursor'):
             cursor = True
-        elif o in ('-s', '-cursorTree'):
-            cursorTree = True
+        elif o in ('-a', '-ancestor'):
+            ancestor = True
         elif o in ('-n', '-showAllName'):
             showAllName = True
         elif o in ('-m', '-showMore'):
@@ -2677,8 +2684,10 @@ def main():
         control = GetFocusedControl()
     if cursor:
         control = ControlFromCursor()
-    if cursorTree:
-        EnumContorlUnderCursor(showAllName, showMore)
+    if ancestor:
+        control = ControlFromCursor()
+        # control = ControlFromCursor2()
+        EnumControlAncestor(control, showAllName, showMore)
     else:
         if not control:
             control = GetForegroundControl()
