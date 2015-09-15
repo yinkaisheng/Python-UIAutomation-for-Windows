@@ -2606,10 +2606,10 @@ def RunMetroApp(appName):
         time.sleep(1)
 
 def RunHotKey(function, startHotKey, stopHotKey = None):
-    if len(startHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, 1, startHotKey[0], startHotKey[1])):
-        sys.stdout.write('RegisterHotKey {0}\n'.format(startHotKey))
-    if len(stopHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, 2, stopHotKey[0], stopHotKey[1])):
-        sys.stdout.write('RegisterHotKey {0}\n'.format(stopHotKey))
+    if startHotKey and len(startHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, 1, startHotKey[0], startHotKey[1])):
+        sys.stdout.write('Register Start HotKey {0}\n'.format(startHotKey))
+    if stopHotKey and len(stopHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, 2, stopHotKey[0], stopHotKey[1])):
+        sys.stdout.write('Register Stop HotKey {0}\n'.format(stopHotKey))
     from threading import Thread
     funcThread = None
     msg=MSG()
@@ -2619,7 +2619,7 @@ def RunHotKey(function, startHotKey, stopHotKey = None):
                 if not funcThread:
                     funcThread=Thread(None, function)
                 if not funcThread.isAlive():
-                    funcThread.start()#todo
+                    funcThread.start()#todo threads can only be started once
                 
 
 def usage():
