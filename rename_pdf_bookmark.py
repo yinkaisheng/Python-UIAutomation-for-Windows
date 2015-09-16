@@ -6,7 +6,16 @@ import string
 import automation
 
 TreeDepth = 2 #书签树只有前两层需要重命名
-UpperWords = {'tcp' : 'TCP', 'ip': 'IP', 'tcp/ip' : 'TCP/IP', 'dns' : 'DNS', 'pc' : 'PC', 'pcs' : 'PCs'}
+UpperWords = {'arp': 'ARP',
+    'dhcp': 'DHCP',
+    'dns': 'DNS',
+    'ip': 'IP',
+    'mac': 'MAC',
+    'unix': 'UNIX',
+    'pc': 'PC',
+    'pcs': 'PCs',
+    'tcp': 'TCP',
+    'tcp/ip': 'TCP/IP'}
 LowerWords = ['a', 'an', 'and', 'at', 'in', 'of', 'the', 'to']
 
 def main():
