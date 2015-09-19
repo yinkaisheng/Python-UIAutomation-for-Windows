@@ -8,7 +8,7 @@ Run 'automation.py -h' for help.
 automation is shared under the GNU Public Licence (GPLv2, v3, and the AGPLv3).
 This means that the code can be freely copied and distributed, and costs nothing to use in other GPL applications.
 
-Open automation_desktop.png, automation_firefox.png or automation_qq.png to see the result.
+Open automation_desktop.png, automation_firefox.png, automation_qq.png or rename_pdf_bookmark.gif to see the demo results.
 
 Author mail: yinkaisheng@foxmail.com
 
