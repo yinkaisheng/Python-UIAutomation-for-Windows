@@ -255,7 +255,7 @@ class MSG(ctypes.Structure):
               ("lParam",    ctypes.c_uint),
               ("time",      ctypes.c_uint),
               ("pt",        ctypes.c_ulonglong)]
-              
+
 class MouseEventFlags():
     '''This class defines the MouseEventFlags from Win32'''
     Absolute = 0x8000
@@ -278,7 +278,7 @@ class HotKey():
     MOD_ALT = 0x0001
     MOD_CONTROL = 0x0002
     MOD_SHIFT = 0x0004
-    
+
 class Keys():
     '''This class defines the Key Code from Win32'''
     VK_LBUTTON = 0x01                       #Left mouse button
@@ -2450,11 +2450,11 @@ def ControlFromPoint(x, y):
 def ControlFromPoint2(x, y):
     '''use Win32API.WindowFromPoint x,y'''
     return Control.CreateControlFromElement(ClientObject.dll.ElementFromHandle(Win32API.WindowFromPoint(x, y)))
-    
+
 def ControlFromCursor():
     x, y = Win32API.GetCursorPos()
     return ControlFromPoint(x, y)
-    
+
 def ControlFromCursor2():
     x, y = Win32API.GetCursorPos()
     return ControlFromPoint2(x, y)
@@ -2620,7 +2620,10 @@ def RunHotKey(function, startHotKey, stopHotKey = None):
                     funcThread=Thread(None, function)
                 if not funcThread.isAlive():
                     funcThread.start()#todo threads can only be started once
-                
+            if 1 == msg.wParam and msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
+                if funcThread:
+                    funcThread._stop()
+
 
 def usage():
     sys.stdout.write('''usage
