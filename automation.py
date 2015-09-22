@@ -2488,6 +2488,9 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     handle = control.Handle32
     Logger.Write('0x{0:X}({1})'.format(handle, handle), ConsoleColor.DarkGreen)
     if showMore:
+        if isinstance(control, EditControl):
+            Logger.Write('    Value: ')
+            Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen)
         Logger.Write('    SupportedPattern:')
         for key in PatternDict:
             pattern = ClientObject.dll.GetElementPattern(control.Element, key)
