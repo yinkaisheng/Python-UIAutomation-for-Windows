@@ -786,7 +786,7 @@ class Win32API():
         return w, h
 
     @staticmethod
-    def GetPixel(x, y, handle = 0):
+    def GetPixelColor(x, y, handle = 0):
         '''
         If handle is 0, get pixel from desktop, return r, g, b, int, hex
         Not all devices support GetPixel. An application should call GetDeviceCaps to determine whether a specified device supports this function. Console window doesn't support.
@@ -1609,6 +1609,10 @@ class Control():
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
+    def GetTopControl(self):
+        '''Return Control, the top window'''
+        return GetTopControl(self)
+
     def GetFirstChildControl(self):
         '''Return Control'''
         comEle = ClientObject.dll.GetFirstChildElement(self.Element)
@@ -1664,10 +1668,10 @@ class Control():
         if hWnd:
             return Win32API.SetWindowText(hWnd, text)
 
-    def GetPixel(self, x, y):
+    def GetPixelColor(self, x, y):
         hWnd = self.Handle32
         if hWnd:
-            return Win32API.GetPixel(x, y, hWnd)
+            return Win32API.GetPixelColor(x, y, hWnd)
 
     def Convert(self):
         '''
@@ -2427,6 +2431,16 @@ def GetRootControl():
 
 def GetFocusedControl():
     return Control.CreateControlFromElement(ClientObject.dll.GetFocusedElement())
+
+def GetTopControl(control):
+    controlList = []
+    while control:
+        controlList.insert(0, control)
+        control = control.GetParentControl()
+    if len(controlList) == 1:
+        return controlList[0] # the desktop 
+    else:
+        return controlList[1]
 
 def GetForegroundControl():
     '''return ControlFromHandle(Win32API.GetForegroundWindow())'''
