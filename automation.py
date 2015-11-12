@@ -2426,6 +2426,59 @@ class Logger():
         if os.path.exists(Logger.LogFile):
             os.remove(Logger.LogFile)
 
+def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):
+    '''
+    walking a tree not using recursive algorithm
+    if getChildrenFunc is valid, ignore getFirstChildFunc and getNextSiblingFunc
+    if getChildrenFunc is not valid, using getFirstChildFunc and getNextSiblingFunc
+    yield item, current depth
+    example:
+    def GetDirChildren(dir):
+        if os.path.isdir(dir):
+            return [os.path.join(dir, it) for it in os.listdir(dir)]
+
+    for it, depth in WalkTree('D:\\', getChildrenFunc= GetDirChildren):
+        print(it, depth)
+    '''
+    depth = 0
+    if includeTop:
+        yield top, depth
+    if maxDepth <= 0:
+        return
+    if getChildrenFunc:
+        children = getChildrenFunc(top)
+        childList = [children]
+        while depth >= 0:
+            lastItems = childList[-1]
+            if lastItems:
+                yield lastItems[0], depth + 1
+                if depth + 1 < maxDepth:
+                    children = getChildrenFunc(lastItems[0])
+                    if children:
+                        depth += 1
+                        childList.append(children)
+                del lastItems[0]
+            else:
+                del childList[depth]
+                depth -= 1
+    elif getFirstChildFunc and getNextSiblingFunc:
+        child = getFirstChildFunc(top)
+        childList = [child]
+        while depth >= 0:
+            lastItem = childList[-1]
+            if lastItem:
+                yield lastItem, depth + 1
+                child = getNextSiblingFunc(lastItem)
+                childList[depth] = child
+                if depth + 1 < maxDepth:
+                    child = getFirstChildFunc(lastItem)
+                    if child:
+                        depth += 1
+                        childList.append(child)
+            else:
+                del childList[depth]
+                depth -= 1
+
 def GetRootControl():
     return Control.CreateControlFromElement(ClientObject.dll.GetRootElement())
 
@@ -2438,7 +2491,7 @@ def GetTopControl(control):
         controlList.insert(0, control)
         control = control.GetParentControl()
     if len(controlList) == 1:
-        return controlList[0] # the desktop 
+        return controlList[0] # the desktop
     else:
         return controlList[1]
 
