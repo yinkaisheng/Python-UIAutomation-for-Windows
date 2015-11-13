@@ -27,7 +27,7 @@ if not IsPy3:
 
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 MSG_CAPTION = 'Tip'
-METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'
+METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
 MAX_MOVE_SECOND = 1 # simulate mouse move or drag max seconds
 
@@ -760,14 +760,14 @@ class Win32API():
         minSide = min(screenWidth, screenHeight)
         if maxPoint < maxSide:
             maxPoint = 100 + int((maxSide-100) / maxSide * maxPoint)
-            dragTime = dragTime * maxPoint * 1.0 / maxSide
+            moveTime = moveTime * maxPoint * 1.0 / maxSide
         stepCount = maxPoint // 20
         Win32API.SetCursorPos(x1, y1)
         Win32API.mouse_event(MouseEventFlags.LeftDown| MouseEventFlags.Absolute, x1*65536//screenWidth, y1*65536//screenHeight, 0, 0)
         if stepCount > 1:
             xStep = (x2 - x1) * 1.0 / stepCount
             yStep = (y2 - y1) * 1.0 / stepCount
-            interval = dragTime / stepCount
+            interval = moveTime / stepCount
             for i in range(stepCount):
                 x1 += xStep
                 y1 += yStep
@@ -2448,7 +2448,7 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
     if getChildrenFunc:
         children = getChildrenFunc(top)
         childList = [children]
-        while depth >= 0:
+        while depth >= 0:   #or while childList:
             lastItems = childList[-1]
             if lastItems:
                 yield lastItems[0], depth + 1
@@ -2464,7 +2464,7 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
     elif getFirstChildFunc and getNextSiblingFunc:
         child = getFirstChildFunc(top)
         childList = [child]
-        while depth >= 0:
+        while depth >= 0:  #or while childList:
             lastItem = childList[-1]
             if lastItem:
                 yield lastItem, depth + 1
