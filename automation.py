@@ -1744,7 +1744,7 @@ class Control():
 
     def __str__(self):
         if IsPy3:
-            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name)
+            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle32)
         else:
             strClassName = self.ClassName.encode('gbk')
             strAutomationId = self.AutomationId.encode('gbk')
@@ -1752,14 +1752,14 @@ class Control():
                 strName = self.Name.encode('gbk')
             except BaseException:
                 strName = 'Error occured: Name can\'t be converted to gbk, try unicode'
-            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}'.format(self.ControlTypeName, strClassName, strAutomationId, self.BoundingRectangle, strName)
+            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, strClassName, strAutomationId, self.BoundingRectangle, strName, self.Handle32)
 
 
     # def __repr__(self):
         # return '[{0}]'.format(self)
 
     def __unicode__(self):
-        return u'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name)
+        return u'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{0:X}({1})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle32)
 
 
 #Patterns -----
@@ -2553,7 +2553,7 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     Logger.Write(name, ConsoleColor.DarkGreen)
     Logger.Write('    Handle: ')
     handle = control.Handle32
-    Logger.Write('0x{0:X}({1})'.format(handle, handle), ConsoleColor.DarkGreen)
+    Logger.Write('0x{0:X}({0})'.format(handle), ConsoleColor.DarkGreen)
     if showMore:
         if isinstance(control, EditControl):
             Logger.Write('    Value: ')
