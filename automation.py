@@ -860,6 +860,40 @@ class Win32API():
         return ctypes.windll.user32.SetWindowTextW(hWnd, c_text)
 
     @staticmethod
+    def GetConsoleOriginalTitle():
+        '''GetConsoleOriginalTitle'''
+        MAX_PATH = 260
+        wcharArray = ClientObject.dll.NewWCharArray(MAX_PATH)
+        if wcharArray:
+            ctypes.windll.kernel32.GetConsoleOriginalTitleW(wcharArray, MAX_PATH)
+            c_text = ctypes.c_wchar_p(wcharArray)
+            text = c_text.value[:]
+            ClientObject.dll.DeleteWCharArray(wcharArray)
+            return text
+
+    @staticmethod
+    def GetConsoleTitle():
+        '''GetConsoleTitle'''
+        MAX_PATH = 260
+        wcharArray = ClientObject.dll.NewWCharArray(MAX_PATH)
+        if wcharArray:
+            #in python Interactive Mode, ctypes.windll.kernel32.GetConsoleTitleW raise ctypes.ArgumentError: argument 1: <class 'TypeError'>: wrong type
+            #but in cmd, running a py that calls GetConsoleTitle doesn't raise any exception
+            #GetConsoleOriginalTitle doesn't have this issue
+            #why? todo
+            ctypes.windll.kernel32.GetConsoleTitleW(wcharArray, MAX_PATH)
+            c_text = ctypes.c_wchar_p(wcharArray)
+            text = c_text.value[:]
+            ClientObject.dll.DeleteWCharArray(wcharArray)
+            return text
+
+    @staticmethod
+    def SetConsoleTitle(text):
+        '''SetConsoleTitle'''
+        c_text = ctypes.c_wchar_p(text)
+        return ctypes.windll.kernel32.SetConsoleTitleW(c_text)
+
+    @staticmethod
     def GetForegroundWindow():
         return ctypes.windll.user32.GetForegroundWindow()
 
