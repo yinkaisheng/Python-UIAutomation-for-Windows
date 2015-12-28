@@ -1,6 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
-#rename pdf bookmarks with FoxitReader 7.2.4
+#rename pdf bookmarks with FoxitReader 7.2.4, 参考: http://www.cnblogs.com/Yinkaisheng/p/4820954.html
 import sys
 import time
 import automation
@@ -29,7 +29,7 @@ UpperWords = {
     'vs': 'VS',
     }
 LowerWords = ['a', 'an', 'and', 'at', 'for', 'in', 'of', 'on', 'the', 'to', 'with']
-Punctuation = '!"\',.:;?)'
+Punctuation = '!"\',:;?)'  # '!"\',.:;?)'
 Renamed = False
 
 class BookMark():
@@ -58,7 +58,8 @@ def BatchRename():
         time.sleep(0.5)
         automation.Win32API.SendKeys('{Alt}y')
         time.sleep(0.5)
-    bookmarkPane = automation.PaneControl(searchFromControl= foxitWindow, AutomationId = '9950')
+    paneWindow = automation.WindowControl(searchFromControl= foxitWindow, AutomationId = '65280')
+    bookmarkPane = automation.PaneControl(searchFromControl= paneWindow, searchDepth= 1, foundIndex= 1)
     l, t, r, b = bookmarkPane.BoundingRectangle
     #bookmarkButton = automation.ButtonControl(searchFromControl= bookmarkPane, Name = '书签') # can't find, but automation -a can find it, why
     if bookmarkPane.Name == '书签':
@@ -98,7 +99,9 @@ def RenameTreeItem(tree, treeItem, bookMarks, depth, removeChapter = True):
     treeItem.ScrollIntoView()
     if depth > TreeDepth:
         return
-    name = treeItem.Name
+    name = treeItem.Name.strip()
+    if not name:
+        return
     newName = RenameFunction(name, removeChapter)
     if newName.startswith('Appendix'):
         removeChapter = False
