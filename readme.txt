@@ -12,4 +12,4 @@ Open automation_desktop.png, automation_firefox.png, automation_qq.png or rename
 
 Author mail: yinkaisheng@foxmail.com
 
-¾ßÌåÓÃ·¨²Î¿¼: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
+å…·ä½“ç”¨æ³•å‚è€ƒ: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
