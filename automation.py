@@ -1515,9 +1515,24 @@ class Control():
         return ''
 
     @property
+    def ProcessId(self):
+        '''Return process id'''
+        return ClientObject.dll.GetElementProcessId(self.Element)
+
+    @property
     def IsEnabled(self):
         '''Return bool'''
         return ClientObject.dll.GetElementIsEnabled(self.Element)
+
+    @property
+    def HasKeyboardFocus(self):
+        '''Return bool'''
+        return ClientObject.dll.GetElementHasKeyboardFocus(self.Element)
+
+    @property
+    def IsKeyboardFocusable(self):
+        '''Return bool'''
+        return ClientObject.dll.GetElementIsKeyboardFocusable(self.Element)
 
     @property
     def IsOffScreen(self):
