@@ -14,8 +14,8 @@ Author mail: yinkaisheng@foxmail.com
 
 [具体用法参考](http://www.cnblogs.com/Yinkaisheng/p/3444132.html)
 
-Desktop(https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_desktop.png)
+![Desktop](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_desktop.png)
 
-Firefox(https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_firefox.png)
+![Firefox](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_firefox.png)
 
-QQ(https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_qq.png)
+![QQ](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_qq.png)
