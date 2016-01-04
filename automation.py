@@ -1676,7 +1676,7 @@ class Control():
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
-    def GetTopControl(self):
+    def GetTopWindow(self):
         '''Return Control, the top window'''
         return GetTopControl(self)
 
@@ -2571,18 +2571,40 @@ def GetTopControl(control):
         return controlList[1]
 
 def GetForegroundControl():
-    '''return ControlFromHandle(Win32API.GetForegroundWindow())'''
-    focusEle = ClientObject.dll.GetFocusedElement()
-    parentEle = focusEle
-    elementList = []
-    while parentEle:
-        elementList.insert(0, parentEle)
-        parentEle = ClientObject.dll.GetParentElement(parentEle)
-    if len(elementList) == 1:
-        parentEle = elementList[0]
-    else:
-        parentEle = elementList[1]
-    return Control.CreateControlFromElement(parentEle)
+    '''return Foreground Window'''
+    return ControlFromHandle(Win32API.GetForegroundWindow())
+    #another implement
+    #focusEle = ClientObject.dll.GetFocusedElement()
+    #parentEle = focusEle
+    #elementList = []
+    #while parentEle:
+        #elementList.insert(0, parentEle)
+        #parentEle = ClientObject.dll.GetParentElement(parentEle)
+    #if len(elementList) == 1:
+        #parentEle = elementList[0]
+    #else:
+        #parentEle = elementList[1]
+    #return Control.CreateControlFromElement(parentEle)
+
+def GetConsoleWindow():
+    '''return console window that runs python'''
+    title = Win32API.GetConsoleTitle()
+    consoleWindow = WindowControl(searchDepth= 1, Name = title)
+    if consoleWindow.Exists(0, 0):
+        return consoleWindow
+    #another implement
+    #MAX_PATH = 260
+    #wcharArray = ClientObject.dll.NewWCharArray(MAX_PATH)
+    #if wcharArray:
+        ##in python Interactive Mode, ctypes.windll.kernel32.GetConsoleTitleW raise ctypes.ArgumentError: argument 1: <class 'TypeError'>: wrong type
+        ##but in cmd, running a py that calls GetConsoleTitle doesn't raise any exception
+        ##GetConsoleOriginalTitle doesn't have this issue
+        ##why? todo
+        #ctypes.windll.kernel32.GetConsoleTitleW(wcharArray, MAX_PATH)
+        #consoleHandle = ctypes.windll.user32.FindWindowW(0, wcharArray);
+        #ClientObject.dll.DeleteWCharArray(wcharArray)
+        #if consoleHandle:
+            #return ControlFromHandle(consoleHandle)
 
 def ControlFromPoint(x, y):
     '''use IUIAutomation ElementFromPoint x,y'''
