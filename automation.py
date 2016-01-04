@@ -1329,7 +1329,7 @@ class Win32API():
             if key[1] == 'UnicodeChar':
                 wchar = ctypes.c_wchar_p(key[0])
                 ClientObject.dll.SendUnicodeChar(wchar)
-                #Win32API.PostMessage(GetFocusedControl().Handle32, 0x102, -key[0], 0)#UnicodeChar = 0x102
+                #Win32API.PostMessage(GetFocusedControl().Handle, 0x102, -key[0], 0)#UnicodeChar = 0x102
             else:
                 scanCode = Win32API.VKtoSC(key[0])
                 Win32API.keybd_event(key[0], scanCode, key[1], 0)
@@ -1368,6 +1368,7 @@ class Control():
                             SubName: str or unicode
         '''
         self._element = element
+        self._elementDirectAssign = True if element else False
         self._name = 0
         self._className = 0
         self._automationId = 0
@@ -1432,9 +1433,26 @@ class Control():
         return True
 
     def Exists(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
-        '''Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds, if found, return the control'''
+        '''Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds, if found, return True else False'''
+        if self._element and self._elementDirectAssign:
+            #element is directly assigned, not by found, jucet check whether self._element is valid
+            #but I can't find an API in UIAutomation that can directly check
+            rootElement = ClientObject.dll.GetRootElement()
+            if self._element == rootElement:
+                ClientObject.dll.ReleaseElement(rootElement)
+                return True
+            else:
+                ClientObject.dll.ReleaseElement(rootElement)
+                parentElement = ClientObject.dll.GetParentElement(self._element)
+                if parentElement:
+                    ClientObject.dll.ReleaseElement(parentElement)
+                    return True
+                else:
+                    return False
         if len(self.searchPorpertyDict) == 0:
             raise LookupError("control's searchPorpertyDict must not be empty!")
+        if self._element:
+            ClientObject.dll.ReleaseElement(self._element)
         self._element = 0
         if self.searchFromControl:
             self.searchFromControl.Element # search searchFromControl first before timing
@@ -1547,7 +1565,7 @@ class Control():
         return (rect.left, rect.top, rect.right, rect.bottom)
 
     @property
-    def Handle32(self):
+    def Handle(self):
         '''Return control's handle'''
         return ClientObject.dll.GetElementHandle(self.Element)
 
@@ -1697,28 +1715,36 @@ class Control():
 
     def ShowWindow(self, cmdShow):
         '''ShowWindow(ShowWindow.Show), see values in class ShowWindow'''
-        hWnd = self.Handle32
+        hWnd = self.Handle
         if hWnd:
             return Win32API.ShowWindow(hWnd, cmdShow)
 
+    def Show(self):
+        '''call ShowWindow(ShowWindow.Show)'''
+        return self.ShowWindow(ShowWindow.Show)
+
+    def Hide(self):
+        '''call ShowWindow(ShowWindow.Hide)'''
+        return self.ShowWindow(ShowWindow.Hide)
+
     def MoveWindow(self, x, y, width, height, repaint = 0):
         '''ShowWindow(ShowWindow.Show), see values in class ShowWindow'''
-        hWnd = self.Handle32
+        hWnd = self.Handle
         if hWnd:
             return Win32API.MoveWindow(hWnd, x, y, width, height, repaint)
 
     def GetWindowText(self):
-        hWnd = self.Handle32
+        hWnd = self.Handle
         if hWnd:
             return Win32API.GetWindowText(hWnd)
 
     def SetWindowText(self, text):
-        hWnd = self.Handle32
+        hWnd = self.Handle
         if hWnd:
             return Win32API.SetWindowText(hWnd, text)
 
     def GetPixelColor(self, x, y):
-        hWnd = self.Handle32
+        hWnd = self.Handle
         if hWnd:
             return Win32API.GetPixelColor(x, y, hWnd)
 
@@ -1793,7 +1819,7 @@ class Control():
 
     def __str__(self):
         if IsPy3:
-            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle32)
+            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle)
         else:
             strClassName = self.ClassName.encode('gbk')
             strAutomationId = self.AutomationId.encode('gbk')
@@ -1801,14 +1827,14 @@ class Control():
                 strName = self.Name.encode('gbk')
             except BaseException:
                 strName = 'Error occured: Name can\'t be converted to gbk, try unicode'
-            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, strClassName, strAutomationId, self.BoundingRectangle, strName, self.Handle32)
+            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, strClassName, strAutomationId, self.BoundingRectangle, strName, self.Handle)
 
 
     # def __repr__(self):
         # return '[{0}]'.format(self)
 
     def __unicode__(self):
-        return u'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{0:X}({1})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle32)
+        return u'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{0:X}({1})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle)
 
 
 #Patterns -----
@@ -2119,7 +2145,7 @@ class WindowPattern():
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
     def SetTopmost(self, isTopmost = True):
-        return Win32API.SetWindowTopmost(self.Handle32, isTopmost)
+        return Win32API.SetWindowTopmost(self.Handle, isTopmost)
 
     def CurrentIsTopmost(self):
         pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
@@ -2137,7 +2163,7 @@ class WindowPattern():
         x, y = (screenWidth-width)//2, (screenHeight-height)//2
         if x < 0: x = 0
         if y < 0: y = 0
-        return Win32API.SetWindowPos(self.Handle32, SWP.HWND_TOP, x, y, 0, 0, SWP.SWP_NOSIZE)
+        return Win32API.SetWindowPos(self.Handle, SWP.HWND_TOP, x, y, 0, 0, SWP.SWP_NOSIZE)
 
     def Close(self):
         pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
@@ -2158,7 +2184,7 @@ class WindowPattern():
             Logger.WriteLine('Window is not Metro!', ConsoleColor.Yellow)
 
     def SetActive(self):
-        return Win32API.SetForegroundWindow(self.Handle32)
+        return Win32API.SetForegroundWindow(self.Handle)
 
 
 class ButtonControl(Control, InvokePattern, TogglePattern, ExpandCollapsePattern):
@@ -2601,7 +2627,7 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     Logger.Write('    Name: ')
     Logger.Write(name, ConsoleColor.DarkGreen)
     Logger.Write('    Handle: ')
-    handle = control.Handle32
+    handle = control.Handle
     Logger.Write('0x{0:X}({0})'.format(handle), ConsoleColor.DarkGreen)
     if showMore:
         if isinstance(control, EditControl):
@@ -2702,7 +2728,7 @@ def ShowDesktop():
         WM_COMMAND = 0x111
         MIN_ALL = 419
         MIN_ALL_UNDO = 416
-        Win32API.PostMessage(paneTray.Handle32, WM_COMMAND, MIN_ALL, 0)
+        Win32API.PostMessage(paneTray.Handle, WM_COMMAND, MIN_ALL, 0)
         time.sleep(1)
 
 def ClickCharmBar(buttonId):
@@ -2731,7 +2757,7 @@ def RunHotKey(function, startHotKey, stopHotKey = None):
         sys.stdout.write('Register Stop HotKey {0}\n'.format(stopHotKey))
     from threading import Thread
     funcThread = None
-    msg=MSG()
+    msg = MSG()
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if 1 == msg.wParam and msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
@@ -2747,7 +2773,7 @@ def RunHotKey(function, startHotKey, stopHotKey = None):
 def usage():
     sys.stdout.write('''usage
 -h      show command help
--t      delay time, begin to enumerate after Value seconds, this must be an integer
+-t      delay time, default 3 seconds, begin to enumerate after Value seconds, this must be an integer
         you can delay a few seconds and make a window active so automation can enumerate the active window
 -d      enumerate tree depth, this must be an integer, if it is null, enumerate the whole tree
 -r      enumerate from root:desktop window, if it is null, enumerate from foreground window
