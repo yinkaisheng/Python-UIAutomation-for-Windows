@@ -1759,50 +1759,7 @@ class Control():
     def CreateControlFromElement(element):
         '''element: value of IUIAutomationElement'''
         controlType = ClientObject.dll.GetElementControlType(element)
-        controlDict = {
-            ControlType.ButtonControl : ButtonControl,
-            ControlType.CalendarControl : CalendarControl,
-            ControlType.CheckBoxControl : CheckBoxControl,
-            ControlType.ComboBoxControl : ComboBoxControl,
-            ControlType.CustomControl : CustomControl,
-            ControlType.DataGridControl : DataGridControl,
-            ControlType.DataItemControl : DataItemControl,
-            ControlType.DocumentControl : DocumentControl,
-            ControlType.EditControl : EditControl,
-            ControlType.GroupControl : GroupControl,
-            ControlType.HeaderControl : HeaderControl,
-            ControlType.HeaderItemControl : HeaderItemControl,
-            ControlType.HyperlinkControl : HyperlinkControl,
-            ControlType.ImageControl : ImageControl,
-            ControlType.ListControl : ListControl,
-            ControlType.ListItemControl : ListItemControl,
-            ControlType.MenuBarControl : MenuBarControl,
-            ControlType.MenuControl : MenuControl,
-            ControlType.MenuItemControl : MenuItemControl,
-            ControlType.PaneControl : PaneControl,
-            ControlType.ProgressBarControl : ProgressBarControl,
-            ControlType.RadioButtonControl : RadioButtonControl,
-            ControlType.ScrollBarControl : ScrollBarControl,
-            ControlType.SemanticZoomControl : SemanticZoomControl,
-            ControlType.SeparatorControl : SeparatorControl,
-            ControlType.SliderControl : SliderControl,
-            ControlType.SpinnerControl : SpinnerControl,
-            ControlType.SplitButtonControl : SplitButtonControl,
-            ControlType.StatusBarControl : StatusBarControl,
-            ControlType.TabControl : TabControl,
-            ControlType.TabItemControl : TabItemControl,
-            ControlType.TableControl : TableControl,
-            ControlType.TextControl : TextControl,
-            ControlType.ThumbControl : ThumbControl,
-            ControlType.TitleBarControl : TitleBarControl,
-            ControlType.ToolBarControl : ToolBarControl,
-            ControlType.ToolTipControl : ToolTipControl,
-            ControlType.TreeControl : TreeControl,
-            ControlType.TreeItemControl : TreeItemControl,
-            ControlType.WindowControl : WindowControl,
-        }
-        if controlType in controlDict:
-            return controlDict[controlType](element)
+        return ControlDict[controlType](element)
 
     @staticmethod
     def CreateControlFromControl(control):
@@ -2445,6 +2402,50 @@ class WindowControl(Control, WindowPattern):
         self.AddSearchProperty(ControlType = ControlType.WindowControl)
 
 
+ControlDict = {
+            ControlType.ButtonControl : ButtonControl,
+            ControlType.CalendarControl : CalendarControl,
+            ControlType.CheckBoxControl : CheckBoxControl,
+            ControlType.ComboBoxControl : ComboBoxControl,
+            ControlType.CustomControl : CustomControl,
+            ControlType.DataGridControl : DataGridControl,
+            ControlType.DataItemControl : DataItemControl,
+            ControlType.DocumentControl : DocumentControl,
+            ControlType.EditControl : EditControl,
+            ControlType.GroupControl : GroupControl,
+            ControlType.HeaderControl : HeaderControl,
+            ControlType.HeaderItemControl : HeaderItemControl,
+            ControlType.HyperlinkControl : HyperlinkControl,
+            ControlType.ImageControl : ImageControl,
+            ControlType.ListControl : ListControl,
+            ControlType.ListItemControl : ListItemControl,
+            ControlType.MenuBarControl : MenuBarControl,
+            ControlType.MenuControl : MenuControl,
+            ControlType.MenuItemControl : MenuItemControl,
+            ControlType.PaneControl : PaneControl,
+            ControlType.ProgressBarControl : ProgressBarControl,
+            ControlType.RadioButtonControl : RadioButtonControl,
+            ControlType.ScrollBarControl : ScrollBarControl,
+            ControlType.SemanticZoomControl : SemanticZoomControl,
+            ControlType.SeparatorControl : SeparatorControl,
+            ControlType.SliderControl : SliderControl,
+            ControlType.SpinnerControl : SpinnerControl,
+            ControlType.SplitButtonControl : SplitButtonControl,
+            ControlType.StatusBarControl : StatusBarControl,
+            ControlType.TabControl : TabControl,
+            ControlType.TabItemControl : TabItemControl,
+            ControlType.TableControl : TableControl,
+            ControlType.TextControl : TextControl,
+            ControlType.ThumbControl : ThumbControl,
+            ControlType.TitleBarControl : TitleBarControl,
+            ControlType.ToolBarControl : ToolBarControl,
+            ControlType.ToolTipControl : ToolTipControl,
+            ControlType.TreeControl : TreeControl,
+            ControlType.TreeItemControl : TreeItemControl,
+            ControlType.WindowControl : WindowControl,
+        }
+
+
 class Logger():
     LogFile = '@AutomationLog.txt'
     LineSep = '\n'
@@ -2574,17 +2575,17 @@ def GetForegroundControl():
     '''return Foreground Window'''
     return ControlFromHandle(Win32API.GetForegroundWindow())
     #another implement
-    #focusEle = ClientObject.dll.GetFocusedElement()
-    #parentEle = focusEle
-    #elementList = []
-    #while parentEle:
-        #elementList.insert(0, parentEle)
-        #parentEle = ClientObject.dll.GetParentElement(parentEle)
-    #if len(elementList) == 1:
-        #parentEle = elementList[0]
+    #focusedControl = GetFocusedControl()
+    #parentControl = focusedControl
+    #controlList = []
+    #while parentControl:
+        #controlList.insert(0, parentControl)
+        #parentControl = parentControl.GetParentControl()
+    #if len(controlList) == 1:
+        #parentControl = controlList[0]
     #else:
-        #parentEle = elementList[1]
-    #return Control.CreateControlFromElement(parentEle)
+        #parentControl = controlList[1]
+    #return parentControl
 
 def GetConsoleWindow():
     '''return console window that runs python'''
@@ -2745,13 +2746,15 @@ def ShowMetroStartMenu():
         time.sleep(1)
 
 def ShowDesktop():
-    paneTray = PaneControl(searchDepth = 1, ClassName = 'Shell_TrayWnd')
-    if paneTray.Exists():
-        WM_COMMAND = 0x111
-        MIN_ALL = 419
-        MIN_ALL_UNDO = 416
-        Win32API.PostMessage(paneTray.Handle, WM_COMMAND, MIN_ALL, 0)
-        time.sleep(1)
+    Win32API.SendKeys('{Win}d')
+    #another implement
+    #paneTray = PaneControl(searchDepth = 1, ClassName = 'Shell_TrayWnd')
+    #if paneTray.Exists():
+        #WM_COMMAND = 0x111
+        #MIN_ALL = 419
+        #MIN_ALL_UNDO = 416
+        #Win32API.PostMessage(paneTray.Handle, WM_COMMAND, MIN_ALL, 0)
+        #time.sleep(1)
 
 def ClickCharmBar(buttonId):
     charmBar = WindowControl(searchDepth = 1, ClassName = 'NativeHWNDHost', AutomationId = 'Charm Bar')
