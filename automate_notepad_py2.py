@@ -67,11 +67,16 @@ def testNotepadCN():
 def testNotepadEN():
     automation.ShowDesktop()
     subprocess.Popen('notepad')
+    #search notepad window, if searchFromControl is None, search from RootControl
+    #searchDepth = 1 makes searching faster, only searches RootControl's children, not children's children
     window = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad', SubName = 'Untitled - Notepad')
+    #if window.Exists(maxSearchSeconds = 3): #check before using it
+        #pass
     edit = automation.EditControl(searchFromControl = window)
     window.SetActive()
     time.sleep(1)
     edit.DoubleClick()
+	#use unicode string
     edit.SetValue(u'hi你好')
     automation.Win32API.SendKeys(u'{Ctrl}{End}{Enter}下面开始演示{! 4}{ENTER}', 0.2)
     automation.Win32API.SendKeys(text)
@@ -97,7 +102,7 @@ def testNotepadEN():
     # buttonNotSave.Click()
     # or send alt+n to not save and quit
     # Win32API.SendKeys('{ALT}n')
-    # 使用另一种查找方法
+    # another way to find the button using lambda
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and 'Don\'t Save' == control.Name)
     buttonNotSave.Click()
