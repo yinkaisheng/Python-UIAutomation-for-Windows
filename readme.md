@@ -22,3 +22,6 @@ Firefox
 
 QQ
 ![QQ](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_qq.png)
+
+Batch rename pdf bookmark
+![bookmark](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/rename_pdf_bookmark.gif)
