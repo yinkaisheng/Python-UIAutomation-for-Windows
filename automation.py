@@ -913,6 +913,10 @@ class Win32API():
         return ClientObject.dll.GetParentProcessId(processId)
 
     @staticmethod
+    def TerminateProcess(handle):
+        return ctypes.windll.kernel32.TerminateProcess(handle, -1)
+
+    @staticmethod
     def EnumProcess():
         '''Return a namedtuple's iter (for p in this p.pid p.name)'''
         import collections
@@ -1335,22 +1339,22 @@ class Win32API():
                 Win32API.keybd_event(key[0], scanCode, key[1], 0)
             time.sleep(interval)
         #make sure hold keys are not pressed
-        win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
-        ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
-        alt = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_MENU)
-        shift = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_SHIFT)
-        if win & 0x8000:
-            Logger.WriteLine('ERROR: WIN is pressed, it should not be pressed!', ConsoleColor.Red)
-            Win32API.keybd_event(Keys.VK_LWIN, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        if ctrl & 0x8000:
-            Logger.WriteLine('ERROR: CTRL is pressed, it should not be pressed!', ConsoleColor.Red)
-            Win32API.keybd_event(Keys.VK_CONTROL, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        if alt & 0x8000:
-            Logger.WriteLine('ERROR: ALT is pressed, it should not be pressed!', ConsoleColor.Red)
-            Win32API.keybd_event(Keys.VK_MENU, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        if shift & 0x8000:
-            Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
-            Win32API.keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
+        #win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
+        #ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
+        #alt = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_MENU)
+        #shift = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_SHIFT)
+        #if win & 0x8000:
+            #Logger.WriteLine('ERROR: WIN is pressed, it should not be pressed!', ConsoleColor.Red)
+            #Win32API.keybd_event(Keys.VK_LWIN, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
+        #if ctrl & 0x8000:
+            #Logger.WriteLine('ERROR: CTRL is pressed, it should not be pressed!', ConsoleColor.Red)
+            #Win32API.keybd_event(Keys.VK_CONTROL, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
+        #if alt & 0x8000:
+            #Logger.WriteLine('ERROR: ALT is pressed, it should not be pressed!', ConsoleColor.Red)
+            #Win32API.keybd_event(Keys.VK_MENU, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
+        #if shift & 0x8000:
+            #Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
+            #Win32API.keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
 
 class Control():
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 10000, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
@@ -2739,14 +2743,16 @@ def FindControl(control, compareFunc, maxDepth=10000, findFromSelf = False, foun
             depth -= 1
 
 def ShowMetroStartMenu():
-    '''Show Metro Strat Menu, only works on Windows 8'''
+    '''Show Metro Strat Menu, works on Windows 8'''
     paneMenu = PaneControl(searchDepth = 1, ClassName = 'ImmersiveLauncher', AutomationId = 'Start menu window')
     if not paneMenu.Exists(0, 0):
         Win32API.SendKeys('{Win}')
         time.sleep(1)
 
 def ShowDesktop():
+    '''show the desktop by win + d'''
     Win32API.SendKeys('{Win}d')
+    time.sleep(1)
     #another implement
     #paneTray = PaneControl(searchDepth = 1, ClassName = 'Shell_TrayWnd')
     #if paneTray.Exists():
@@ -2757,6 +2763,7 @@ def ShowDesktop():
         #time.sleep(1)
 
 def ClickCharmBar(buttonId):
+    '''ClickCharmBar works in Windows 8'''
     charmBar = WindowControl(searchDepth = 1, ClassName = 'NativeHWNDHost', AutomationId = 'Charm Bar')
     if not charmBar.Exists(0):
         Win32API.SendKeys('{Win}C')
@@ -2765,6 +2772,7 @@ def ClickCharmBar(buttonId):
         button.Click()
 
 def RunMetroApp(appName):
+    '''RunMetroApp works in Windows 8'''
     ClickCharmBar('Search')
     searchPane = PaneControl(searchDepth = 1, ClassName = 'SearchPane')
     if searchPane.Exists():
@@ -2775,29 +2783,56 @@ def RunMetroApp(appName):
         appItem.Click()
         time.sleep(1)
 
-def RunHotKey(function, startHotKey, stopHotKey = None):
-    if startHotKey and len(startHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, 1, startHotKey[0], startHotKey[1])):
+def RunWithHotKey(function, startHotKey, stopHotKey = None):
+    '''
+    bind function with hot key, the function will be run or stopped in another thread when the hot key was pressed
+    automation doesn't support multi thread, so you can't use automation in the function
+    you can call another script that uses automation
+
+    def main(stopEvent):
+        n = 0
+        while True:
+            if stopEvent.is_set(): # must check stopEvent.is_set() if you want to stop when stop hot key was pressed
+                break
+            print(n)
+            n += 1
+            stopEvent.wait(1)
+        print('main exit')
+        print(automation.GetRootControl())      # will raise exception, can't use automation, todo
+
+    automation.RunHotKey(main, (automation.HotKey.MOD_CONTROL, automation.Keys.VK_1), (automation.HotKey.MOD_CONTROL, automation.Keys.VK_2))
+    '''
+    startHotKeyFlag = 1
+    stopHotKeyFalg = 2
+    if startHotKey and len(startHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, startHotKeyFlag, startHotKey[0], startHotKey[1])):
         sys.stdout.write('Register Start HotKey {0}\n'.format(startHotKey))
-    if stopHotKey and len(stopHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, 2, stopHotKey[0], stopHotKey[1])):
+    if stopHotKey and len(stopHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, stopHotKeyFalg, stopHotKey[0], stopHotKey[1])):
         sys.stdout.write('Register Stop HotKey {0}\n'.format(stopHotKey))
-    from threading import Thread
+    from threading import Thread, Event
     funcThread = None
+    stopEvent = Event()
     msg = MSG()
+    def threadFunc(function, stopEvent):
+        function(stopEvent)
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
-            if 1 == msg.wParam and msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
+            if startHotKeyFlag == msg.wParam and msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
+                print('\nstart hot key pressed')
                 if not funcThread:
-                    funcThread=Thread(None, function)
+                    stopEvent.clear()
+                    funcThread=Thread(None, threadFunc, args = (function, stopEvent))
+                    funcThread.setDaemon(True)
                     funcThread.start()
                 else:
                     if not funcThread.isAlive():
-                        funcThread=Thread(None, function)
-                        funcThread.start()#todo threads can only be started once
-            if 1 == msg.wParam and msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
-                if funcThread:
-                    funcThread._stop()
-                    funcThread = None
-
+                        stopEvent.clear()
+                        funcThread=Thread(None, threadFunc, args = (function, stopEvent))
+                        funcThread.setDaemon(True)
+                        funcThread.start()
+            if stopHotKeyFalg == msg.wParam and msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
+                print('\nstop hot key pressed')
+                stopEvent.set()
+                funcThread = None
 
 def usage():
     sys.stdout.write('''usage
