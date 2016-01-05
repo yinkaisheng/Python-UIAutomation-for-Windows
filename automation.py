@@ -2785,7 +2785,7 @@ def RunMetroApp(appName):
 
 def RunWithHotKey(function, startHotKey, stopHotKey = None):
     '''
-    bind function with hot key, the function will be run or stopped in another thread when the hot key was pressed
+    bind function with hotkey, the function will be run or stopped in another thread when the hotkey was pressed
     automation doesn't support multi thread, so you can't use automation in the function
     you can call another script that uses automation
 
