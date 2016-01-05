@@ -2803,11 +2803,22 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
     automation.RunHotKey(main, (automation.HotKey.MOD_CONTROL, automation.Keys.VK_1), (automation.HotKey.MOD_CONTROL, automation.Keys.VK_2))
     '''
     startHotKeyFlag = 1
-    stopHotKeyFalg = 2
-    if startHotKey and len(startHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, startHotKeyFlag, startHotKey[0], startHotKey[1])):
-        sys.stdout.write('Register Start HotKey {0}\n'.format(startHotKey))
-    if stopHotKey and len(stopHotKey) == 2 and (ctypes.windll.user32.RegisterHotKey(0, stopHotKeyFalg, stopHotKey[0], stopHotKey[1])):
-        sys.stdout.write('Register Stop HotKey {0}\n'.format(stopHotKey))
+    stopHotKeyFlag = 2
+    registed = True
+    if startHotKey and len(startHotKey) == 2:
+        if ctypes.windll.user32.RegisterHotKey(0, startHotKeyFlag, startHotKey[0], startHotKey[1]):
+            sys.stdout.write('Register start hotKey {0} succeed\n'.format(startHotKey))
+        else:
+            registed = False
+            sys.stdout.write('Register start hotKey {0} failed, maybe it was allready registered by another program\n'.format(startHotKey))
+    if stopHotKey and len(stopHotKey) == 2:
+        if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyFlag, stopHotKey[0], stopHotKey[1]):
+            sys.stdout.write('Register stop hotKey {0} succeed\n'.format(stopHotKey))
+        else:
+            registed = False
+            sys.stdout.write('Register stop hotKey {0} failed, maybe it was allready registered by another program\n'.format(stopHotKey))
+    if not registed:
+        return
     from threading import Thread, Event
     funcThread = None
     stopEvent = Event()
@@ -2817,7 +2828,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if startHotKeyFlag == msg.wParam and msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
-                print('\nstart hot key pressed')
+                print('start hotkey pressed')
                 if not funcThread:
                     stopEvent.clear()
                     funcThread=Thread(None, threadFunc, args = (function, stopEvent))
@@ -2829,8 +2840,8 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
                         funcThread=Thread(None, threadFunc, args = (function, stopEvent))
                         funcThread.setDaemon(True)
                         funcThread.start()
-            if stopHotKeyFalg == msg.wParam and msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
-                print('\nstop hot key pressed')
+            if stopHotKeyFlag == msg.wParam and msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
+                print('stop hotkey pressed')
                 stopEvent.set()
                 funcThread = None
 
