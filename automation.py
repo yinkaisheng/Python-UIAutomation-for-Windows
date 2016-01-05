@@ -1323,7 +1323,7 @@ class Win32API():
                 break
         if debug:
             for key in printKeys:
-                sys.stdout.write(key + '\n')
+                sys.stdout.write(str(key) + '\n')
             sys.stdout.write('\n')
         for key in keys:
             if key[1] == 'UnicodeChar':
@@ -2788,11 +2788,15 @@ def RunHotKey(function, startHotKey, stopHotKey = None):
             if 1 == msg.wParam and msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
                 if not funcThread:
                     funcThread=Thread(None, function)
-                if not funcThread.isAlive():
-                    funcThread.start()#todo threads can only be started once
+                    funcThread.start()
+                else:
+                    if not funcThread.isAlive():
+                        funcThread=Thread(None, function)
+                        funcThread.start()#todo threads can only be started once
             if 1 == msg.wParam and msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
                 if funcThread:
                     funcThread._stop()
+                    funcThread = None
 
 
 def usage():
