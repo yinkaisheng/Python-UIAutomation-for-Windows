@@ -964,6 +964,15 @@ class Win32API():
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
 
     @staticmethod
+    def IsKeyPressed(key):
+        '''
+        Check key is pressed or not
+        key: a value in class Keys
+        '''
+        state = ctypes.windll.user32.GetAsyncKeyState(key)
+        return True if state & 0x8000 else False
+
+    @staticmethod
     def VKtoSC(key):
         '''key: a value in class Keys'''
         SCDict = {
@@ -1681,8 +1690,12 @@ class Control():
             return Control.CreateControlFromElement(comEle)
 
     def GetTopWindow(self):
-        '''Return Control, the top window'''
-        return GetTopControl(self)
+        '''Return control's top window'''
+        control = self
+        while control:
+            if control.ControlType == ControlType.WindowControl:
+                return control
+            control = control.GetParentControl()
 
     def GetFirstChildControl(self):
         '''Return Control'''
@@ -1718,36 +1731,42 @@ class Control():
         return children
 
     def ShowWindow(self, cmdShow):
-        '''ShowWindow(ShowWindow.Show), see values in class ShowWindow'''
+        '''
+		ShowWindow(ShowWindow.Show), only works if Handle is valid
+		cmdShow: see values in class ShowWindow
+		'''
         hWnd = self.Handle
         if hWnd:
             return Win32API.ShowWindow(hWnd, cmdShow)
 
     def Show(self):
-        '''call ShowWindow(ShowWindow.Show)'''
+        '''call ShowWindow(ShowWindow.Show), only works if Handle is valid'''
         return self.ShowWindow(ShowWindow.Show)
 
     def Hide(self):
-        '''call ShowWindow(ShowWindow.Hide)'''
+        '''call ShowWindow(ShowWindow.Hide), only works if Handle is valid'''
         return self.ShowWindow(ShowWindow.Hide)
 
     def MoveWindow(self, x, y, width, height, repaint = 0):
-        '''ShowWindow(ShowWindow.Show), see values in class ShowWindow'''
+        '''only works if Handle is valid'''
         hWnd = self.Handle
         if hWnd:
             return Win32API.MoveWindow(hWnd, x, y, width, height, repaint)
 
     def GetWindowText(self):
+        '''only works if Handle is valid'''
         hWnd = self.Handle
         if hWnd:
             return Win32API.GetWindowText(hWnd)
 
     def SetWindowText(self, text):
+        '''only works if Handle is valid'''
         hWnd = self.Handle
         if hWnd:
             return Win32API.SetWindowText(hWnd, text)
 
     def GetPixelColor(self, x, y):
+        '''only works if Handle is valid'''
         hWnd = self.Handle
         if hWnd:
             return Win32API.GetPixelColor(x, y, hWnd)
@@ -2565,16 +2584,6 @@ def GetRootControl():
 def GetFocusedControl():
     return Control.CreateControlFromElement(ClientObject.dll.GetFocusedElement())
 
-def GetTopControl(control):
-    controlList = []
-    while control:
-        controlList.insert(0, control)
-        control = control.GetParentControl()
-    if len(controlList) == 1:
-        return controlList[0] # the desktop
-    else:
-        return controlList[1]
-
 def GetForegroundControl():
     '''return Foreground Window'''
     return ControlFromHandle(Win32API.GetForegroundWindow())
@@ -2707,7 +2716,7 @@ def EnumControl(control, maxDepth = 10000, showAllName = True, showMore = False)
 def FindControl(control, compareFunc, maxDepth=10000, findFromSelf = False, foundIndex = 1):
     '''
     control: Control
-    compareFunc: compare function, should True or False
+    compareFunc: compare function, should return True or False
     maxDepth: integer
     findFromSelf: bool
     foundIndex: integer, value must be greater or equal to 1
