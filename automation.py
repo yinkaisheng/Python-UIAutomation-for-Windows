@@ -1691,7 +1691,7 @@ class Control():
 
     def GetTopWindow(self):
         '''Return control's top window'''
-        control = self
+        control = self.GetParentControl()
         while control:
             if control.ControlType == ControlType.WindowControl:
                 return control
@@ -2483,9 +2483,10 @@ class Logger():
             Win32API.SetConsoleColor(consoleColor)
         try:
             sys.stdout.write(log)
-        except Exception as e:
+        except UnicodeError as e:
             Win32API.SetConsoleColor(ConsoleColor.Red)
-            sys.stdout.write(str(type(e)) + ' can\'t print the log!')
+            isValidColor = True
+            sys.stdout.write(str(type(e)) + ' can\'t print the log!\n')
         if isValidColor:
             Win32API.ResetConsoleColor()
         if not writeToFile:

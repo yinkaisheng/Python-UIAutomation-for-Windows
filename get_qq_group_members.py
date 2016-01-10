@@ -1,13 +1,12 @@
 #!python3
 # -*- coding: utf-8 -*-
 '''
-本脚本可以获取QQ群所有成员详细资料，请根据提示做对应的操作
+本脚本可以获取QQ2016群所有成员详细资料，请根据提示做对应的操作
 作者：yinkaisheng@foxmail.com
 2016-01-06
 '''
 import time
 import automation
-
 
 def GetPersonDetail():
     detailWindow = automation.WindowControl(searchDepth= 1, ClassName = 'TXGuiFoundation', SubName = '的资料')
@@ -54,8 +53,6 @@ def main():
                     input('\n您暂停了脚本，按Enter继续\n')
                     qqWindow.SetActive()
                     time.sleep(0.5)
-                listItem.Click()
-                time.sleep(0.5)
                 listItem.RightClick()
                 menu = automation.MenuControl(searchDepth= 1, ClassName = 'TXGuiFoundation')
                 menuItems = menu.GetChildren()
@@ -68,7 +65,7 @@ def main():
                 listItem.Click()
                 time.sleep(0.5)
                 automation.Win32API.SendKeys('{Down}')
-
+                time.sleep(0.5)
 
 if __name__ == '__main__':
     main()
