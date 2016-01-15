@@ -31,7 +31,7 @@ METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 change
 SEARCH_INTERVAL = 0.5 # search control interval seconds
 MAX_MOVE_SECOND = 1 # simulate mouse move or drag max seconds
 
-class AutomationClient():
+class _AutomationClient():
     def __init__(self):
         dir = os.path.dirname(__file__)
         if dir:
@@ -46,7 +46,8 @@ class AutomationClient():
     def __del__(self):
         self.dll.ReleaseInstance()
 
-ClientObject = AutomationClient()
+_automationClient = _AutomationClient()
+_rootControl = None
 
 '''
 class WString():
@@ -55,7 +56,7 @@ class WString():
         self.cwcharp = 0
     def __del__(self):
         if self.wcharArray:
-            ClientObject.dll.DeleteWCharArray(self.wcharArray)
+            _automationClient.dll.DeleteWCharArray(self.wcharArray)
     @property
     def value(self):
         if self.cwcharp:
@@ -598,7 +599,7 @@ class Win32API():
         ctext = ctypes.c_wchar_p(text)
         return ctext.value
         '''size = ctypes.windll.kernel32.MultiByteToWideChar(936, 0, text, -1, 0, 0)
-        pwChar = ClientObject.dll.NewWCharArray(size)
+        pwChar = _automationClient.dll.NewWCharArray(size)
         ctypes.windll.kernel32.MultiByteToWideChar(936, 0, text, -1, pwChar, size)
         wstr = WString()
         wstr.wcharArray = pwChar
@@ -845,12 +846,12 @@ class Win32API():
     def GetWindowText(hWnd):
         '''Get window text'''
         MAX_PATH = 260
-        wcharArray = ClientObject.dll.NewWCharArray(MAX_PATH)
+        wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
         if wcharArray:
             ctypes.windll.user32.GetWindowTextW(hWnd, wcharArray, MAX_PATH)
             c_text = ctypes.c_wchar_p(wcharArray)
             text = c_text.value[:]
-            ClientObject.dll.DeleteWCharArray(wcharArray)
+            _automationClient.dll.DeleteWCharArray(wcharArray)
             return text
 
     @staticmethod
@@ -863,19 +864,19 @@ class Win32API():
     def GetConsoleOriginalTitle():
         '''GetConsoleOriginalTitle'''
         MAX_PATH = 260
-        wcharArray = ClientObject.dll.NewWCharArray(MAX_PATH)
+        wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
         if wcharArray:
             ctypes.windll.kernel32.GetConsoleOriginalTitleW(wcharArray, MAX_PATH)
             c_text = ctypes.c_wchar_p(wcharArray)
             text = c_text.value[:]
-            ClientObject.dll.DeleteWCharArray(wcharArray)
+            _automationClient.dll.DeleteWCharArray(wcharArray)
             return text
 
     @staticmethod
     def GetConsoleTitle():
         '''GetConsoleTitle'''
         MAX_PATH = 260
-        wcharArray = ClientObject.dll.NewWCharArray(MAX_PATH)
+        wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
         if wcharArray:
             #in python Interactive Mode, ctypes.windll.kernel32.GetConsoleTitleW raise ctypes.ArgumentError: argument 1: <class 'TypeError'>: wrong type
             #but in cmd, running a py that calls GetConsoleTitle doesn't raise any exception
@@ -884,7 +885,7 @@ class Win32API():
             ctypes.windll.kernel32.GetConsoleTitleW(wcharArray, MAX_PATH)
             c_text = ctypes.c_wchar_p(wcharArray)
             text = c_text.value[:]
-            ClientObject.dll.DeleteWCharArray(wcharArray)
+            _automationClient.dll.DeleteWCharArray(wcharArray)
             return text
 
     @staticmethod
@@ -899,18 +900,18 @@ class Win32API():
 
     @staticmethod
     def GetProcessCommandLine(processId):
-        wstr = ClientObject.dll.GetProcessCommandLine(processId)
+        wstr = _automationClient.dll.GetProcessCommandLine(processId)
         if wstr:
             cmdLine = ctypes.c_wchar_p(wstr)
             cmdLine = cmdLine.value[:]
-            ClientObject.dll.DeleteWCharArray(wstr)
+            _automationClient.dll.DeleteWCharArray(wstr)
             return cmdLine
         else:
             return ''
 
     @staticmethod
     def GetParentProcessId(processId = -1):
-        return ClientObject.dll.GetParentProcessId(processId)
+        return _automationClient.dll.GetParentProcessId(processId)
 
     @staticmethod
     def TerminateProcess(handle):
@@ -1341,7 +1342,7 @@ class Win32API():
         for key in keys:
             if key[1] == 'UnicodeChar':
                 wchar = ctypes.c_wchar_p(key[0])
-                ClientObject.dll.SendUnicodeChar(wchar)
+                _automationClient.dll.SendUnicodeChar(wchar)
                 #Win32API.PostMessage(GetFocusedControl().Handle, 0x102, -key[0], 0)#UnicodeChar = 0x102
             else:
                 scanCode = Win32API.VKtoSC(key[0])
@@ -1398,16 +1399,16 @@ class Control():
         but __del__ needs method in dll(which needs ctypes) to release resources
         '''
         if self._element:
-            ClientObject.dll.ReleaseElement(self._element)
+            _automationClient.dll.ReleaseElement(self._element)
             self._element = 0
         if self._name:
-            ClientObject.dll.FreeBSTR(self._name)
+            _automationClient.dll.FreeBSTR(self._name)
             self._name = 0
         if self._className:
-            ClientObject.dll.FreeBSTR(self._className)
+            _automationClient.dll.FreeBSTR(self._className)
             self._className = 0
         if self._automationId:
-            ClientObject.dll.FreeBSTR(self._automationId)
+            _automationClient.dll.FreeBSTR(self._automationId)
             self._automationId = 0
 
     def SetSearchFromControl(self, searchFromControl):
@@ -1448,24 +1449,22 @@ class Control():
     def Exists(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
         '''Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds, if found, return True else False'''
         if self._element and self._elementDirectAssign:
-            #element is directly assigned, not by found, jucet check whether self._element is valid
+            #if element is directly assigned, not by searching, jucet check whether self._element is valid
             #but I can't find an API in UIAutomation that can directly check
-            rootElement = ClientObject.dll.GetRootElement()
+            rootElement = GetRootControl().Element
             if self._element == rootElement:
-                ClientObject.dll.ReleaseElement(rootElement)
                 return True
             else:
-                ClientObject.dll.ReleaseElement(rootElement)
-                parentElement = ClientObject.dll.GetParentElement(self._element)
+                parentElement = _automationClient.dll.GetParentElement(self._element)
                 if parentElement:
-                    ClientObject.dll.ReleaseElement(parentElement)
+                    _automationClient.dll.ReleaseElement(parentElement)
                     return True
                 else:
                     return False
         if len(self.searchPorpertyDict) == 0:
             raise LookupError("control's searchPorpertyDict must not be empty!")
         if self._element:
-            ClientObject.dll.ReleaseElement(self._element)
+            _automationClient.dll.ReleaseElement(self._element)
         self._element = 0
         if self.searchFromControl:
             self.searchFromControl.Element # search searchFromControl first before timing
@@ -1506,8 +1505,8 @@ class Control():
     def Name(self):
         '''Return unicode Name'''
         if self._name:
-            ClientObject.dll.FreeBSTR(self._name)
-        self._name = ClientObject.dll.GetElementName(self.Element)
+            _automationClient.dll.FreeBSTR(self._name)
+        self._name = _automationClient.dll.GetElementName(self.Element)
         if self._name:
             name = ctypes.c_wchar_p(self._name)
             return name.value
@@ -1516,7 +1515,7 @@ class Control():
     @property
     def ControlType(self):
         '''Return an integer in class ControlType'''
-        return ClientObject.dll.GetElementControlType(self.Element)
+        return _automationClient.dll.GetElementControlType(self.Element)
 
     @property
     def ControlTypeName(self):
@@ -1527,8 +1526,8 @@ class Control():
     def ClassName(self):
         '''Return unicode ClassName'''
         if self._className:
-            ClientObject.dll.FreeBSTR(self._className)
-        self._className = ClientObject.dll.GetElementClassName(self.Element)
+            _automationClient.dll.FreeBSTR(self._className)
+        self._className = _automationClient.dll.GetElementClassName(self.Element)
         if self._className:
             name = ctypes.c_wchar_p(self._className)
             return name.value
@@ -1538,8 +1537,8 @@ class Control():
     def AutomationId(self):
         '''Return unicode AutomationId'''
         if self._automationId:
-            ClientObject.dll.FreeBSTR(self._automationId)
-        self._automationId = ClientObject.dll.GetElementAutomationId(self.Element)
+            _automationClient.dll.FreeBSTR(self._automationId)
+        self._automationId = _automationClient.dll.GetElementAutomationId(self.Element)
         if self._automationId:
             name = ctypes.c_wchar_p(self._automationId)
             return name.value
@@ -1548,43 +1547,43 @@ class Control():
     @property
     def ProcessId(self):
         '''Return process id'''
-        return ClientObject.dll.GetElementProcessId(self.Element)
+        return _automationClient.dll.GetElementProcessId(self.Element)
 
     @property
     def IsEnabled(self):
         '''Return bool'''
-        return ClientObject.dll.GetElementIsEnabled(self.Element)
+        return _automationClient.dll.GetElementIsEnabled(self.Element)
 
     @property
     def HasKeyboardFocus(self):
         '''Return bool'''
-        return ClientObject.dll.GetElementHasKeyboardFocus(self.Element)
+        return _automationClient.dll.GetElementHasKeyboardFocus(self.Element)
 
     @property
     def IsKeyboardFocusable(self):
         '''Return bool'''
-        return ClientObject.dll.GetElementIsKeyboardFocusable(self.Element)
+        return _automationClient.dll.GetElementIsKeyboardFocusable(self.Element)
 
     @property
     def IsOffScreen(self):
         '''Return bool'''
-        return ClientObject.dll.GetElementIsOffscreen(self.Element)
+        return _automationClient.dll.GetElementIsOffscreen(self.Element)
 
     @property
     def BoundingRectangle(self):
         '''Return tuple (left, top, right, bottom)'''
         rect = Rect()
-        ClientObject.dll.GetElementBoundingRectangle(self.Element, ctypes.byref(rect))
+        _automationClient.dll.GetElementBoundingRectangle(self.Element, ctypes.byref(rect))
         return (rect.left, rect.top, rect.right, rect.bottom)
 
     @property
     def Handle(self):
         '''Return control's handle'''
-        return ClientObject.dll.GetElementHandle(self.Element)
+        return _automationClient.dll.GetElementHandle(self.Element)
 
     def SetFocus(self):
         '''Make the control have focus'''
-        ClientObject.dll.SetElementFocus(self.Element)
+        _automationClient.dll.SetElementFocus(self.Element)
 
     def MoveCursor(self, xRatio = 0.5, yRatio = 0.5):
         '''Move cursor to control's rect, default to center'''
@@ -1685,7 +1684,7 @@ class Control():
 
     def GetParentControl(self):
         '''Return Control'''
-        comEle = ClientObject.dll.GetParentElement(self.Element)
+        comEle = _automationClient.dll.GetParentElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
@@ -1699,25 +1698,25 @@ class Control():
 
     def GetFirstChildControl(self):
         '''Return Control'''
-        comEle = ClientObject.dll.GetFirstChildElement(self.Element)
+        comEle = _automationClient.dll.GetFirstChildElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
     def GetLastChildControl(self):
         '''Return Control'''
-        comEle = ClientObject.dll.GetLastChildElement(self.Element)
+        comEle = _automationClient.dll.GetLastChildElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
     def GetNextSiblingControl(self):
         '''Return Control'''
-        comEle = ClientObject.dll.GetNextSiblingElement(self.Element)
+        comEle = _automationClient.dll.GetNextSiblingElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
     def GetPreviousSiblingControl(self):
         '''Return Control'''
-        comEle = ClientObject.dll.GetPreviousSiblingElement(self.Element)
+        comEle = _automationClient.dll.GetPreviousSiblingElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
@@ -1781,7 +1780,7 @@ class Control():
     @staticmethod
     def CreateControlFromElement(element):
         '''element: value of IUIAutomationElement'''
-        controlType = ClientObject.dll.GetElementControlType(element)
+        controlType = _automationClient.dll.GetElementControlType(element)
         return ControlDict[controlType](element)
 
     @staticmethod
@@ -1794,7 +1793,7 @@ class Control():
         controlType = control.ControlType
         newControl = Control.CreateControlFromElement(control.Element)
         if newControl:
-            ClientObject.dll.ElementAddRef(control.Element)
+            _automationClient.dll.ElementAddRef(control.Element)
             return newControl
 
     def __str__(self):
@@ -1821,10 +1820,10 @@ class Control():
 class InvokePattern():
     def Invoke(self):
         '''invoke'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId)
         if pattern:
-            ClientObject.dll.InvokePatternInvoke(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.InvokePatternInvoke(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('InvokePattern is not supported!', ConsoleColor.Yellow)
 
@@ -1832,20 +1831,20 @@ class InvokePattern():
 class TogglePattern():
     def Toggle(self):
         '''Toggle or UnToggle the control'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
         if pattern:
-            ClientObject.dll.TogglePatternToggle(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.TogglePatternToggle(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
 
 
     def CurrentToggleState(self):
         '''Return an integer of class ToggleState'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
         if pattern:
-            state = ClientObject.dll.TogglePatternCurrentToggleState(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            state = _automationClient.dll.TogglePatternCurrentToggleState(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return state
         else:
             Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
@@ -1854,19 +1853,19 @@ class TogglePattern():
 class ExpandCollapsePattern():
     def Expand(self):
         '''Expand the control'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
-            ClientObject.dll.ExpandCollapsePatternExpand(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.ExpandCollapsePatternExpand(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
     def Collapse(self):
         '''Collapse the control'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
-            ClientObject.dll.ExpandCollapsePatternCollapse(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.ExpandCollapsePatternCollapse(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
@@ -1874,22 +1873,22 @@ class ExpandCollapsePattern():
 class ValuePattern():
     def CurrentValue(self):
         '''Return unicode string'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
-            value = ClientObject.dll.ValuePatternCurrentValue(pattern)
+            value = _automationClient.dll.ValuePatternCurrentValue(pattern)
             c_value = ctypes.c_wchar_p(value)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return c_value.value
         else:
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
 
     def SetValue(self, value):
         '''Set unicode string to control's value'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
             c_value = ctypes.c_wchar_p(value)
-            value = ClientObject.dll.ValuePatternSetValue(pattern, c_value)
-            ClientObject.dll.ReleasePattern(pattern)
+            value = _automationClient.dll.ValuePatternSetValue(pattern, c_value)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
 
@@ -1897,10 +1896,10 @@ class ValuePattern():
 class ScrollItemPattern():
     def ScrollIntoView(self):
         '''Scroll the control into view, so it can be seen'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId)
         if pattern:
-            ClientObject.dll.ScrollItemPatternScrollIntoView(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.ScrollItemPatternScrollIntoView(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('ScrollItemPattern is not supported!', ConsoleColor.Yellow)
 
@@ -1908,30 +1907,30 @@ class ScrollItemPattern():
 class ScrollPattern():
     def CurrentHorizontallyScrollable(self):
         '''Return bool'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
-            scroll = ClientObject.dll.ScrollPatternCurrentHorizontallyScrollable(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            scroll = _automationClient.dll.ScrollPatternCurrentHorizontallyScrollable(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return scroll
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentHorizontalViewSize(self):
         '''Return integer'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
-            size = ClientObject.dll.ScrollPatternCurrentHorizontalViewSize(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            size = _automationClient.dll.ScrollPatternCurrentHorizontalViewSize(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return size
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentHorizontalScrollPercent(self):
         '''Return integer'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
-            percent = ClientObject.dll.ScrollPatternCurrentHorizontalScrollPercent(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            percent = _automationClient.dll.ScrollPatternCurrentHorizontalScrollPercent(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return percent
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
@@ -1939,30 +1938,30 @@ class ScrollPattern():
 
     def CurrentVerticallyScrollable(self):
         '''Return bool'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
-            scroll = ClientObject.dll.ScrollPatternCurrentVerticallyScrollable(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            scroll = _automationClient.dll.ScrollPatternCurrentVerticallyScrollable(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return scroll
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentVerticalViewSize(self):
         '''Return integer'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
-            size = ClientObject.dll.ScrollPatternCurrentVerticalViewSize(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            size = _automationClient.dll.ScrollPatternCurrentVerticalViewSize(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return size
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentVerticalScrollPercent(self):
         '''Return integer'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
-            percent = ClientObject.dll.ScrollPatternCurrentVerticalScrollPercent(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            percent = _automationClient.dll.ScrollPatternCurrentVerticalScrollPercent(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return percent
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
@@ -1970,10 +1969,10 @@ class ScrollPattern():
 
     def SetScrollPercent(self, horizontalPercent, verticalPercent):
         '''Need two integers as parameters'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
-            ClientObject.dll.ScrollPatternSetScrollPercent(pattern, horizontalPercent, verticalPercent)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.ScrollPatternSetScrollPercent(pattern, horizontalPercent, verticalPercent)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
@@ -1981,10 +1980,10 @@ class ScrollPattern():
 class SelectionPattern():
     def GetCurrentSelection(self):
         '''Return an IUIAutomationElementArray'''
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId)
         if pattern:
-            pElementArray = ClientObject.dll.SelectionPatternGetCurrentSelection(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            pElementArray = _automationClient.dll.SelectionPatternGetCurrentSelection(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return pElementArray
         else:
             Logger.WriteLine('SelectionPattern is not supported!', ConsoleColor.Yellow)
@@ -1992,34 +1991,34 @@ class SelectionPattern():
 
 class SelectionItemPattern():
     def Select(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
         if pattern:
-            ClientObject.dll.SelectionItemPatternSelect(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.SelectionItemPatternSelect(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
 
     def AddToSelection(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
         if pattern:
-            ClientObject.dll.SelectionItemPatternAddToSelection(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.SelectionItemPatternAddToSelection(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
 
     def RemoveFromSelection(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
         if pattern:
-            ClientObject.dll.SelectionItemPatternRemoveFromSelection(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.SelectionItemPatternRemoveFromSelection(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentIsSelected(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
         if pattern:
-            isSelect = ClientObject.dll.SelectionItemPatternCurrentIsSelected(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            isSelect = _automationClient.dll.SelectionItemPatternCurrentIsSelected(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return isSelect
         else:
             Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
@@ -2027,36 +2026,36 @@ class SelectionItemPattern():
 
 class RangeValuePattern():
     def CurrentValue(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
         if pattern:
-            value = ClientObject.dll.RangeValuePatternCurrentValue(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            value = _automationClient.dll.RangeValuePatternCurrentValue(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return value
         else:
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
 
     def SetValue(self, value):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
         if pattern:
-            ClientObject.dll.RangeValuePatternSetValue(pattern, value)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.RangeValuePatternSetValue(pattern, value)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentMaximum(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
         if pattern:
-            value = ClientObject.dll.RangeValuePatternCurrentMaximum(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            value = _automationClient.dll.RangeValuePatternCurrentMaximum(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return value
         else:
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentMinimum(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
         if pattern:
-            value = ClientObject.dll.RangeValuePatternCurrentMinimum(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            value = _automationClient.dll.RangeValuePatternCurrentMinimum(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return value
         else:
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
@@ -2064,27 +2063,27 @@ class RangeValuePattern():
 
 class WindowPattern():
     def CurrentWindowVisualState(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
-            value = ClientObject.dll.WindowPatternCurrentWindowVisualState(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            value = _automationClient.dll.WindowPatternCurrentWindowVisualState(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return value
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
     def SetWindowVisualState(self, value):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
-            ClientObject.dll.WindowPatternSetWindowVisualState(pattern, value)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.WindowPatternSetWindowVisualState(pattern, value)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentCanMaximize(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
-            value = ClientObject.dll.WindowPatternCurrentCanMaximize(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            value = _automationClient.dll.WindowPatternCurrentCanMaximize(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return value
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
@@ -2094,10 +2093,10 @@ class WindowPattern():
             self.SetWindowVisualState(WindowVisualState.WindowVisualState_Maximized)
 
     def CurrentCanMinimize(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
-            value = ClientObject.dll.WindowPatternCurrentCanMinimize(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            value = _automationClient.dll.WindowPatternCurrentCanMinimize(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return value
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
@@ -2116,10 +2115,10 @@ class WindowPattern():
         return self.CurrentWindowVisualState() == WindowVisualState.WindowVisualState_Minimized
 
     def CurrentIsModal(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
-            value = ClientObject.dll.WindowPatternCurrentIsModal(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            value = _automationClient.dll.WindowPatternCurrentIsModal(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return value
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
@@ -2128,10 +2127,10 @@ class WindowPattern():
         return Win32API.SetWindowTopmost(self.Handle, isTopmost)
 
     def CurrentIsTopmost(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
-            value = ClientObject.dll.WindowPatternCurrentIsTopmost(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            value = _automationClient.dll.WindowPatternCurrentIsTopmost(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
             return value
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
@@ -2146,10 +2145,10 @@ class WindowPattern():
         return Win32API.SetWindowPos(self.Handle, SWP.HWND_TOP, x, y, 0, 0, SWP.SWP_NOSIZE)
 
     def Close(self):
-        pattern = ClientObject.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
-            ClientObject.dll.WindowPatternClose(pattern)
-            ClientObject.dll.ReleasePattern(pattern)
+            _automationClient.dll.WindowPatternClose(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
@@ -2268,10 +2267,10 @@ class ListControl(Control, ScrollPattern, SelectionPattern):
         lists = []
         iUIAutomationElementArray = self.GetCurrentSelection()
         if iUIAutomationElementArray:
-            length = ClientObject.dll.ElementArrayGetLength(iUIAutomationElementArray)
+            length = _automationClient.dll.ElementArrayGetLength(iUIAutomationElementArray)
             for i in range(length):
-                lists.append(Control.CreateControlFromElement(ClientObject.dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
-            ClientObject.dll.ReleaseElementArray(iUIAutomationElementArray)
+                lists.append(Control.CreateControlFromElement(_automationClient.dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
+            _automationClient.dll.ReleaseElementArray(iUIAutomationElementArray)
         return lists
 
 
@@ -2580,10 +2579,13 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
                 depth -= 1
 
 def GetRootControl():
-    return Control.CreateControlFromElement(ClientObject.dll.GetRootElement())
+    global _rootControl
+    if not _rootControl:
+        _rootControl = Control.CreateControlFromElement(_automationClient.dll.GetRootElement())
+    return _rootControl
 
 def GetFocusedControl():
-    return Control.CreateControlFromElement(ClientObject.dll.GetFocusedElement())
+    return Control.CreateControlFromElement(_automationClient.dll.GetFocusedElement())
 
 def GetForegroundControl():
     '''return Foreground Window'''
@@ -2609,7 +2611,7 @@ def GetConsoleWindow():
         return consoleWindow
     #another implement
     #MAX_PATH = 260
-    #wcharArray = ClientObject.dll.NewWCharArray(MAX_PATH)
+    #wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
     #if wcharArray:
         ##in python Interactive Mode, ctypes.windll.kernel32.GetConsoleTitleW raise ctypes.ArgumentError: argument 1: <class 'TypeError'>: wrong type
         ##but in cmd, running a py that calls GetConsoleTitle doesn't raise any exception
@@ -2617,18 +2619,18 @@ def GetConsoleWindow():
         ##why? todo
         #ctypes.windll.kernel32.GetConsoleTitleW(wcharArray, MAX_PATH)
         #consoleHandle = ctypes.windll.user32.FindWindowW(0, wcharArray);
-        #ClientObject.dll.DeleteWCharArray(wcharArray)
+        #_automationClient.dll.DeleteWCharArray(wcharArray)
         #if consoleHandle:
             #return ControlFromHandle(consoleHandle)
 
 def ControlFromPoint(x, y):
     '''use IUIAutomation ElementFromPoint x,y'''
-    element = ClientObject.dll.ElementFromPoint(x, y)
+    element = _automationClient.dll.ElementFromPoint(x, y)
     return Control.CreateControlFromElement(element)
 
 def ControlFromPoint2(x, y):
     '''use Win32API.WindowFromPoint x,y'''
-    return Control.CreateControlFromElement(ClientObject.dll.ElementFromHandle(Win32API.WindowFromPoint(x, y)))
+    return Control.CreateControlFromElement(_automationClient.dll.ElementFromHandle(Win32API.WindowFromPoint(x, y)))
 
 def ControlFromCursor():
     x, y = Win32API.GetCursorPos()
@@ -2639,7 +2641,7 @@ def ControlFromCursor2():
     return ControlFromPoint2(x, y)
 
 def ControlFromHandle(handle):
-    return Control.CreateControlFromElement(ClientObject.dll.ElementFromHandle(handle))
+    return Control.CreateControlFromElement(_automationClient.dll.ElementFromHandle(handle))
 
 def LogControl(control, depth = 0, showAllName = True, showMore = False):
     '''
@@ -2672,9 +2674,9 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
             Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen)
         Logger.Write('    SupportedPattern:')
         for key in PatternDict:
-            pattern = ClientObject.dll.GetElementPattern(control.Element, key)
+            pattern = _automationClient.dll.GetElementPattern(control.Element, key)
             if pattern:
-                ClientObject.dll.ReleasePattern(pattern)
+                _automationClient.dll.ReleasePattern(pattern)
                 Logger.Write(' ' + PatternDict[key], ConsoleColor.DarkGreen)
     Logger.Write(Logger.LineSep)
 
@@ -2908,7 +2910,9 @@ def main():
             depth = int(v)
         elif o in ('-t', '-time'):
             seconds = int(v)
-    time.sleep(seconds)
+    if seconds > 0:
+        sys.stdout.write('please wait for {0} seconds\n\n'.format(seconds))
+        time.sleep(seconds)
     Logger.Log('Starts')
     control = None
     if root:
@@ -2934,7 +2938,7 @@ if __name__ == '__main__':
     # if use control object in global area, must del the control when not use it, otherwise it may throw an exception
     # the exception is ctypes was None when control's __del__ was called!
     # It seems that the module ctypes was deleted before control's __del__ was called
-    # ClientObject and control are all global object, ClientObject may be deleted before control,
-    # but control's __del__ uses ClientObject's member
+    # _automationClient and control are all global object, _automationClient may be deleted before control,
+    # but control's __del__ uses _automationClient's member
     # You'd better not use control object in global area
 
