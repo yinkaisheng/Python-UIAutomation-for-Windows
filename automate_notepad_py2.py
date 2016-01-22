@@ -32,13 +32,13 @@ def testNotepadCN():
     time.sleep(1)
     #python2中要使用Unicode, 模拟按键
     edit.SetValue(u'hi你好')
-    automation.Win32API.SendKeys(u'{Ctrl}{End}{Enter}下面开始演示{! 4}{ENTER}', 0.2)
-    automation.Win32API.SendKeys(text)
-    automation.Win32API.SendKeys('{ENTER 3}0123456789{ENTER}')
-    automation.Win32API.SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{ENTER}')
-    automation.Win32API.SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}')
-    automation.Win32API.SendKeys('`~!@#$%^&*{(}{)}_=+{ENTER}')
-    automation.Win32API.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}{CTRL}a')
+    automation.SendKeys(u'{Ctrl}{End}{Enter}下面开始演示{! 4}{ENTER}', 0.2)
+    automation.SendKeys(text)
+    automation.SendKeys('{ENTER 3}0123456789{ENTER}')
+    automation.SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{ENTER}')
+    automation.SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}')
+    automation.SendKeys('`~!@#$%^&*{(}{)}_=+{ENTER}')
+    automation.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}{CTRL}a')
     time.sleep(1)
     #查找菜单
     menuItemFormat = automation.MenuItemControl(searchFromControl = window, Name = u'格式(O)')
@@ -47,7 +47,7 @@ def testNotepadCN():
     comboScript = automation.ComboBoxControl(searchFromControl = windowFont, AutomationId = '1140')
     buttonOK = automation.ButtonControl(searchFromControl = windowFont, Name = u'确定')
     menuItemFormat.Click()
-    menuItemFont.Click()
+    menuItemFont.Click() #or automation.SendKey(automation.Keys.VK_F)
     comboScript.Select(u'中文 GB2312')
     buttonOK.Click()
     time.sleep(1)
@@ -57,7 +57,7 @@ def testNotepadCN():
     # buttonNotSave = ButtonControl(searchFromControl = window, SubName = u'不保存')
     # buttonNotSave.Click()
     # or send alt+n to not save and quit
-    # Win32API.SendKeys('{ALT}n')
+    # automation.SendKeys('{ALT}n')
     # 使用另一种查找方法
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and u'不保存' in control.Name)
@@ -78,13 +78,13 @@ def testNotepadEN():
     edit.DoubleClick()
 	#use unicode string
     edit.SetValue(u'hi你好')
-    automation.Win32API.SendKeys(u'{Ctrl}{End}{Enter}下面开始演示{! 4}{ENTER}', 0.2)
-    automation.Win32API.SendKeys(text)
-    automation.Win32API.SendKeys('{ENTER 3}0123456789{ENTER}')
-    automation.Win32API.SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{ENTER}')
-    automation.Win32API.SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}')
-    automation.Win32API.SendKeys('`~!@#$%^&*()-_=+{ENTER}')
-    automation.Win32API.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}{CTRL}a')
+    automation.SendKeys(u'{Ctrl}{End}{Enter}下面开始演示{! 4}{ENTER}', 0.2)
+    automation.SendKeys(text)
+    automation.SendKeys('{ENTER 3}0123456789{ENTER}')
+    automation.SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{ENTER}')
+    automation.SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}')
+    automation.SendKeys('`~!@#$%^&*()-_=+{ENTER}')
+    automation.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}{CTRL}a')
     time.sleep(1)
     menuItemFormat = automation.MenuItemControl(searchFromControl = window, Name = 'Format')
     menuItemFont = automation.enuItemControl(searchFromControl = window, Name = 'Font...')
@@ -92,7 +92,7 @@ def testNotepadEN():
     comboScript = automation.ComboBoxControl(searchFromControl = windowFont, AutomationId = '1140')
     buttonOK = automation.ButtonControl(searchFromControl = windowFont, Name = 'OK')
     menuItemFormat.Click()
-    menuItemFont.Click()
+    menuItemFont.Click() #or automation.SendKey(automation.Keys.VK_F)
     comboScript.Select('Western')
     buttonOK.Click()
     time.sleep(1)
@@ -101,7 +101,7 @@ def testNotepadEN():
     # buttonNotSave = ButtonControl(searchFromControl = window, Name = 'Don\'t Save')
     # buttonNotSave.Click()
     # or send alt+n to not save and quit
-    # Win32API.SendKeys('{ALT}n')
+    # automation.SendKeys('{ALT}n')
     # another way to find the button using lambda
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and 'Don\'t Save' == control.Name)

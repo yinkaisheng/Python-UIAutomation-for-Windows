@@ -2525,6 +2525,30 @@ class Logger():
         if os.path.exists(Logger.LogFile):
             os.remove(Logger.LogFile)
 
+def SendKey(key):
+    '''
+    Simulate typing a key
+    key: a value in class Keys
+	example: automation.SendKey(automation.Keys.VK_F)
+    '''
+    Win32API.SendKey(key)
+
+def SendKeys(text, interval=0.01, debug=False):
+    '''
+    Simulate typing keys on keyboard
+    text: unicode, keys to type
+    interval: double, seconds between keys
+    debug: bool, if True, print the Keys
+    example:
+    SendKeys('{Ctrl}{End}{SPACE}{CTRL}{1 3}  {CTRL}(12)123ab{c 3}A(BC){(}你好{)}{ENTER}')
+    SendKeys('0123456789{ENTER}')
+    SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{ENTER}')
+    SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}')
+    SendKeys('`~!@#$%^&*{(}{)}-_=+{ENTER}')
+    SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}')
+    '''
+    Win32API.SendKeys(text, interval, debug)
+
 def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):
     '''
     walking a tree not using recursive algorithm

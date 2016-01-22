@@ -64,7 +64,7 @@ def main():
                 automation.Logger.WriteLine(GetPersonDetail())
                 listItem.Click()
                 time.sleep(0.5)
-                automation.Win32API.SendKeys('{Down}')
+                automation.SendKeys('{Down}')
                 time.sleep(0.5)
 
 if __name__ == '__main__':
