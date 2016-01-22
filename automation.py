@@ -2532,7 +2532,7 @@ def SendKey(key):
     '''
     Simulate typing a key
     key: a value in class Keys
-	example: automation.SendKey(automation.Keys.VK_F)
+	example: SendKey(automation.Keys.VK_F)
     '''
     Win32API.SendKey(key)
 
@@ -2785,12 +2785,12 @@ def ShowMetroStartMenu():
     '''Show Metro Strat Menu, works on Windows 8'''
     paneMenu = PaneControl(searchDepth = 1, ClassName = 'ImmersiveLauncher', AutomationId = 'Start menu window')
     if not paneMenu.Exists(0, 0):
-        Win32API.SendKeys('{Win}')
+        SendKeys('{Win}')
         time.sleep(1)
 
 def ShowDesktop():
     '''show the desktop by win + d'''
-    Win32API.SendKeys('{Win}d')
+    SendKeys('{Win}d')
     time.sleep(1)
     #another implement
     #paneTray = PaneControl(searchDepth = 1, ClassName = 'Shell_TrayWnd')
@@ -2805,7 +2805,7 @@ def ClickCharmBar(buttonId):
     '''ClickCharmBar works in Windows 8'''
     charmBar = WindowControl(searchDepth = 1, ClassName = 'NativeHWNDHost', AutomationId = 'Charm Bar')
     if not charmBar.Exists(0):
-        Win32API.SendKeys('{Win}C')
+        SendKeys('{Win}C')
     button = ButtonControl(searchFromControl = charmBar, AutomationId = buttonId)
     if button.Exists(1):
         button.Click()
