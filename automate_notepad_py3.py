@@ -26,7 +26,9 @@ def testNotepadCN():
     window = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad', SubName = '无标题 - 记事本')
     #可以判断window是否存在，如果不判断，找不到window的话会抛出异常
     #if window.Exists(maxSearchSeconds = 3):
-    #查找edit
+    screenWidth, screenHeight = automation.Win32API.GetScreenSize()
+    window.MoveWindow(screenWidth // 4, screenHeight // 4, screenWidth // 2, screenHeight // 2)
+    #查找edit    
     edit = automation.EditControl(searchFromControl = window)
     edit.DoubleClick()
     time.sleep(1)
@@ -72,6 +74,8 @@ def testNotepadEN():
     window = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad', SubName = 'Untitled - Notepad')
     #if window.Exists(maxSearchSeconds = 3): #check before using it
         #pass
+    screenWidth, screenHeight = automation.Win32API.GetScreenSize()
+    window.MoveWindow(screenWidth // 4, screenHeight // 4, screenWidth // 2, screenHeight // 2)
     edit = automation.EditControl(searchFromControl = window)
     window.SetActive()
     time.sleep(1)

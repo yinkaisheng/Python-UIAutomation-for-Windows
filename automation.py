@@ -1746,7 +1746,7 @@ class Control():
         '''call ShowWindow(ShowWindow.Hide), only works if Handle is valid'''
         return self.ShowWindow(ShowWindow.Hide)
 
-    def MoveWindow(self, x, y, width, height, repaint = 0):
+    def MoveWindow(self, x, y, width, height, repaint = 1):
         '''only works if Handle is valid'''
         hWnd = self.Handle
         if hWnd:
@@ -2190,11 +2190,14 @@ class ComboBoxControl(Control, ValuePattern, ExpandCollapsePattern):
         self.AddSearchProperty(ControlType = ControlType.ComboBoxControl)
 
     def Select(self, name):
+        '''not support Qt's ComboBoxControl'''
         self.Expand()
         listItemControl = ListItemControl(searchFromControl = self, ControlType = ControlType.ListItemControl, Name = name)
         if listItemControl.Exists(1, SEARCH_INTERVAL):
             listItemControl.ScrollIntoView()
             listItemControl.Click()
+        else:
+            self.Collapse()
 
 
 class CustomControl(Control):
