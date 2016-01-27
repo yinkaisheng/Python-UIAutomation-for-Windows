@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Author: yinkaisheng
+Author: yinkaisheng(Nanjing, China)
 Mail: yinkaisheng@foxmail.com
 QQ: 396230688
 
@@ -728,7 +728,6 @@ class Win32API():
             maxPoint = 100 + int((maxSide-100) / maxSide * maxPoint)
             moveTime = moveTime * maxPoint * 1.0 / maxSide
         stepCount = maxPoint // 20
-        print
         if stepCount > 1:
             xStep = (x - curX) * 1.0 / stepCount
             yStep = (y - curY) * 1.0 / stepCount
