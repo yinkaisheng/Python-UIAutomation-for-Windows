@@ -1730,9 +1730,9 @@ class Control():
 
     def ShowWindow(self, cmdShow):
         '''
-		ShowWindow(ShowWindow.Show), only works if Handle is valid
-		cmdShow: see values in class ShowWindow
-		'''
+        ShowWindow(ShowWindow.Show), only works if Handle is valid
+        cmdShow: see values in class ShowWindow
+        '''
         hWnd = self.Handle
         if hWnd:
             return Win32API.ShowWindow(hWnd, cmdShow)
@@ -2531,7 +2531,7 @@ def SendKey(key):
     '''
     Simulate typing a key
     key: a value in class Keys
-	example: SendKey(automation.Keys.VK_F)
+    example: SendKey(automation.Keys.VK_F)
     '''
     Win32API.SendKey(key)
 
@@ -2895,6 +2895,10 @@ def usage():
 -a      show ancestors of the control under cursor
 -n      show control full name
 -m      show more properties
+
+if UnicodeError or LookupError occurred when printing, try to change the active code page of console window by using chcp
+chcp 936, gbk encoding
+chcp 65001, utf-8 encoding
 
 examples:
 automation.py -t3
