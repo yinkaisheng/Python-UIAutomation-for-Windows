@@ -2897,8 +2897,9 @@ def usage():
 -m      show more properties
 
 if UnicodeError or LookupError occurred when printing, try to change the active code page of console window by using chcp
-chcp 936, gbk encoding
-chcp 65001, utf-8 encoding
+chcp, get current active code page
+chcp 936, set active code page to gbk
+chcp 65001, set active code page to utf-8
 
 examples:
 automation.py -t3
