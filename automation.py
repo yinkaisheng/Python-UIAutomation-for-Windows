@@ -18,7 +18,7 @@ import os
 import time
 import ctypes
 import ctypes.wintypes
-IsPy3 = sys.version > '3'
+IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 #from platform import win32_ver
