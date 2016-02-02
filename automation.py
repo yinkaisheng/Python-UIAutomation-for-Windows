@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Author: yinkaisheng
+Author: yinkaisheng(Nanjing, China)
 Mail: yinkaisheng@foxmail.com
 QQ: 396230688
 
@@ -728,7 +728,6 @@ class Win32API():
             maxPoint = 100 + int((maxSide-100) / maxSide * maxPoint)
             moveTime = moveTime * maxPoint * 1.0 / maxSide
         stepCount = maxPoint // 20
-        print
         if stepCount > 1:
             xStep = (x - curX) * 1.0 / stepCount
             yStep = (y - curY) * 1.0 / stepCount
@@ -1731,9 +1730,9 @@ class Control():
 
     def ShowWindow(self, cmdShow):
         '''
-		ShowWindow(ShowWindow.Show), only works if Handle is valid
-		cmdShow: see values in class ShowWindow
-		'''
+        ShowWindow(ShowWindow.Show), only works if Handle is valid
+        cmdShow: see values in class ShowWindow
+        '''
         hWnd = self.Handle
         if hWnd:
             return Win32API.ShowWindow(hWnd, cmdShow)
@@ -2533,7 +2532,7 @@ def SendKey(key):
     '''
     Simulate typing a key
     key: a value in class Keys
-	example: SendKey(automation.Keys.VK_F)
+    example: SendKey(automation.Keys.VK_F)
     '''
     Win32API.SendKey(key)
 
@@ -2897,6 +2896,11 @@ def usage():
 -a      show ancestors of the control under cursor
 -n      show control full name
 -m      show more properties
+
+if UnicodeError or LookupError occurred when printing, try to change the active code page of console window by using chcp
+chcp, get current active code page
+chcp 936, set active code page to gbk
+chcp 65001, set active code page to utf-8
 
 examples:
 automation.py -t3
