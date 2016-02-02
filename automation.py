@@ -2475,22 +2475,23 @@ class Logger():
     LogFile = '@AutomationLog.txt'
     LineSep = '\n'
     @staticmethod
-    def Write(log, consoleColor = -1, writeToFile = True):
+    def Write(log, consoleColor = -1, writeToFile = True, printToStdout = True):
         '''
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
         '''
-        isValidColor = (consoleColor >= ConsoleColor.Black and consoleColor <= ConsoleColor.White)
-        if isValidColor:
-            Win32API.SetConsoleColor(consoleColor)
-        try:
-            sys.stdout.write(log)
-        except UnicodeError as e:
-            Win32API.SetConsoleColor(ConsoleColor.Red)
-            isValidColor = True
-            sys.stdout.write(str(type(e)) + ' can\'t print the log!\n')
-        if isValidColor:
-            Win32API.ResetConsoleColor()
+        if printToStdout:
+            isValidColor = (consoleColor >= ConsoleColor.Black and consoleColor <= ConsoleColor.White)
+            if isValidColor:
+                Win32API.SetConsoleColor(consoleColor)
+            try:
+                sys.stdout.write(log)
+            except UnicodeError as e:
+                Win32API.SetConsoleColor(ConsoleColor.Red)
+                isValidColor = True
+                sys.stdout.write(str(type(e)) + ' can\'t print the log!\n')
+            if isValidColor:
+                Win32API.ResetConsoleColor()
         if not writeToFile:
             return
         if IsPy3:
@@ -2505,15 +2506,15 @@ class Logger():
             sys.stdout.write('can not write log with exception: {0} {1}'.format(type(ex), ex))
 
     @staticmethod
-    def WriteLine(log, consoleColor = -1, writeToFile = True):
+    def WriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
         '''
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
         '''
-        Logger.Write(log + Logger.LineSep, consoleColor, writeToFile)
+        Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout)
 
     @staticmethod
-    def Log(log, consoleColor = -1, writeToFile = True):
+    def Log(log, consoleColor = -1, writeToFile = True, printToStdout = True):
         '''
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
@@ -2521,7 +2522,7 @@ class Logger():
         t = time.localtime()
         log = '{0}-{1:02}-{2:02} {3:02}:{4:02}:{5:02} - {6}{7}'.format(t.tm_year, t.tm_mon, t.tm_mday,
             t.tm_hour, t.tm_min, t.tm_sec, log, Logger.LineSep)
-        Logger.Write(log, consoleColor, writeToFile)
+        Logger.Write(log, consoleColor, writeToFile, printToStdout)
 
     @staticmethod
     def DeleteLog():
