@@ -99,8 +99,8 @@ def RenameTreeItem(tree, treeItem, bookMarks, depth, removeChapter = True):
     treeItem.ScrollIntoView()
     if depth > TreeDepth:
         return
-    name = treeItem.Name.strip()
-    if not name:
+    name = treeItem.Name
+    if not name.strip():
         return
     newName = RenameFunction(name, removeChapter)
     if newName.startswith('Appendix'):
