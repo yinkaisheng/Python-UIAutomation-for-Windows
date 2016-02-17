@@ -7,8 +7,8 @@ import automation
 
 text = u'''The automation module
 
-This module is for automation on Windows{(}Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10{)}.
-It supports automation for the applications which implmented IUIAutomation, such as MFC, Windows Forms, WPF, Windows 8 Metro App, Qt and Firefox.
+This module is for automation on Windows{(}Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10{)}.
+It supports automation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
 
 Run 'automation.py -h' for help.
 
