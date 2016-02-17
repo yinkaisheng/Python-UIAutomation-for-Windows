@@ -2152,6 +2152,7 @@ class WindowPattern():
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
     def MetroClose(self):
+        '''only works in Windows 8/8.1, if current window is Metro UI'''
         window = WindowControl(searchDepth = 1, ClassName = METRO_WINDOW_CLASS_NAME)
         if window.Exists(0, 0):
             screenWidth, screenHeight = Win32API.GetScreenSize()
@@ -2781,13 +2782,6 @@ def FindControl(control, compareFunc, maxDepth=10000, findFromSelf = False, foun
             del controlList[depth]
             depth -= 1
 
-def ShowMetroStartMenu():
-    '''Show Metro Strat Menu, works on Windows 8'''
-    paneMenu = PaneControl(searchDepth = 1, ClassName = 'ImmersiveLauncher', AutomationId = 'Start menu window')
-    if not paneMenu.Exists(0, 0):
-        SendKeys('{Win}')
-        time.sleep(1)
-
 def ShowDesktop():
     '''show the desktop by win + d'''
     SendKeys('{Win}d')
@@ -2800,27 +2794,6 @@ def ShowDesktop():
         #MIN_ALL_UNDO = 416
         #Win32API.PostMessage(paneTray.Handle, WM_COMMAND, MIN_ALL, 0)
         #time.sleep(1)
-
-def ClickCharmBar(buttonId):
-    '''ClickCharmBar works in Windows 8'''
-    charmBar = WindowControl(searchDepth = 1, ClassName = 'NativeHWNDHost', AutomationId = 'Charm Bar')
-    if not charmBar.Exists(0):
-        SendKeys('{Win}C')
-    button = ButtonControl(searchFromControl = charmBar, AutomationId = buttonId)
-    if button.Exists(1):
-        button.Click()
-
-def RunMetroApp(appName):
-    '''RunMetroApp works in Windows 8'''
-    ClickCharmBar('Search')
-    searchPane = PaneControl(searchDepth = 1, ClassName = 'SearchPane')
-    if searchPane.Exists():
-        edit = EditControl(searchFromControl = searchPane, ClassName = 'TouchEditInner')
-        edit.SetValue(appName)
-        startMenu = PaneControl(searchDepth = 1, ClassName = 'ImmersiveLauncher', AutomationId = 'Start menu window')
-        appItem = ListItemControl(searchFromControl = startMenu, Name = appName)
-        appItem.Click()
-        time.sleep(1)
 
 def RunWithHotKey(function, startHotKey, stopHotKey = None):
     '''
