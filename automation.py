@@ -953,7 +953,7 @@ class Win32API():
         Simulate a key down for key
         key: a value in class Keys
         '''
-        Win32API.keybd_event(Keys.VK_LWIN, 0, KeyboardEventFlags.ExtendedKey, 0)
+        Win32API.keybd_event(key, 0, KeyboardEventFlags.ExtendedKey, 0)
 
     @staticmethod
     def ReleaseKey(key):
