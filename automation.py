@@ -2122,9 +2122,6 @@ class WindowPattern():
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def SetTopmost(self, isTopmost = True):
-        return Win32API.SetWindowTopmost(self.Handle, isTopmost)
-
     def CurrentIsTopmost(self):
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
@@ -2134,15 +2131,6 @@ class WindowPattern():
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def MoveToCenter(self):
-        left, top, right, bottom = self.BoundingRectangle
-        width, height = right - left, bottom - top
-        screenWidth, screenHeight = Win32API.GetScreenSize()
-        x, y = (screenWidth-width)//2, (screenHeight-height)//2
-        if x < 0: x = 0
-        if y < 0: y = 0
-        return Win32API.SetWindowPos(self.Handle, SWP.HWND_TOP, x, y, 0, 0, SWP.SWP_NOSIZE)
-
     def Close(self):
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
@@ -2150,20 +2138,6 @@ class WindowPattern():
             _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
-
-    def MetroClose(self):
-        '''only works in Windows 8/8.1, if current window is Metro UI'''
-        window = WindowControl(searchDepth = 1, ClassName = METRO_WINDOW_CLASS_NAME)
-        if window.Exists(0, 0):
-            screenWidth, screenHeight = Win32API.GetScreenSize()
-            Win32API.MouseMoveTo(screenWidth//2, 0)
-            Win32API.MouseDragTo(screenWidth//2, 0, screenWidth//2, screenHeight)
-            time.sleep(1)
-        else:
-            Logger.WriteLine('Window is not Metro!', ConsoleColor.Yellow)
-
-    def SetActive(self):
-        return Win32API.SetForegroundWindow(self.Handle)
 
 
 class ButtonControl(Control, InvokePattern, TogglePattern, ExpandCollapsePattern):
@@ -2425,6 +2399,34 @@ class WindowControl(Control, WindowPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 10000, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.WindowControl)
+
+    def SetTopmost(self, isTopmost = True):
+        return Win32API.SetWindowTopmost(self.Handle, isTopmost)
+
+    def MoveToCenter(self):
+        left, top, right, bottom = self.BoundingRectangle
+        width, height = right - left, bottom - top
+        screenWidth, screenHeight = Win32API.GetScreenSize()
+        x, y = (screenWidth-width)//2, (screenHeight-height)//2
+        if x < 0: x = 0
+        if y < 0: y = 0
+        return Win32API.SetWindowPos(self.Handle, SWP.HWND_TOP, x, y, 0, 0, SWP.SWP_NOSIZE)
+
+    def MetroClose(self):
+        '''only works in Windows 8/8.1, if current window is Metro UI'''
+        window = WindowControl(searchDepth = 1, ClassName = METRO_WINDOW_CLASS_NAME)
+        if window.Exists(0, 0):
+            screenWidth, screenHeight = Win32API.GetScreenSize()
+            Win32API.MouseMoveTo(screenWidth//2, 0)
+            Win32API.MouseDragTo(screenWidth//2, 0, screenWidth//2, screenHeight)
+            time.sleep(1)
+        else:
+            Logger.WriteLine('Window is not Metro!', ConsoleColor.Yellow)
+
+    def SetActive(self):
+        if self.CurrentWindowVisualState() == WindowVisualState.WindowVisualState_Minimized:
+            self.ShowWindow(ShowWindow.Restore)
+        return Win32API.SetForegroundWindow(self.Handle)
 
 
 ControlDict = {
