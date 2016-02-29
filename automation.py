@@ -37,7 +37,10 @@ class _AutomationClient():
         if dir:
             oldDir = os.getcwd()
             os.chdir(dir)
-        self.dll = ctypes.cdll.AutomationClient
+        if '32 bit' in sys.version:
+            self.dll = ctypes.cdll.AutomationClientX86
+        else:
+            self.dll = ctypes.cdll.AutomationClientX64
         if dir:
             os.chdir(oldDir)
         if not self.dll.InitInstance():
