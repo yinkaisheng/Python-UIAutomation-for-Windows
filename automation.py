@@ -596,18 +596,29 @@ class Win32API():
 
     @staticmethod
     def GetClipboardText():
-        ctypes.windll.user32.OpenClipboard(0)
-        text = ctypes.windll.user32.GetClipboardData(13) # CF_TEXT = 1 CF_UNICODETEXT=13
-        ctypes.windll.user32.CloseClipboard()
-        ctext = ctypes.c_wchar_p(text)
-        return ctext.value
-        '''size = ctypes.windll.kernel32.MultiByteToWideChar(936, 0, text, -1, 0, 0)
-        pwChar = _automationClient.dll.NewWCharArray(size)
-        ctypes.windll.kernel32.MultiByteToWideChar(936, 0, text, -1, pwChar, size)
-        wstr = WString()
-        wstr.wcharArray = pwChar
-        wstr.cwcharp = ctypes.c_wchar_p(pwChar)
-        return wstr'''
+        if ctypes.windll.user32.OpenClipboard(0):
+            if ctypes.windll.user32.IsClipboardFormatAvailable(13): # CF_TEXT=1, CF_UNICODETEXT=13
+                hClipboardData = ctypes.windll.user32.GetClipboardData(13)
+                ctext = ctypes.windll.kernel32.GlobalLock(hClipboardData);
+                text = ctypes.c_wchar_p(ctext).value[:]
+                ctypes.windll.kernel32.GlobalUnlock(hClipboardData);
+                ctypes.windll.user32.CloseClipboard()
+                return text
+            else:
+                ctypes.windll.user32.CloseClipboard()
+
+    @staticmethod
+    def SetClipboardText(text):
+        if ctypes.windll.user32.OpenClipboard(0):
+            ctypes.windll.user32.EmptyClipboard()
+            textLen = (len(text) + 1) * 2
+            hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0, textLen)  # GMEM_FIXED=0
+            destText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
+            srcText = ctypes.c_wchar_p(text)
+            _automationClient.dll.WcsCpy(destText, textLen, srcText)
+            ctypes.windll.kernel32.GlobalUnlock(hClipboardData)
+            ctypes.windll.user32.SetClipboardData(13, hClipboardData) # CF_TEXT=1, CF_UNICODETEXT=13
+            ctypes.windll.user32.CloseClipboard()
 
     @staticmethod
     def SetConsoleColor(color):
@@ -880,11 +891,11 @@ class Win32API():
         MAX_PATH = 260
         wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
         if wcharArray:
-            #in python Interactive Mode, ctypes.windll.kernel32.GetConsoleTitleW raise ctypes.ArgumentError: argument 1: <class 'TypeError'>: wrong type
-            #but in cmd, running a py that calls GetConsoleTitle doesn't raise any exception
+            #in python interactive mode, ctypes.windll.kernel32.GetConsoleTitleW raise ctypes.ArgumentError: argument 1: <class 'TypeError'>: wrong type
+            #but if not in interactive mode, running a py that calls GetConsoleTitle doesn't raise any exception
             #GetConsoleOriginalTitle doesn't have this issue
             #why? todo
-            ctypes.windll.kernel32.GetConsoleTitleW(wcharArray, MAX_PATH)
+            _automationClient.dll.GetConsoleWindowTitle(wcharArray, MAX_PATH)  #fixed for ctypes.windll.kernel32.GetConsoleTitleW
             c_text = ctypes.c_wchar_p(wcharArray)
             text = c_text.value[:]
             _automationClient.dll.DeleteWCharArray(wcharArray)
