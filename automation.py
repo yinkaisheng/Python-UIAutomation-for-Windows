@@ -2856,7 +2856,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if startHotKeyFlag == msg.wParam and msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
-                print('start hotkey pressed')
+                sys.stdout.write('start hotkey pressed\n')
                 if not funcThread:
                     stopEvent.clear()
                     funcThread=Thread(None, threadFunc, args = (function, stopEvent))
@@ -2869,7 +2869,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
                         funcThread.setDaemon(True)
                         funcThread.start()
             if stopHotKeyFlag == msg.wParam and msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
-                print('stop hotkey pressed')
+                sys.stdout.write('stop hotkey pressed\n')
                 stopEvent.set()
                 funcThread = None
 
