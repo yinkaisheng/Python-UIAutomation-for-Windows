@@ -2712,6 +2712,8 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     Logger.Write('    Handle: ')
     handle = control.Handle
     Logger.Write('0x{0:X}({0})'.format(handle), ConsoleColor.DarkGreen)
+    Logger.Write('    Depth: ')
+    Logger.Write(str(depth), ConsoleColor.DarkGreen)
     if showMore:
         if isinstance(control, EditControl):
             Logger.Write('    Value: ')
@@ -2732,7 +2734,7 @@ def EnumControlAncestor(control, showAllName = True, showMore = False):
     for (i, control) in enumerate(lists):
         LogControl(control, i, showAllName, showMore)
 
-def EnumControl(control, maxDepth = 10000, showAllName = True, showMore = False):
+def EnumControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMore = False):
     '''
     control: Control
     maxDepth: integer
