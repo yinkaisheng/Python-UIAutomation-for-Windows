@@ -39,6 +39,7 @@ def main():
         firefoxWindow.SetActive()
         time.sleep(1)
         starButton.Click()
+        time.sleep(2)
 
 if __name__ == '__main__':
     main()
