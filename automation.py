@@ -606,6 +606,7 @@ class Win32API():
                 return text
             else:
                 ctypes.windll.user32.CloseClipboard()
+        return ''
 
     @staticmethod
     def SetClipboardText(text):
@@ -1462,7 +1463,7 @@ class Control():
     def Exists(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
         '''Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds, if found, return True else False'''
         if self._element and self._elementDirectAssign:
-            #if element is directly assigned, not by searching, jucet check whether self._element is valid
+            #if element is directly assigned, not by searching, juce check whether self._element is valid
             #but I can't find an API in UIAutomation that can directly check
             rootElement = GetRootControl().Element
             if self._element == rootElement:
@@ -1474,6 +1475,7 @@ class Control():
                     return True
                 else:
                     return False
+        #find the element
         if len(self.searchPorpertyDict) == 0:
             raise LookupError("control's searchPorpertyDict must not be empty!")
         if self._element:
@@ -1483,7 +1485,6 @@ class Control():
             self.searchFromControl.Element # search searchFromControl first before timing
         start = time.clock()
         while True:
-            time.sleep(searchIntervalSeconds)
             control = FindControl(self.searchFromControl, self.CompareFunction, self.searchDepth, False, self.foundIndex)
             if control:
                 self._element = control.Element
@@ -1492,6 +1493,7 @@ class Control():
             else:
                 if time.clock() - start > maxSearchSeconds:
                     return False
+            time.sleep(searchIntervalSeconds)
 
     def Refind(self, maxSearchSeconds = 15, searchIntervalSeconds = SEARCH_INTERVAL, raiseException = True):
         '''Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds, raise an LookupError if timed out'''
