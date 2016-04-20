@@ -2,7 +2,6 @@
 '''
 Author: yinkaisheng(Nanjing, China)
 Mail: yinkaisheng@foxmail.com
-QQ: 396230688
 
 This module is for automation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
 It supports automation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
@@ -2860,7 +2859,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if startHotKeyFlag == msg.wParam and msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
-                sys.stdout.write('start hotkey pressed\n')
+                sys.stdout.write('----------start hotkey pressed----------\n')
                 if not funcThread:
                     stopEvent.clear()
                     funcThread=Thread(None, threadFunc, args = (function, stopEvent))
@@ -2872,8 +2871,10 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
                         funcThread=Thread(None, threadFunc, args = (function, stopEvent))
                         funcThread.setDaemon(True)
                         funcThread.start()
+                    else:
+                        Logger.WriteLine('There is a thread that had already run.', ConsoleColor.Yellow)
             if stopHotKeyFlag == msg.wParam and msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
-                sys.stdout.write('stop hotkey pressed\n')
+                sys.stdout.write('----------stop hotkey pressed----------\n')
                 stopEvent.set()
                 funcThread = None
 
