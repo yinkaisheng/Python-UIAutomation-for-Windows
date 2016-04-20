@@ -17,12 +17,12 @@ def main(stopEvent):
     print('main exit')
 
 def main2(stopEvent):
-    print('call automate_notepad_py3.py')
-    #must use 'c:\Python34\python.exe automate_notepad_py3.py', not 'py automate_notepad_py3.py'
+    print('call automation_notepad_py3.py')
+    #must use 'c:\Python34\python.exe automation_notepad_py3.py', not 'py automation_notepad_py3.py'
     #because py win run c:\Python34\python.exe, these are two processes: py.exe and python.exe
     #python.exe is a child process of py.exe
     #p.kill() can only kill py.exe but not python.exe, it can't kill subprocess.
-    p = subprocess.Popen(r'c:\Python34\python.exe automate_notepad_py3.py')  # can't use 'py automate_notepad_py3.py'
+    p = subprocess.Popen(r'c:\Python34\python.exe automation_notepad_py3.py')  # can't use 'py automate_notepad_py3.py'
     print('handle', int(p._handle))
     while True:
         if stopEvent.is_set():
