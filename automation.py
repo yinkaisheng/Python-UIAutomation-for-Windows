@@ -1097,8 +1097,7 @@ class Win32API():
         wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
         if wcharArray:
             ctypes.windll.user32.GetWindowTextW(hWnd, wcharArray, MAX_PATH)
-            c_text = ctypes.c_wchar_p(wcharArray)
-            text = c_text.value[:]
+            text = ctypes.c_wchar_p(wcharArray).value[:]
             _automationClient.dll.DeleteWCharArray(wcharArray)
             return text
 
@@ -1115,8 +1114,7 @@ class Win32API():
         wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
         if wcharArray:
             ctypes.windll.kernel32.GetConsoleOriginalTitleW(wcharArray, MAX_PATH)
-            c_text = ctypes.c_wchar_p(wcharArray)
-            text = c_text.value[:]
+            text = ctypes.c_wchar_p(wcharArray).value[:]
             _automationClient.dll.DeleteWCharArray(wcharArray)
             return text
 
@@ -1131,8 +1129,7 @@ class Win32API():
             #GetConsoleOriginalTitle doesn't have this issue
             #why? todo
             _automationClient.dll.GetConsoleWindowTitle(wcharArray, MAX_PATH)  #fixed for ctypes.windll.kernel32.GetConsoleTitleW
-            c_text = ctypes.c_wchar_p(wcharArray)
-            text = c_text.value[:]
+            text = ctypes.c_wchar_p(wcharArray).value[:]
             _automationClient.dll.DeleteWCharArray(wcharArray)
             return text
 
@@ -1150,8 +1147,7 @@ class Win32API():
     def GetProcessCommandLine(processId):
         wstr = _automationClient.dll.GetProcessCommandLine(processId)
         if wstr:
-            cmdLine = ctypes.c_wchar_p(wstr)
-            cmdLine = cmdLine.value[:]
+            cmdLine = ctypes.c_wchar_p(wstr).value[:]
             _automationClient.dll.DeleteWCharArray(wstr)
             return cmdLine
         else:
@@ -1445,9 +1441,6 @@ class Control():
         '''
         self._element = element
         self._elementDirectAssign = True if element else False
-        self._name = 0
-        self._className = 0
-        self._automationId = 0
         self.searchFromControl = searchFromControl
         self.searchDepth = searchDepth
         self.searchWaitTime = searchWaitTime
@@ -1463,15 +1456,6 @@ class Control():
         if self._element:
             _automationClient.dll.ReleaseElement(self._element)
             self._element = 0
-        if self._name:
-            _automationClient.dll.FreeBSTR(self._name)
-            self._name = 0
-        if self._className:
-            _automationClient.dll.FreeBSTR(self._className)
-            self._className = 0
-        if self._automationId:
-            _automationClient.dll.FreeBSTR(self._automationId)
-            self._automationId = 0
 
     def SetSearchFromControl(self, searchFromControl):
         '''searchFromControl: control'''
@@ -1567,12 +1551,11 @@ class Control():
     @property
     def Name(self):
         '''Return unicode Name'''
-        if self._name:
-            _automationClient.dll.FreeBSTR(self._name)
-        self._name = _automationClient.dll.GetElementName(self.Element)
-        if self._name:
-            name = ctypes.c_wchar_p(self._name)
-            return name.value
+        bstrName = _automationClient.dll.GetElementName(self.Element)
+        if bstrName:
+            name = ctypes.c_wchar_p(bstrName).value[:]
+            _automationClient.dll.FreeBSTR(bstrName)
+            return name
         return ''
 
     @property
@@ -1588,23 +1571,21 @@ class Control():
     @property
     def ClassName(self):
         '''Return unicode ClassName'''
-        if self._className:
-            _automationClient.dll.FreeBSTR(self._className)
-        self._className = _automationClient.dll.GetElementClassName(self.Element)
-        if self._className:
-            name = ctypes.c_wchar_p(self._className)
-            return name.value
+        bstrClassName = _automationClient.dll.GetElementClassName(self.Element)
+        if bstrClassName:
+            name = ctypes.c_wchar_p(bstrClassName).value[:]
+            _automationClient.dll.FreeBSTR(bstrClassName)
+            return name
         return ''
 
     @property
     def AutomationId(self):
         '''Return unicode AutomationId'''
-        if self._automationId:
-            _automationClient.dll.FreeBSTR(self._automationId)
-        self._automationId = _automationClient.dll.GetElementAutomationId(self.Element)
-        if self._automationId:
-            name = ctypes.c_wchar_p(self._automationId)
-            return name.value
+        bstrAutomationId = _automationClient.dll.GetElementAutomationId(self.Element)
+        if bstrAutomationId:
+            name = ctypes.c_wchar_p(bstrAutomationId).value[:]
+            _automationClient.dll.FreeBSTR(bstrAutomationId)
+            return name
         return ''
 
     @property
@@ -1965,12 +1946,15 @@ class ValuePattern():
         '''Return unicode string'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
-            value = _automationClient.dll.ValuePatternCurrentValue(pattern)
-            c_value = ctypes.c_wchar_p(value)
-            _automationClient.dll.ReleasePattern(pattern)
-            return c_value.value
+            bstrValue = _automationClient.dll.ValuePatternCurrentValue(pattern)
+            if bstrValue:
+                value = ctypes.c_wchar_p(bstrValue).value[:]
+                _automationClient.dll.ReleasePattern(pattern)
+                _automationClient.dll.FreeBSTR(bstrValue)
+                return value
         else:
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
+        return ''
 
     def SetValue(self, value):
         '''Set unicode string to control's value'''
@@ -1979,6 +1963,16 @@ class ValuePattern():
             c_value = ctypes.c_wchar_p(value)
             value = _automationClient.dll.ValuePatternSetValue(pattern, c_value)
             _automationClient.dll.ReleasePattern(pattern)
+        else:
+            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentIsReadOnly(self):
+        '''Return bool'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
+        if pattern:
+            isReadOnly = _automationClient.dll.ValuePatternCurrentIsReadOnly(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return isReadOnly
         else:
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
 
