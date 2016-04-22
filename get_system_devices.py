@@ -11,7 +11,9 @@ def main():
     tree = automation.TreeControl(searchFromControl = mmcWindow)
     for item, depth in automation.WalkTree(tree, getChildrenFunc = lambda c : c.GetChildren(), includeTop = True):
         if isinstance(item, automation.TreeItemControl):  #or item.ControlType == automation.ControlType.TreeItemControl
-            item.Expand()
+            item.Select()
+            if automation.ExpandCollapseState.Collapsed == item.CurrentExpandCollapseState():
+                item.Expand()
             automation.Logger.WriteLine(' ' * (depth - 1) * 4 + item.Name, automation.ConsoleColor.Green)
             time.sleep(0.1)
 
