@@ -7,7 +7,7 @@ import automation
 
 text = u'''The automation module
 
-This module is for automation on Windows{(}Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10{)}.
+This module is for automation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
 It supports automation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
 
 Run 'automation.py -h' for help.
@@ -36,11 +36,11 @@ def testNotepadCN():
     edit.SetValue(u'hi你好')
     automation.SendKeys(u'{Ctrl}{End}{Enter}下面开始演示{! 4}{ENTER}', 0.2)
     automation.SendKeys(text)
-    automation.SendKeys('{ENTER 3}0123456789{ENTER}')
-    automation.SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{ENTER}')
-    automation.SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}')
-    automation.SendKeys('`~!@#$%^&*{(}{)}_=+{ENTER}')
-    automation.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}{CTRL}a')
+    automation.SendKeys('{Enter 3}0123456789{Enter}')
+    automation.SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{Enter}')
+    automation.SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
+    automation.SendKeys('`~!@#$%^&*()-_=+{ENTER}')
+    automation.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}{Ctrl}a')
     time.sleep(1)
     #查找菜单
     menuItemFormat = automation.MenuItemControl(searchFromControl = window, Name = u'格式(O)')
@@ -59,7 +59,7 @@ def testNotepadCN():
     # buttonNotSave = ButtonControl(searchFromControl = window, SubName = u'不保存')
     # buttonNotSave.Click()
     # or send alt+n to not save and quit
-    # automation.SendKeys('{ALT}n')
+    # automation.SendKeys('{Alt}n')
     # 使用另一种查找方法
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and u'不保存' in control.Name)
@@ -105,7 +105,7 @@ def testNotepadEN():
     # buttonNotSave = ButtonControl(searchFromControl = window, Name = 'Don\'t Save')
     # buttonNotSave.Click()
     # or send alt+n to not save and quit
-    # automation.SendKeys('{ALT}n')
+    # automation.SendKeys('{Alt}n')
     # another way to find the button using lambda
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and 'Don\'t Save' == control.Name)

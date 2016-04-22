@@ -590,8 +590,243 @@ class Win32API():
     StdOutputHandle = -11
     ConsoleOutputHandle = None
     DefaultColor = None
-    KeyDict = None
-    CharacterDict = None
+    SpecialKeyDict = {
+        'LBUTTON' : Keys.VK_LBUTTON,                        #Left mouse button
+        'RBUTTON' : Keys.VK_RBUTTON,                        #Right mouse button
+        'CANCEL' : Keys.VK_CANCEL,                          #Control-break processing
+        'MBUTTON' : Keys.VK_MBUTTON,                        #Middle mouse button (three-button mouse)
+        'XBUTTON1' : Keys.VK_XBUTTON1,                      #X1 mouse button
+        'XBUTTON2' : Keys.VK_XBUTTON2,                      #X2 mouse button
+        'BACK' : Keys.VK_BACK,                              #BACKSPACE key
+        'TAB' : Keys.VK_TAB,                                #TAB key
+        'CLEAR' : Keys.VK_CLEAR,                            #CLEAR key
+        'RETURN' : Keys.VK_RETURN,                          #ENTER key
+        'ENTER' : Keys.VK_RETURN,                           #ENTER key
+        'SHIFT' : Keys.VK_SHIFT,                            #SHIFT key
+        'CTRL' : Keys.VK_CONTROL,                           #CTRL key
+        'CONTROL' : Keys.VK_CONTROL,                        #CTRL key
+        'ALT' : Keys.VK_MENU,                               #ALT key
+        'PAUSE' : Keys.VK_PAUSE,                            #PAUSE key
+        'CAPITAL' : Keys.VK_CAPITAL,                        #CAPS LOCK key
+        'KANA' : Keys.VK_KANA,                              #IME Kana mode
+        'HANGUEL' : Keys.VK_HANGUEL,                        #IME Hanguel mode (maintained for compatibility; use VK_HANGUL)
+        'HANGUL' : Keys.VK_HANGUL,                          #IME Hangul mode
+        'JUNJA' : Keys.VK_JUNJA,                            #IME Junja mode
+        'FINAL' : Keys.VK_FINAL,                            #IME final mode
+        'HANJA' : Keys.VK_HANJA,                            #IME Hanja mode
+        'KANJI' : Keys.VK_KANJI,                            #IME Kanji mode
+        'ESC' : Keys.VK_ESCAPE,                             #ESC key
+        'ESCAPE' : Keys.VK_ESCAPE,                          #ESC key
+        'CONVERT' : Keys.VK_CONVERT,                        #IME convert
+        'NONCONVERT' : Keys.VK_NONCONVERT,                  #IME nonconvert
+        'ACCEPT' : Keys.VK_ACCEPT,                          #IME accept
+        'MODECHANGE' : Keys.VK_MODECHANGE,                  #IME mode change request
+        'SPACE' : Keys.VK_SPACE,                            #SPACEBAR
+        'PRIOR' : Keys.VK_PRIOR,                            #PAGE UP key
+        'PAGEUP' : Keys.VK_PRIOR,                           #PAGE UP key
+        'NEXT' : Keys.VK_NEXT,                              #PAGE DOWN key
+        'PAGEDOWN': Keys.VK_NEXT,                           #PAGE DOWN key
+        'END' : Keys.VK_END,                                #END key
+        'HOME' : Keys.VK_HOME,                              #HOME key
+        'LEFT' : Keys.VK_LEFT,                              #LEFT ARROW key
+        'UP' : Keys.VK_UP,                                  #UP ARROW key
+        'RIGHT' : Keys.VK_RIGHT,                            #RIGHT ARROW key
+        'DOWN' : Keys.VK_DOWN,                              #DOWN ARROW key
+        'SELECT' : Keys.VK_SELECT,                          #SELECT key
+        'PRINT' : Keys.VK_PRINT,                            #PRINT key
+        'EXECUTE' : Keys.VK_EXECUTE,                        #EXECUTE key
+        'SNAPSHOT' : Keys.VK_SNAPSHOT,                      #PRINT SCREEN key
+        'PRINTSCREEN': Keys.VK_SNAPSHOT,                    #PRINT SCREEN key
+        'INSERT' : Keys.VK_INSERT,                          #INS key
+        'INS' : Keys.VK_INSERT,                             #INS key
+        'DELETE' : Keys.VK_DELETE,                          #DEL key
+        'DEL' : Keys.VK_DELETE,                             #DEL key
+        'HELP' : Keys.VK_HELP,                              #HELP key
+        'WIN' : Keys.VK_LWIN,                               #Left Windows key (Natural keyboard)
+        'LWIN' : Keys.VK_LWIN,                              #Left Windows key (Natural keyboard)
+        'RWIN' : Keys.VK_RWIN,                              #Right Windows key (Natural keyboard)
+        'APPS' : Keys.VK_APPS,                              #Applications key (Natural keyboard)
+        'SLEEP' : Keys.VK_SLEEP,                            #Computer Sleep key
+        'NUMPAD0' : Keys.VK_NUMPAD0,                        #Numeric keypad 0 key
+        'NUMPAD1' : Keys.VK_NUMPAD1,                        #Numeric keypad 1 key
+        'NUMPAD2' : Keys.VK_NUMPAD2,                        #Numeric keypad 2 key
+        'NUMPAD3' : Keys.VK_NUMPAD3,                        #Numeric keypad 3 key
+        'NUMPAD4' : Keys.VK_NUMPAD4,                        #Numeric keypad 4 key
+        'NUMPAD5' : Keys.VK_NUMPAD5,                        #Numeric keypad 5 key
+        'NUMPAD6' : Keys.VK_NUMPAD6,                        #Numeric keypad 6 key
+        'NUMPAD7' : Keys.VK_NUMPAD7,                        #Numeric keypad 7 key
+        'NUMPAD8' : Keys.VK_NUMPAD8,                        #Numeric keypad 8 key
+        'NUMPAD9' : Keys.VK_NUMPAD9,                        #Numeric keypad 9 key
+        'MULTIPLY' : Keys.VK_MULTIPLY,                      #Multiply key
+        'ADD' : Keys.VK_ADD,                                #Add key
+        'SEPARATOR' : Keys.VK_SEPARATOR,                    #Separator key
+        'SUBTRACT' : Keys.VK_SUBTRACT,                      #Subtract key
+        'DECIMAL' : Keys.VK_DECIMAL,                        #Decimal key
+        'DIVIDE' : Keys.VK_DIVIDE,                          #Divide key
+        'F1' : Keys.VK_F1,                                  #F1 key
+        'F2' : Keys.VK_F2,                                  #F2 key
+        'F3' : Keys.VK_F3,                                  #F3 key
+        'F4' : Keys.VK_F4,                                  #F4 key
+        'F5' : Keys.VK_F5,                                  #F5 key
+        'F6' : Keys.VK_F6,                                  #F6 key
+        'F7' : Keys.VK_F7,                                  #F7 key
+        'F8' : Keys.VK_F8,                                  #F8 key
+        'F9' : Keys.VK_F9,                                  #F9 key
+        'F10' : Keys.VK_F10,                                #F10 key
+        'F11' : Keys.VK_F11,                                #F11 key
+        'F12' : Keys.VK_F12,                                #F12 key
+        'F13' : Keys.VK_F13,                                #F13 key
+        'F14' : Keys.VK_F14,                                #F14 key
+        'F15' : Keys.VK_F15,                                #F15 key
+        'F16' : Keys.VK_F16,                                #F16 key
+        'F17' : Keys.VK_F17,                                #F17 key
+        'F18' : Keys.VK_F18,                                #F18 key
+        'F19' : Keys.VK_F19,                                #F19 key
+        'F20' : Keys.VK_F20,                                #F20 key
+        'F21' : Keys.VK_F21,                                #F21 key
+        'F22' : Keys.VK_F22,                                #F22 key
+        'F23' : Keys.VK_F23,                                #F23 key
+        'F24' : Keys.VK_F24,                                #F24 key
+        'NUMLOCK' : Keys.VK_NUMLOCK,                        #NUM LOCK key
+        'SCROLL' : Keys.VK_SCROLL,                          #SCROLL LOCK key
+        'LSHIFT' : Keys.VK_LSHIFT,                          #Left SHIFT key
+        'RSHIFT' : Keys.VK_RSHIFT,                          #Right SHIFT key
+        'LCONTROL' : Keys.VK_LCONTROL,                      #Left CONTROL key
+        'LCTRL' : Keys.VK_LCONTROL,                         #Left CONTROL key
+        'RCONTROL' : Keys.VK_RCONTROL,                      #Right CONTROL key
+        'RCTRL' : Keys.VK_RCONTROL,                         #Right CONTROL key
+        'LALT' : Keys.VK_LMENU,                             #Left MENU key
+        'RALT' : Keys.VK_RMENU,                             #Right MENU key
+        'BROWSER_BACK' : Keys.VK_BROWSER_BACK,              #Browser Back key
+        'BROWSER_FORWARD' : Keys.VK_BROWSER_FORWARD,        #Browser Forward key
+        'BROWSER_REFRESH' : Keys.VK_BROWSER_REFRESH,        #Browser Refresh key
+        'BROWSER_STOP' : Keys.VK_BROWSER_STOP,              #Browser Stop key
+        'BROWSER_SEARCH' : Keys.VK_BROWSER_SEARCH,          #Browser Search key
+        'BROWSER_FAVORITES' : Keys.VK_BROWSER_FAVORITES,    #Browser Favorites key
+        'BROWSER_HOME' : Keys.VK_BROWSER_HOME,              #Browser Start and Home key
+        'VOLUME_MUTE' : Keys.VK_VOLUME_MUTE,                #Volume Mute key
+        'VOLUME_DOWN' : Keys.VK_VOLUME_DOWN,                #Volume Down key
+        'VOLUME_UP' : Keys.VK_VOLUME_UP,                    #Volume Up key
+        'MEDIA_NEXT_TRACK' : Keys.VK_MEDIA_NEXT_TRACK,      #Next Track key
+        'MEDIA_PREV_TRACK' : Keys.VK_MEDIA_PREV_TRACK,      #Previous Track key
+        'MEDIA_STOP' : Keys.VK_MEDIA_STOP,                  #Stop Media key
+        'MEDIA_PLAY_PAUSE' : Keys.VK_MEDIA_PLAY_PAUSE,      #Play/Pause Media key
+        'LAUNCH_MAIL' : Keys.VK_LAUNCH_MAIL,                #Start Mail key
+        'LAUNCH_MEDIA_SELECT' : Keys.VK_LAUNCH_MEDIA_SELECT,#Select Media key
+        'LAUNCH_APP1' : Keys.VK_LAUNCH_APP1,                #Start Application 1 key
+        'LAUNCH_APP2' : Keys.VK_LAUNCH_APP2,                #Start Application 2 key
+        'OEM_1' : Keys.VK_OEM_1,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the ';:' key
+        'OEM_PLUS' : Keys.VK_OEM_PLUS,                      #For any country/region, the '+' key
+        'OEM_COMMA' : Keys.VK_OEM_COMMA,                    #For any country/region, the ',' key
+        'OEM_MINUS' : Keys.VK_OEM_MINUS,                    #For any country/region, the '-' key
+        'OEM_PERIOD' : Keys.VK_OEM_PERIOD,                  #For any country/region, the '.' key
+        'OEM_2' : Keys.VK_OEM_2,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '/?' key
+        'OEM_3' : Keys.VK_OEM_3,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '`~' key
+        'OEM_4' : Keys.VK_OEM_4,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '[{' key
+        'OEM_5' : Keys.VK_OEM_5,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '\|' key
+        'OEM_6' : Keys.VK_OEM_6,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the ']}' key
+        'OEM_7' : Keys.VK_OEM_7,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the 'single-quote/double-quote' key
+        'OEM_8' : Keys.VK_OEM_8,                            #Used for miscellaneous characters; it can vary by keyboard.
+        'OEM_102' : Keys.VK_OEM_102,                        #Either the angle bracket key or the backslash key on the RT 102-key keyboard
+        'PROCESSKEY' : Keys.VK_PROCESSKEY,                  #IME PROCESS key
+        'PACKET' : Keys.VK_PACKET,                          #Used to pass Unicode characters as if they were keystrokes. The VK_PACKET key is the low word of a 32-bit Virtual Key value used for non-keyboard input methods. For more information, see Remark in KEYBDINPUT, SendInput, WM_KEYDOWN, and WM_KeyUp
+        'ATTN' : Keys.VK_ATTN,                              #Attn key
+        'CRSEL' : Keys.VK_CRSEL,                            #CrSel key
+        'EXSEL' : Keys.VK_EXSEL,                            #ExSel key
+        'EREOF' : Keys.VK_EREOF,                            #Erase EOF key
+        'PLAY' : Keys.VK_PLAY,                              #Play key
+        'ZOOM' : Keys.VK_ZOOM,                              #Zoom key
+        'NONAME' : Keys.VK_NONAME,                          #Reserved
+        'PA1' : Keys.VK_PA1,                                #PA1 key
+        'OEM_CLEAR' : Keys.VK_OEM_CLEAR,                    #Clear key
+        }
+    CharacterDict = {
+        '0' : Keys.VK_0,                             #0 key
+        '1' : Keys.VK_1,                             #1 key
+        '2' : Keys.VK_2,                             #2 key
+        '3' : Keys.VK_3,                             #3 key
+        '4' : Keys.VK_4,                             #4 key
+        '5' : Keys.VK_5,                             #5 key
+        '6' : Keys.VK_6,                             #6 key
+        '7' : Keys.VK_7,                             #7 key
+        '8' : Keys.VK_8,                             #8 key
+        '9' : Keys.VK_9,                             #9 key
+        'a' : Keys.VK_A,                             #A key
+        'A' : Keys.VK_A,                             #A key
+        'b' : Keys.VK_B,                             #B key
+        'B' : Keys.VK_B,                             #B key
+        'c' : Keys.VK_C,                             #C key
+        'C' : Keys.VK_C,                             #C key
+        'd' : Keys.VK_D,                             #D key
+        'D' : Keys.VK_D,                             #D key
+        'e' : Keys.VK_E,                             #E key
+        'E' : Keys.VK_E,                             #E key
+        'f' : Keys.VK_F,                             #F key
+        'F' : Keys.VK_F,                             #F key
+        'g' : Keys.VK_G,                             #G key
+        'G' : Keys.VK_G,                             #G key
+        'h' : Keys.VK_H,                             #H key
+        'H' : Keys.VK_H,                             #H key
+        'i' : Keys.VK_I,                             #I key
+        'I' : Keys.VK_I,                             #I key
+        'j' : Keys.VK_J,                             #J key
+        'J' : Keys.VK_J,                             #J key
+        'k' : Keys.VK_K,                             #K key
+        'K' : Keys.VK_K,                             #K key
+        'l' : Keys.VK_L,                             #L key
+        'L' : Keys.VK_L,                             #L key
+        'm' : Keys.VK_M,                             #M key
+        'M' : Keys.VK_M,                             #M key
+        'n' : Keys.VK_N,                             #N key
+        'N' : Keys.VK_N,                             #N key
+        'o' : Keys.VK_O,                             #O key
+        'O' : Keys.VK_O,                             #O key
+        'p' : Keys.VK_P,                             #P key
+        'P' : Keys.VK_P,                             #P key
+        'q' : Keys.VK_Q,                             #Q key
+        'Q' : Keys.VK_Q,                             #Q key
+        'r' : Keys.VK_R,                             #R key
+        'R' : Keys.VK_R,                             #R key
+        's' : Keys.VK_S,                             #S key
+        'S' : Keys.VK_S,                             #S key
+        't' : Keys.VK_T,                             #T key
+        'T' : Keys.VK_T,                             #T key
+        'u' : Keys.VK_U,                             #U key
+        'U' : Keys.VK_U,                             #U key
+        'v' : Keys.VK_V,                             #V key
+        'V' : Keys.VK_V,                             #V key
+        'w' : Keys.VK_W,                             #W key
+        'W' : Keys.VK_W,                             #W key
+        'x' : Keys.VK_X,                             #X key
+        'X' : Keys.VK_X,                             #X key
+        'y' : Keys.VK_Y,                             #Y key
+        'Y' : Keys.VK_Y,                             #Y key
+        'z' : Keys.VK_Z,                             #Z key
+        'Z' : Keys.VK_Z,                             #Z key
+        ' ' : Keys.VK_SPACE,                         #Space key
+        '`' : Keys.VK_OEM_3,                         #` key
+        #'~' : Keys.VK_OEM_3,                         #~ key
+        '-' : Keys.VK_OEM_MINUS,                     #- key
+        #'_' : Keys.VK_OEM_MINUS,                     #_ key
+        '=' : Keys.VK_OEM_PLUS,                      #= key
+        #'+' : Keys.VK_OEM_PLUS,                      #+ key
+        '[' : Keys.VK_OEM_4,                         #[ key
+        #'{' : Keys.VK_OEM_4,                         #{ key
+        ']' : Keys.VK_OEM_6,                         #] key
+        #'}' : Keys.VK_OEM_6,                         #} key
+        '\\' : Keys.VK_OEM_5,                        #\ key
+        #'|' : Keys.VK_OEM_5,                         #| key
+        ';' : Keys.VK_OEM_1,                         #; key
+        #':' : Keys.VK_OEM_1,                         #: key
+        '\'' : Keys.VK_OEM_7,                        #' key
+        #'"' : Keys.VK_OEM_7,                         #" key
+        ',' : Keys.VK_OEM_COMMA,                     #, key
+        #'<' : Keys.VK_OEM_COMMA,                     #< key
+        '.' : Keys.VK_OEM_PERIOD,                    #. key
+        #'>' : Keys.VK_OEM_PERIOD,                    #> key
+        '/' : Keys.VK_OEM_2,                         #/ key
+        #'?' : Keys.VK_OEM_2,                         #? key
+        }
 
     @staticmethod
     def GetClipboardText():
@@ -1033,224 +1268,19 @@ class Win32API():
         interval: double, seconds between keys
         debug: bool, if True, print the Keys
         example:
-        Win32API.SendKeys('{Ctrl}{End}{SPACE}{CTRL}{1 3}  {CTRL}(12)123ab{c 3}A(BC){(}你好{)}{ENTER}')
-        Win32API.SendKeys('0123456789{ENTER}')
-        Win32API.SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{ENTER}')
-        Win32API.SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}')
-        Win32API.SendKeys('`~!@#$%^&*{(}{)}-_=+{ENTER}')
-        Win32API.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}')
+        {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
+        SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
+        SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type )
+        SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
+        SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
+        SendKeys('{{}你好{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {你好}abc abc test}}}!a ()()
+        SendKeys('0123456789{Enter}')
+        SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{Enter}')
+        SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
+        SendKeys('`~!@#$%^&*()-_=+{Enter}')
+        SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
         '''
-        holdKeys = ['WIN', 'LWIN', 'RWIN', 'SHIFT', 'LSHIFT', 'RSHIFT', 'CTRL', 'LCTRL', 'RCTRL', 'ALT', 'LALT', 'RALT']
-        if not Win32API.KeyDict:
-            Win32API.KeyDict = {
-                'LBUTTON' : 0x01,                       #Left mouse button
-                'RBUTTON' : 0x02,                       #Right mouse button
-                'CANCEL' : 0x03,                        #Control-break processing
-                'MBUTTON' : 0x04,                       #Middle mouse button (three-button mouse)
-                'XBUTTON1' : 0x05,                      #X1 mouse button
-                'XBUTTON2' : 0x06,                      #X2 mouse button
-                'BACK' : 0x08,                          #BACKSPACE key
-                'TAB' : 0x09,                           #TAB key
-                'CLEAR' : 0x0C,                         #CLEAR key
-                'RETURN' : 0x0D,                        #ENTER key
-                'ENTER' : 0x0D,                         #ENTER key
-                'SHIFT' : 0x10,                         #SHIFT key
-                'CTRL' : 0x11,                          #CTRL key
-                'CONTROL' : 0x11,                       #CTRL key
-                'ALT' : 0x12,                           #ALT key
-                'PAUSE' : 0x13,                         #PAUSE key
-                'CAPITAL' : 0x14,                       #CAPS LOCK key
-                'KANA' : 0x15,                          #IME Kana mode
-                'HANGUEL' : 0x15,                       #IME Hanguel mode (maintained for compatibility; use VK_HANGUL)
-                'HANGUL' : 0x15,                        #IME Hangul mode
-                'JUNJA' : 0x17,                         #IME Junja mode
-                'FINAL' : 0x18,                         #IME final mode
-                'HANJA' : 0x19,                         #IME Hanja mode
-                'KANJI' : 0x19,                         #IME Kanji mode
-                'ESC' : 0x1B,                           #ESC key
-                'ESCAPE' : 0x1B,                        #ESC key
-                'CONVERT' : 0x1C,                       #IME convert
-                'NONCONVERT' : 0x1D,                    #IME nonconvert
-                'ACCEPT' : 0x1E,                        #IME accept
-                'MODECHANGE' : 0x1F,                    #IME mode change request
-                ' ' : 0x20,                             #SPACEBAR
-                'SPACE' : 0x20,                         #SPACEBAR
-                'PRIOR' : 0x21,                         #PAGE UP key
-                'NEXT' : 0x22,                          #PAGE DOWN key
-                'END' : 0x23,                           #END key
-                'HOME' : 0x24,                          #HOME key
-                'LEFT' : 0x25,                          #LEFT ARROW key
-                'UP' : 0x26,                            #UP ARROW key
-                'RIGHT' : 0x27,                         #RIGHT ARROW key
-                'DOWN' : 0x28,                          #DOWN ARROW key
-                'SELECT' : 0x29,                        #SELECT key
-                'PRINT' : 0x2A,                         #PRINT key
-                'EXECUTE' : 0x2B,                       #EXECUTE key
-                'SNAPSHOT' : 0x2C,                      #PRINT SCREEN key
-                'INSERT' : 0x2D,                        #INS key
-                'DELETE' : 0x2E,                        #DEL key
-                'HELP' : 0x2F,                          #HELP key
-                'WIN' : 0x5B,                           #Left Windows key (Natural keyboard)
-                'LWIN' : 0x5B,                          #Left Windows key (Natural keyboard)
-                'RWIN' : 0x5C,                          #Right Windows key (Natural keyboard)
-                'APPS' : 0x5D,                          #Applications key (Natural keyboard)
-                'SLEEP' : 0x5F,                         #Computer Sleep key
-                'NUMPAD0' : 0x60,                       #Numeric keypad 0 key
-                'NUMPAD1' : 0x61,                       #Numeric keypad 1 key
-                'NUMPAD2' : 0x62,                       #Numeric keypad 2 key
-                'NUMPAD3' : 0x63,                       #Numeric keypad 3 key
-                'NUMPAD4' : 0x64,                       #Numeric keypad 4 key
-                'NUMPAD5' : 0x65,                       #Numeric keypad 5 key
-                'NUMPAD6' : 0x66,                       #Numeric keypad 6 key
-                'NUMPAD7' : 0x67,                       #Numeric keypad 7 key
-                'NUMPAD8' : 0x68,                       #Numeric keypad 8 key
-                'NUMPAD9' : 0x69,                       #Numeric keypad 9 key
-                'MULTIPLY' : 0x6A,                      #Multiply key
-                'ADD' : 0x6B,                           #Add key
-                'SEPARATOR' : 0x6C,                     #Separator key
-                'SUBTRACT' : 0x6D,                      #Subtract key
-                'DECIMAL' : 0x6E,                       #Decimal key
-                'DIVIDE' : 0x6F,                        #Divide key
-                'F1' : 0x70,                            #F1 key
-                'F2' : 0x71,                            #F2 key
-                'F3' : 0x72,                            #F3 key
-                'F4' : 0x73,                            #F4 key
-                'F5' : 0x74,                            #F5 key
-                'F6' : 0x75,                            #F6 key
-                'F7' : 0x76,                            #F7 key
-                'F8' : 0x77,                            #F8 key
-                'F9' : 0x78,                            #F9 key
-                'F10' : 0x79,                           #F10 key
-                'F11' : 0x7A,                           #F11 key
-                'F12' : 0x7B,                           #F12 key
-                'F13' : 0x7C,                           #F13 key
-                'F14' : 0x7D,                           #F14 key
-                'F15' : 0x7E,                           #F15 key
-                'F16' : 0x7F,                           #F16 key
-                'F17' : 0x80,                           #F17 key
-                'F18' : 0x81,                           #F18 key
-                'F19' : 0x82,                           #F19 key
-                'F20' : 0x83,                           #F20 key
-                'F21' : 0x84,                           #F21 key
-                'F22' : 0x85,                           #F22 key
-                'F23' : 0x86,                           #F23 key
-                'F24' : 0x87,                           #F24 key
-                'NUMLOCK' : 0x90,                       #NUM LOCK key
-                'SCROLL' : 0x91,                        #SCROLL LOCK key
-                'LSHIFT' : 0xA0,                        #Left SHIFT key
-                'RSHIFT' : 0xA1,                        #Right SHIFT key
-                'LCONTROL' : 0xA2,                      #Left CONTROL key
-                'RCONTROL' : 0xA3,                      #Right CONTROL key
-                'LALT' : 0xA4,                         #Left MENU key
-                'RALT' : 0xA5,                         #Right MENU key
-                'BROWSER_BACK' : 0xA6,                  #Browser Back key
-                'BROWSER_FORWARD' : 0xA7,               #Browser Forward key
-                'BROWSER_REFRESH' : 0xA8,               #Browser Refresh key
-                'BROWSER_STOP' : 0xA9,                  #Browser Stop key
-                'BROWSER_SEARCH' : 0xAA,                #Browser Search key
-                'BROWSER_FAVORITES' : 0xAB,             #Browser Favorites key
-                'BROWSER_HOME' : 0xAC,                  #Browser Start and Home key
-                'VOLUME_MUTE' : 0xAD,                   #Volume Mute key
-                'VOLUME_DOWN' : 0xAE,                   #Volume Down key
-                'VOLUME_UP' : 0xAF,                     #Volume Up key
-                'MEDIA_NEXT_TRACK' : 0xB0,              #Next Track key
-                'MEDIA_PREV_TRACK' : 0xB1,              #Previous Track key
-                'MEDIA_STOP' : 0xB2,                    #Stop Media key
-                'MEDIA_PLAY_PAUSE' : 0xB3,              #Play/Pause Media key
-                'LAUNCH_MAIL' : 0xB4,                   #Start Mail key
-                'LAUNCH_MEDIA_SELECT' : 0xB5,           #Select Media key
-                'LAUNCH_APP1' : 0xB6,                   #Start Application 1 key
-                'LAUNCH_APP2' : 0xB7,                   #Start Application 2 key
-                'OEM_1' : 0xBA,                         #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the ';:' key
-                'OEM_PLUS' : 0xBB,                      #For any country/region, the '+' key
-                'OEM_COMMA' : 0xBC,                     #For any country/region, the ',' key
-                'OEM_MINUS' : 0xBD,                     #For any country/region, the '-' key
-                'OEM_PERIOD' : 0xBE,                    #For any country/region, the '.' key
-                'OEM_2' : 0xBF,                         #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '/?' key
-                'OEM_3' : 0xC0,                         #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '`~' key
-                'OEM_4' : 0xDB,                         #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '[{' key
-                'OEM_5' : 0xDC,                         #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '\|' key
-                'OEM_6' : 0xDD,                         #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the ']}' key
-                'OEM_7' : 0xDE,                         #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the 'single-quote/double-quote' key
-                'OEM_8' : 0xDF,                         #Used for miscellaneous characters; it can vary by keyboard.
-                'OEM_102' : 0xE2,                       #Either the angle bracket key or the backslash key on the RT 102-key keyboard
-                'PROCESSKEY' : 0xE5,                    #IME PROCESS key
-                'PACKET' : 0xE7,                        #Used to pass Unicode characters as if they were keystrokes. The VK_PACKET key is the low word of a 32-bit Virtual Key value used for non-keyboard input methods. For more information, see Remark in KEYBDINPUT, SendInput, WM_KEYDOWN, and WM_KeyUp
-                'ATTN' : 0xF6,                          #Attn key
-                'CRSEL' : 0xF7,                         #CrSel key
-                'EXSEL' : 0xF8,                         #ExSel key
-                'EREOF' : 0xF9,                         #Erase EOF key
-                'PLAY' : 0xFA,                          #Play key
-                'ZOOM' : 0xFB,                          #Zoom key
-                'NONAME' : 0xFC,                        #Reserved
-                'PA1' : 0xFD,                           #PA1 key
-                'OEM_CLEAR' : 0xFE,                     #Clear key
-            }
-        if not Win32API.CharacterDict:
-            Win32API.CharacterDict = {
-                '0' : 0x30,                             #0 key
-                '1' : 0x31,                             #1 key
-                '2' : 0x32,                             #2 key
-                '3' : 0x33,                             #3 key
-                '4' : 0x34,                             #4 key
-                '5' : 0x35,                             #5 key
-                '6' : 0x36,                             #6 key
-                '7' : 0x37,                             #7 key
-                '8' : 0x38,                             #8 key
-                '9' : 0x39,                             #9 key
-                'a' : 0x41,                             #A key
-                'A' : 0x41,                             #A key
-                'b' : 0x42,                             #B key
-                'B' : 0x42,                             #B key
-                'c' : 0x43,                             #C key
-                'C' : 0x43,                             #C key
-                'd' : 0x44,                             #D key
-                'D' : 0x44,                             #D key
-                'e' : 0x45,                             #E key
-                'E' : 0x45,                             #E key
-                'f' : 0x46,                             #F key
-                'F' : 0x46,                             #F key
-                'g' : 0x47,                             #G key
-                'G' : 0x47,                             #G key
-                'h' : 0x48,                             #H key
-                'H' : 0x48,                             #H key
-                'i' : 0x49,                             #I key
-                'I' : 0x49,                             #I key
-                'j' : 0x4A,                             #J key
-                'J' : 0x4A,                             #J key
-                'k' : 0x4B,                             #K key
-                'K' : 0x4B,                             #K key
-                'l' : 0x4C,                             #L key
-                'L' : 0x4C,                             #L key
-                'm' : 0x4D,                             #M key
-                'M' : 0x4D,                             #M key
-                'n' : 0x4E,                             #N key
-                'N' : 0x4E,                             #N key
-                'o' : 0x4F,                             #O key
-                'O' : 0x4F,                             #O key
-                'p' : 0x50,                             #P key
-                'P' : 0x50,                             #P key
-                'q' : 0x51,                             #Q key
-                'Q' : 0x51,                             #Q key
-                'r' : 0x52,                             #R key
-                'R' : 0x52,                             #R key
-                's' : 0x53,                             #S key
-                'S' : 0x53,                             #S key
-                't' : 0x54,                             #T key
-                'T' : 0x54,                             #T key
-                'u' : 0x55,                             #U key
-                'U' : 0x55,                             #U key
-                'v' : 0x56,                             #V key
-                'V' : 0x56,                             #V key
-                'w' : 0x57,                             #W key
-                'W' : 0x57,                             #W key
-                'x' : 0x58,                             #X key
-                'X' : 0x58,                             #X key
-                'y' : 0x59,                             #Y key
-                'Y' : 0x59,                             #Y key
-                'z' : 0x5A,                             #Z key
-                'Z' : 0x5A,                             #Z key
-            }
+        holdKeys = ['WIN', 'LWIN', 'RWIN', 'SHIFT', 'LSHIFT', 'RSHIFT', 'CTRL', 'CONTROL', 'LCTRL', 'RCTRL', 'LCONTROL', 'LCONTROL', 'ALT', 'LALT', 'RALT']
         keys = []
         printKeys = []
         i = 0
@@ -1258,53 +1288,58 @@ class Win32API():
         length = len(text)
         hold = False
         include = False
-        lastKey = ''
+        #lastKey = ''
+        lastKeyValue = None
         while True:
             if text[i] == '{':
                 rindex = text.find('}', i)
                 if rindex == i+1:#{}}
                     rindex = text.find('}', i+2)
                 key = text[i+1:rindex]
-                key = key.split()
+                key = key.split(' ')
                 upperKey = key[0].upper()
                 count = 1
                 if len(key) > 1:
                     count = int(key[1])
                 for j in range(count):
                     if hold:
-                        if upperKey in Win32API.KeyDict:
-                            keyValue = Win32API.KeyDict[upperKey]
-                            if lastKey == key[0]:
+                        if upperKey in Win32API.SpecialKeyDict:
+                            keyValue = Win32API.SpecialKeyDict[upperKey]
+                            if type(lastKeyValue) == type(keyValue) and lastKeyValue == keyValue:
                                 insertIndex += 1
                             printKeys.insert(insertIndex, (key[0], 'KeyDown | ExtendedKey'))
                             printKeys.insert(insertIndex+1, (key[0], 'KeyUp | ExtendedKey'))
                             keys.insert(insertIndex, (keyValue, KeyboardEventFlags.ExtendedKey))
                             keys.insert(insertIndex+1, (keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
+                            lastKeyValue = keyValue
                         elif key[0] in Win32API.CharacterDict:
                             keyValue = Win32API.CharacterDict[key[0]]
-                            if lastKey == key[0]:
+                            if type(lastKeyValue) == type(keyValue) and lastKeyValue == keyValue:
                                 insertIndex += 1
                             printKeys.insert(insertIndex, (key[0], 'KeyDown | ExtendedKey'))
                             printKeys.insert(insertIndex+1, (key[0], 'KeyUp | ExtendedKey'))
                             keys.insert(insertIndex, (keyValue, KeyboardEventFlags.ExtendedKey))
                             keys.insert(insertIndex+1, (keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
+                            lastKeyValue = keyValue
                         else:
                             printKeys.insert(insertIndex, (key[0], 'UnicodeChar'))
                             keys.insert(insertIndex, (key[0], 'UnicodeChar'))
+                            lastKeyValue = key[0]
                         if include:
                             insertIndex += 1
                         else:
-                            if key[0] in holdKeys:
+                            if upperKey in holdKeys:
                                 insertIndex += 1
                             else:
                                 hold = False
                     else:
-                        if upperKey in Win32API.KeyDict:
-                            keyValue = Win32API.KeyDict[upperKey]
+                        if upperKey in Win32API.SpecialKeyDict:
+                            keyValue = Win32API.SpecialKeyDict[upperKey]
                             printKeys.append((key[0], 'KeyDown | ExtendedKey'))
                             printKeys.append((key[0], 'KeyUp | ExtendedKey'))
                             keys.append((keyValue, KeyboardEventFlags.ExtendedKey))
                             keys.append((keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
+                            lastKeyValue = keyValue
                             if upperKey in holdKeys:
                                 hold = True
                                 insertIndex = len(keys) - 1
@@ -1313,30 +1348,43 @@ class Win32API():
                         else:
                             printKeys.append((key[0], 'UnicodeChar'))
                             keys.append((key[0], 'UnicodeChar'))
-                    lastKey = key[0]
+                            lastKeyValue = key[0]
+                    #lastKey = key[0]
                 i = rindex + 1
             elif text[i] == '(':
-                include = True
-                lastKey = text[i]
+                if hold:
+                    include = True
+                else:
+                    printKeys.append((text[i], 'UnicodeChar'))
+                    keys.append((text[i], 'UnicodeChar'))
+                    lastKeyValue = text[i]
+                #lastKey = text[i]
                 i += 1
             elif text[i] == ')':
-                include = False
-                hold = False
-                lastKey = text[i]
+                if hold:
+                    include = False
+                    hold = False
+                else:
+                    printKeys.append((text[i], 'UnicodeChar'))
+                    keys.append((text[i], 'UnicodeChar'))
+                    lastKeyValue = text[i]
+                #lastKey = text[i]
                 i += 1
             else:
                 if hold:
                     if text[i] in Win32API.CharacterDict:
                         keyValue = Win32API.CharacterDict[text[i]]
-                        if include and lastKey == text[i]:
+                        if include and type(lastKeyValue) == type(keyValue) and lastKeyValue == keyValue:
                             insertIndex += 1
                         printKeys.insert(insertIndex, (text[i], 'KeyDown | ExtendedKey'))
                         printKeys.insert(insertIndex + 1, (text[i], 'KeyUp | ExtendedKey'))
                         keys.insert(insertIndex, (keyValue, KeyboardEventFlags.ExtendedKey))
                         keys.insert(insertIndex + 1, (keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
+                        lastKeyValue = keyValue
                     else:
-                        printKeys.insert(insertIndex, (text[i], 'UnicodeChar'))
-                        keys.insert(insertIndex, (text[i], 'UnicodeChar'))
+                        printKeys.append((text[i], 'UnicodeChar'))
+                        keys.append((text[i], 'UnicodeChar'))
+                        lastKeyValue = text[i]
                     if include:
                         insertIndex += 1
                     else:
@@ -1344,7 +1392,8 @@ class Win32API():
                 else:
                     printKeys.append((text[i], 'UnicodeChar'))
                     keys.append((text[i], 'UnicodeChar'))
-                lastKey = text[i]
+                    lastKeyValue = text[i]
+                #lastKey = text[i]
                 i += 1
             if i >= length:
                 break
@@ -1356,11 +1405,11 @@ class Win32API():
             if key[1] == 'UnicodeChar':
                 wchar = ctypes.c_wchar_p(key[0])
                 _automationClient.dll.SendUnicodeChar(wchar)
+                time.sleep(interval)
                 #Win32API.PostMessage(GetFocusedControl().Handle, 0x102, -key[0], 0)#UnicodeChar = 0x102
             else:
                 scanCode = Win32API.VKtoSC(key[0])
                 Win32API.keybd_event(key[0], scanCode, key[1], 0)
-            time.sleep(interval)
         #make sure hold keys are not pressed
         #win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
         #ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
@@ -1834,7 +1883,7 @@ class Control():
 #Patterns -----
 class InvokePattern():
     def IsInvokePatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId) != 0
 
     def Invoke(self):
@@ -1849,7 +1898,7 @@ class InvokePattern():
 
 class TogglePattern():
     def IsTogglePatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId) != 0
 
     def Toggle(self):
@@ -1875,7 +1924,7 @@ class TogglePattern():
 
 class ExpandCollapsePattern():
     def IsExpandCollapsePatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId) != 0
 
     def Expand(self):
@@ -1896,10 +1945,20 @@ class ExpandCollapsePattern():
         else:
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
+    def CurrentExpandCollapseState(self):
+        '''Return an integer of class ExpandCollapseState '''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
+        if pattern:
+            state = _automationClient.dll.ExpandCollapsePatternCurrentExpandCollapseState(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return state
+        else:
+            Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
+
 
 class ValuePattern():
     def IsValuePatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId) != 0
 
     def CurrentValue(self):
@@ -1926,7 +1985,7 @@ class ValuePattern():
 
 class ScrollItemPattern():
     def IsScrollItemPatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId) != 0
 
     def ScrollIntoView(self):
@@ -1941,7 +2000,7 @@ class ScrollItemPattern():
 
 class ScrollPattern():
     def IsScrollPatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId) != 0
 
     def CurrentHorizontallyScrollable(self):
@@ -2018,7 +2077,7 @@ class ScrollPattern():
 
 class SelectionPattern():
     def IsSelectionPatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId) != 0
 
     def GetCurrentSelection(self):
@@ -2034,7 +2093,7 @@ class SelectionPattern():
 
 class SelectionItemPattern():
     def IsSelectionItemPatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId) != 0
 
     def Select(self):
@@ -2073,7 +2132,7 @@ class SelectionItemPattern():
 
 class RangeValuePattern():
     def IsRangeValuePatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId) != 0
 
     def CurrentValue(self):
@@ -2114,7 +2173,7 @@ class RangeValuePattern():
 
 class WindowPattern():
     def IsWindowPatternAvailable(self):
-        '''return bool'''
+        '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId) != 0
 
     def CurrentWindowVisualState(self):
@@ -2225,12 +2284,14 @@ class ComboBoxControl(Control, ValuePattern, ExpandCollapsePattern):
         if supportExpandCollapse:
             self.Expand()
         else:
+            #Windows Form's ComboBoxControl doesn't support ExpandCollapsePattern
             self.Click(-10, 0.5, False)
         listItemControl = ListItemControl(searchFromControl = self, Name = name)
         if listItemControl.Exists(1, SEARCH_INTERVAL):
             listItemControl.ScrollIntoView()
             listItemControl.Click()
         else:
+            Logger.WriteLine('Can\'t find {} in ComboBoxControl'.format(name), ConsoleColor.Yellow)
             if supportExpandCollapse:
                 self.Collapse()
             else:
