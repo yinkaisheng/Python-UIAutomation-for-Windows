@@ -1406,6 +1406,8 @@ class Win32API():
             else:
                 scanCode = Win32API.VKtoSC(key[0])
                 Win32API.keybd_event(key[0], scanCode, key[1], 0)
+                if key[1] & KeyboardEventFlags.KeyUp:
+                    time.sleep(interval)
         #make sure hold keys are not pressed
         #win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
         #ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
