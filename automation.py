@@ -2950,18 +2950,26 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
     stopHotKeyFlag = 2
     ctrldFlag = 3
     registed = True
+    def getNameByValue(theDict, theValue):
+        for key in theDict:
+            if theValue == theDict[key]:
+                return key
     if startHotKey and len(startHotKey) == 2:
+        mod = getNameByValue(HotKey.__dict__, startHotKey[0])
+        key = getNameByValue(Keys.__dict__, startHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, startHotKeyFlag, startHotKey[0], startHotKey[1]):
-            sys.stdout.write('Register start hotKey {0} succeed\n'.format(startHotKey))
+            sys.stdout.write('Register start hotKey {0} succeed\n'.format((mod, key)))
         else:
             registed = False
-            sys.stdout.write('Register start hotKey {0} failed, maybe it was allready registered by another program\n'.format(startHotKey))
+            sys.stdout.write('Register start hotKey {0} failed, maybe it was allready registered by another program\n'.format((mod, key)))
     if stopHotKey and len(stopHotKey) == 2:
+        mod = getNameByValue(HotKey.__dict__, stopHotKey[0])
+        key = getNameByValue(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyFlag, stopHotKey[0], stopHotKey[1]):
-            sys.stdout.write('Register stop hotKey {0} succeed\n'.format(stopHotKey))
+            sys.stdout.write('Register stop hotKey {0} succeed\n'.format((mod, key)))
         else:
             registed = False
-            sys.stdout.write('Register stop hotKey {0} failed, maybe it was allready registered by another program\n'.format(stopHotKey))
+            sys.stdout.write('Register stop hotKey {0} failed, maybe it was allready registered by another program\n'.format((mod, key)))
     if not registed:
         return
     if ctypes.windll.user32.RegisterHotKey(0, ctrldFlag, HotKey.MOD_CONTROL, Keys.VK_D):
@@ -3000,7 +3008,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
                     funcThread = None
             elif ctrldFlag == msg.wParam:
                 if msg.lParam&0x0000FFFF == HotKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
-                    if GetForegroundControl().Handle == cmdWindow.Handle:
+                    if ControlsAreSame(GetForegroundControl(), cmdWindow):
                         Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow)
                         break
 
