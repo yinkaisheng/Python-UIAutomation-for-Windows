@@ -1158,8 +1158,12 @@ class Win32API():
         return _automationClient.dll.GetParentProcessId(processId)
 
     @staticmethod
-    def TerminateProcess(handle):
-        return ctypes.windll.kernel32.TerminateProcess(handle, -1)
+    def TerminateProcess(processId):
+        hProcess = ctypes.windll.kernel32.OpenProcess(0x0001, 0, processId);  #PROCESS_TERMINATE=0x0001
+        if hProcess:
+            ret = ctypes.windll.kernel32.TerminateProcess(hProcess, -1)
+            ctypes.windll.kernel32.CloseHandle(hProcess)
+            return ret
 
     @staticmethod
     def EnumProcess():
@@ -2728,6 +2732,10 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
                 del childList[depth]
                 depth -= 1
 
+def ControlsAreSame(control1, control2):
+    '''return 1 if control1 and control2 are the same control, otherwise return 0'''
+    return _automationClient.dll.CompareElements(control1.Element, control2.Element)
+
 def GetRootControl():
     global _rootControl
     if not _rootControl:
@@ -2940,6 +2948,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
     '''
     startHotKeyFlag = 1
     stopHotKeyFlag = 2
+    ctrldFlag = 3
     registed = True
     if startHotKey and len(startHotKey) == 2:
         if ctypes.windll.user32.RegisterHotKey(0, startHotKeyFlag, startHotKey[0], startHotKey[1]):
@@ -2955,6 +2964,11 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
             sys.stdout.write('Register stop hotKey {0} failed, maybe it was allready registered by another program\n'.format(stopHotKey))
     if not registed:
         return
+    if ctypes.windll.user32.RegisterHotKey(0, ctrldFlag, HotKey.MOD_CONTROL, Keys.VK_D):
+        sys.stdout.write('Register Ctrl+D succeed, for exiting current script.\n')
+    else:
+        sys.stdout.write('Register Ctrl+D failed')
+    cmdWindow = GetConsoleWindow()
     from threading import Thread, Event
     funcThread = None
     stopEvent = Event()
@@ -2963,25 +2977,32 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
         function(stopEvent)
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
-            if startHotKeyFlag == msg.wParam and msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
-                sys.stdout.write('----------start hotkey pressed----------\n')
-                if not funcThread:
-                    stopEvent.clear()
-                    funcThread=Thread(None, threadFunc, args = (function, stopEvent))
-                    funcThread.setDaemon(True)
-                    funcThread.start()
-                else:
-                    if not funcThread.isAlive():
+            if startHotKeyFlag == msg.wParam:
+                if msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
+                    sys.stdout.write('----------start hotkey pressed----------\n')
+                    if not funcThread:
                         stopEvent.clear()
                         funcThread=Thread(None, threadFunc, args = (function, stopEvent))
                         funcThread.setDaemon(True)
                         funcThread.start()
                     else:
-                        Logger.WriteLine('There is a thread that had already run.', ConsoleColor.Yellow)
-            if stopHotKeyFlag == msg.wParam and msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
-                sys.stdout.write('----------stop hotkey pressed----------\n')
-                stopEvent.set()
-                funcThread = None
+                        if not funcThread.isAlive():
+                            stopEvent.clear()
+                            funcThread=Thread(None, threadFunc, args = (function, stopEvent))
+                            funcThread.setDaemon(True)
+                            funcThread.start()
+                        else:
+                            Logger.WriteLine('There is a thread that had already run.', ConsoleColor.Yellow)
+            elif stopHotKeyFlag == msg.wParam:
+                if msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
+                    sys.stdout.write('----------stop hotkey pressed----------\n')
+                    stopEvent.set()
+                    funcThread = None
+            elif ctrldFlag == msg.wParam:
+                if msg.lParam&0x0000FFFF == HotKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
+                    if GetForegroundControl().Handle == cmdWindow.Handle:
+                        Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow)
+                        break
 
 def usage():
     sys.stdout.write('''usage
