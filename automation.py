@@ -2828,10 +2828,10 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     Logger.Write('0x{0:X}({0})'.format(handle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
     Logger.Write(str(depth), ConsoleColor.DarkGreen)
+    if isinstance(control, EditControl):
+        Logger.Write('    Value: ')
+        Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen)
     if showMore:
-        if isinstance(control, EditControl):
-            Logger.Write('    Value: ')
-            Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen)
         Logger.Write('    SupportedPattern:')
         for key in PatternDict:
             pattern = _automationClient.dll.GetElementPattern(control.Element, key)
