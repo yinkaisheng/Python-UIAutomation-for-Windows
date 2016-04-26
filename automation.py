@@ -277,10 +277,12 @@ class KeyboardEventFlags():
     ExtendedKey = 0x0001
     KeyUp = 0x0002
 
-class HotKey():
+class ModifierKey():
     MOD_ALT = 0x0001
     MOD_CONTROL = 0x0002
     MOD_SHIFT = 0x0004
+    MOD_WIN = 0x0008
+    MOD_NOREPEAT = 0x4000
 
 class Keys():
     '''This class defines the Key Code from Win32'''
@@ -2944,27 +2946,35 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
         print('main exit')
         print(automation.GetRootControl())      # will raise exception, can't use automation, todo
 
-    automation.RunHotKey(main, (automation.HotKey.MOD_CONTROL, automation.Keys.VK_1), (automation.HotKey.MOD_CONTROL, automation.Keys.VK_2))
+    automation.RunHotKey(main, (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1), (automation.ModifierKey.MOD_CONTROL | automation.ModifierKey.MOD_SHIFT, automation.Keys.VK_2))
     '''
     startHotKeyFlag = 1
     stopHotKeyFlag = 2
     ctrldFlag = 3
     registed = True
-    def getNameByValue(theDict, theValue):
+    def getModName(theDict, theValue):
+        name = ''
+        for key in theDict:
+            if isinstance(theDict[key], int) and theValue & theDict[key]:
+                if name:
+                    name += '|'
+                name += key
+        return name
+    def getKeyName(theDict, theValue):
         for key in theDict:
             if theValue == theDict[key]:
                 return key
     if startHotKey and len(startHotKey) == 2:
-        mod = getNameByValue(HotKey.__dict__, startHotKey[0])
-        key = getNameByValue(Keys.__dict__, startHotKey[1])
+        mod = getModName(ModifierKey.__dict__, startHotKey[0])
+        key = getKeyName(Keys.__dict__, startHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, startHotKeyFlag, startHotKey[0], startHotKey[1]):
             sys.stdout.write('Register start hotKey {0} succeed\n'.format((mod, key)))
         else:
             registed = False
             sys.stdout.write('Register start hotKey {0} failed, maybe it was allready registered by another program\n'.format((mod, key)))
     if stopHotKey and len(stopHotKey) == 2:
-        mod = getNameByValue(HotKey.__dict__, stopHotKey[0])
-        key = getNameByValue(Keys.__dict__, stopHotKey[1])
+        mod = getModName(ModifierKey.__dict__, stopHotKey[0])
+        key = getKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyFlag, stopHotKey[0], stopHotKey[1]):
             sys.stdout.write('Register stop hotKey {0} succeed\n'.format((mod, key)))
         else:
@@ -2972,7 +2982,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
             sys.stdout.write('Register stop hotKey {0} failed, maybe it was allready registered by another program\n'.format((mod, key)))
     if not registed:
         return
-    if ctypes.windll.user32.RegisterHotKey(0, ctrldFlag, HotKey.MOD_CONTROL, Keys.VK_D):
+    if ctypes.windll.user32.RegisterHotKey(0, ctrldFlag, ModifierKey.MOD_CONTROL, Keys.VK_D):
         sys.stdout.write('Register Ctrl+D succeed, for exiting current script.\n')
     else:
         sys.stdout.write('Register Ctrl+D failed')
@@ -3007,7 +3017,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
                     stopEvent.set()
                     funcThread = None
             elif ctrldFlag == msg.wParam:
-                if msg.lParam&0x0000FFFF == HotKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
+                if msg.lParam&0x0000FFFF == ModifierKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
                     if ControlsAreSame(GetForegroundControl(), cmdWindow):
                         Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow)
                         break

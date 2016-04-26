@@ -34,4 +34,4 @@ def main2(stopEvent):
     automation.Logger.WriteLine('main exits'.format(p.pid), automation.ConsoleColor.DarkGreen)
 
 if __name__ == '__main__':
-    automation.RunWithHotKey(main2, (automation.HotKey.MOD_CONTROL, automation.Keys.VK_1), (automation.HotKey.MOD_CONTROL, automation.Keys.VK_2))
+    automation.RunWithHotKey(main, (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1), (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_2))
