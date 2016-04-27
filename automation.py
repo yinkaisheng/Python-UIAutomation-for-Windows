@@ -1282,7 +1282,7 @@ class Win32API():
         SendKeys('`~!@#$%^&*()-_=+{Enter}')
         SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
         '''
-        holdKeys = ['WIN', 'LWIN', 'RWIN', 'SHIFT', 'LSHIFT', 'RSHIFT', 'CTRL', 'CONTROL', 'LCTRL', 'RCTRL', 'LCONTROL', 'LCONTROL', 'ALT', 'LALT', 'RALT']
+        holdKeys = ('WIN', 'LWIN', 'RWIN', 'SHIFT', 'LSHIFT', 'RSHIFT', 'CTRL', 'CONTROL', 'LCTRL', 'RCTRL', 'LCONTROL', 'LCONTROL', 'ALT', 'LALT', 'RALT')
         keys = []
         printKeys = []
         i = 0
@@ -1297,8 +1297,14 @@ class Win32API():
                 rindex = text.find('}', i)
                 if rindex == i+1:#{}}
                     rindex = text.find('}', i+2)
+                if rindex == -1:
+                    raise ValueError('"{" or "{}" is not valid, use "{{}" for "{", use "{}}" for "}"')
                 key = text[i+1:rindex]
-                key = key.split(' ')
+                key = [it for it in key.split(' ') if it]
+                if not key:
+                    raise ValueError('"{}" is not valid, use "{{Space}}" or " " for " "'.format(text[i:rindex+1]))
+                if (len(key) == 2 and not key[1].isdigit()) or len(key) > 2:
+                    raise ValueError('"{}" is not valid'.format(text[i:rindex+1]))
                 upperKey = key[0].upper()
                 count = 1
                 if len(key) > 1:
@@ -1400,10 +1406,19 @@ class Win32API():
             if i >= length:
                 break
         if debug:
-            for key in printKeys:
-                sys.stdout.write(str(key) + '\n')
+            for i, key in enumerate(printKeys):
+                if key[1] == 'UnicodeChar':
+                    sys.stdout.write(str(key) + ', sleep({})\n'.format(interval))
+                else:
+                    if i + 1 == len(printKeys):
+                        sys.stdout.write(str(key) + ', sleep({})\n'.format(interval))
+                    else:
+                        if 'KeyUp'in key[1] and (printKeys[i+1][1] == 'UnicodeChar' or 'KeyDown' in printKeys[i+1][1]):
+                            sys.stdout.write(str(key) + ', sleep({})\n'.format(interval))
+                        else:
+                            sys.stdout.write(str(key) + '\n')
             sys.stdout.write('\n')
-        for key in keys:
+        for i, key in enumerate(keys):
             if key[1] == 'UnicodeChar':
                 wchar = ctypes.c_wchar_p(key[0])
                 _automationClient.dll.SendUnicodeChar(wchar)
@@ -1412,8 +1427,11 @@ class Win32API():
             else:
                 scanCode = Win32API.VKtoSC(key[0])
                 Win32API.keybd_event(key[0], scanCode, key[1], 0)
-                if key[1] & KeyboardEventFlags.KeyUp:
+                if i + 1 == len(keys):
                     time.sleep(interval)
+                else:
+                    if key[1] & KeyboardEventFlags.KeyUp and (keys[i+1][1] == 'UnicodeChar' or keys[i+1][1] & KeyboardEventFlags.KeyUp == 0):
+                        time.sleep(interval)
         #make sure hold keys are not pressed
         #win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
         #ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
@@ -2672,12 +2690,17 @@ def SendKeys(text, interval=0.01, debug=False):
     interval: double, seconds between keys
     debug: bool, if True, print the Keys
     example:
-    SendKeys('{Ctrl}{End}{SPACE}{CTRL}{1 3}  {CTRL}(12)123ab{c 3}A(BC){(}你好{)}{ENTER}')
-    SendKeys('0123456789{ENTER}')
-    SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{ENTER}')
-    SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}')
-    SendKeys('`~!@#$%^&*{(}{)}-_=+{ENTER}')
-    SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}')
+    {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
+    SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
+    SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type )
+    SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
+    SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
+    SendKeys('{{}你好{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {你好}abc abc test}}}!a ()()
+    SendKeys('0123456789{Enter}')
+    SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{Enter}')
+    SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
+    SendKeys('`~!@#$%^&*()-_=+{Enter}')
+    SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
     '''
     Win32API.SendKeys(text, interval, debug)
 
