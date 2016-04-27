@@ -1861,11 +1861,9 @@ class Control():
         return a specific Control
         for example: if control's ControlType is EditControl, return an EditControl
         '''
-        controlType = control.ControlType
         newControl = Control.CreateControlFromElement(control.Element)
-        if newControl:
-            _automationClient.dll.ElementAddRef(control.Element)
-            return newControl
+        _automationClient.dll.ElementAddRef(control.Element)
+        return newControl
 
     def __str__(self):
         if IsPy3:
@@ -2916,7 +2914,7 @@ def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = Fals
     if findFromSelf and compareFunc(control):
         foundCount += 1
         if foundCount == foundIndex:
-            return control.Convert()
+            return control
     if maxDepth <= 0:
         return
     child = control.GetFirstChildControl()
@@ -2927,7 +2925,7 @@ def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = Fals
             if compareFunc(lastControl):
                 foundCount += 1
                 if foundCount == foundIndex:
-                    return lastControl.Convert()
+                    return lastControl
             child = lastControl.GetNextSiblingControl()
             controlList[depth] = child
             if depth < maxDepth - 1:
@@ -3128,10 +3126,27 @@ if __name__ == '__main__':
     main()
     # control = GetForegroundControl()
     # del control
-    # if use control object in global area, must del the control when not use it, otherwise it may throw an exception
-    # the exception is ctypes was None when control's __del__ was called!
-    # It seems that the module ctypes was deleted before control's __del__ was called
+    # If use control object in global area, must del the control when not use it, otherwise it may throw an exception.
+    # The exception is ctypes was None when control's __del__ was called!
+    # It seems that the module ctypes was deleted before control's __del__ was called.
     # _automationClient and control are all global object, _automationClient may be deleted before control,
-    # but control's __del__ uses _automationClient's member
-    # You'd better not use control object in global area
+    # but control's __del__ uses _automationClient's member.
+    # You'd better not use control object in global area.
+
+    # https://docs.python.org/3/reference/datamodel.html
+
+    # Warning
+
+    # Due to the precarious circumstances under which __del__() methods are invoked,
+    # exceptions that occur during their execution are ignored,
+    # and a warning is printed to sys.stderr instead.
+    # Also, when __del__() is invoked in response to a module being deleted(e.g., when execution of the program is done),
+    # other globals referenced by the __del__() method may already have been deleted
+    # or in the process of being torn down (e.g. the import machinery shutting down).
+    # For this reason, __del__() methods should do the absolute minimum needed to maintain external invariants.
+    # Starting with version 1.5, Python guarantees that globals whose name begins
+    # with a single underscore are deleted from their module before other globals are deleted;
+    # if no other references to such globals exist,
+    # this may help in assuring that imported modules are
+    # still available at the time when the __del__() method is called.
 
