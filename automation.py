@@ -1188,7 +1188,7 @@ class Win32API():
         Simulate typing a key
         key: a value in class Keys
         '''
-        Win32API.keybd_event(key, 0, KeyboardEventFlags.ExtendedKey, 0)
+        Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
 
     #@staticmethod
@@ -1204,7 +1204,7 @@ class Win32API():
         Simulate a key down for key
         key: a value in class Keys
         '''
-        Win32API.keybd_event(key, 0, KeyboardEventFlags.ExtendedKey, 0)
+        Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
 
     @staticmethod
     def ReleaseKey(key):
@@ -1317,7 +1317,7 @@ class Win32API():
                                 insertIndex += 1
                             printKeys.insert(insertIndex, (key[0], 'KeyDown | ExtendedKey'))
                             printKeys.insert(insertIndex+1, (key[0], 'KeyUp | ExtendedKey'))
-                            keys.insert(insertIndex, (keyValue, KeyboardEventFlags.ExtendedKey))
+                            keys.insert(insertIndex, (keyValue, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey))
                             keys.insert(insertIndex+1, (keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
                             lastKeyValue = keyValue
                         elif key[0] in Win32API.CharacterDict:
@@ -1326,7 +1326,7 @@ class Win32API():
                                 insertIndex += 1
                             printKeys.insert(insertIndex, (key[0], 'KeyDown | ExtendedKey'))
                             printKeys.insert(insertIndex+1, (key[0], 'KeyUp | ExtendedKey'))
-                            keys.insert(insertIndex, (keyValue, KeyboardEventFlags.ExtendedKey))
+                            keys.insert(insertIndex, (keyValue, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey))
                             keys.insert(insertIndex+1, (keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
                             lastKeyValue = keyValue
                         else:
@@ -1345,7 +1345,7 @@ class Win32API():
                             keyValue = Win32API.SpecialKeyDict[upperKey]
                             printKeys.append((key[0], 'KeyDown | ExtendedKey'))
                             printKeys.append((key[0], 'KeyUp | ExtendedKey'))
-                            keys.append((keyValue, KeyboardEventFlags.ExtendedKey))
+                            keys.append((keyValue, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey))
                             keys.append((keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
                             lastKeyValue = keyValue
                             if upperKey in holdKeys:
@@ -1386,7 +1386,7 @@ class Win32API():
                             insertIndex += 1
                         printKeys.insert(insertIndex, (text[i], 'KeyDown | ExtendedKey'))
                         printKeys.insert(insertIndex + 1, (text[i], 'KeyUp | ExtendedKey'))
-                        keys.insert(insertIndex, (keyValue, KeyboardEventFlags.ExtendedKey))
+                        keys.insert(insertIndex, (keyValue, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey))
                         keys.insert(insertIndex + 1, (keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
                         lastKeyValue = keyValue
                     else:
@@ -1430,8 +1430,13 @@ class Win32API():
                 if i + 1 == len(keys):
                     time.sleep(interval)
                 else:
-                    if key[1] & KeyboardEventFlags.KeyUp and (keys[i+1][1] == 'UnicodeChar' or keys[i+1][1] & KeyboardEventFlags.KeyUp == 0):
-                        time.sleep(interval)
+                    if key[1] & KeyboardEventFlags.KeyUp:
+                        if keys[i+1][1] == 'UnicodeChar' or keys[i+1][1] & KeyboardEventFlags.KeyUp == 0:
+                            time.sleep(interval)
+                        else:
+                            time.sleep(0.01)  #must sleep for a while, otherwise combined keys may not be caught
+                    else:  #KeyboardEventFlags.KeyDown
+                        time.sleep(0.01)
         #make sure hold keys are not pressed
         #win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
         #ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
