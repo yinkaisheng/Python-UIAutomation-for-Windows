@@ -20,12 +20,11 @@ import ctypes.wintypes
 IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
-#from platform import win32_ver
 
+#from platform import win32_ver
 # version = win32_ver() # ('8', '6.2.9200', '', 'Multiprocessor Free')
 
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
-MSG_CAPTION = 'Tip'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
 MAX_MOVE_SECOND = 1 # simulate mouse move or drag max seconds
@@ -1504,7 +1503,7 @@ class Control():
         for key in searchPorpertyDict:
             del self.searchPorpertyDict[key]
 
-    def CompareFunction(self, control):
+    def _CompareFunction(self, control):
         '''This function defines how to search, return True if found'''
         if 'ControlType' in self.searchPorpertyDict:
             if self.searchPorpertyDict['ControlType'] != control.ControlType:
@@ -1548,7 +1547,7 @@ class Control():
             self.searchFromControl.Element # search searchFromControl first before timing
         start = time.clock()
         while True:
-            control = FindControl(self.searchFromControl, self.CompareFunction, self.searchDepth, False, self.foundIndex)
+            control = FindControl(self.searchFromControl, self._CompareFunction, self.searchDepth, False, self.foundIndex)
             if control:
                 self._element = control.Element
                 control._element = 0 # control will be destroyed, but the element needs to be stroed in self._element
@@ -1663,8 +1662,14 @@ class Control():
     def MoveCursor(self, xRatio = 0.5, yRatio = 0.5):
         '''Move cursor to control's rect, default to center'''
         left, top, right, bottom = self.BoundingRectangle
-        x = int(left + (right - left) * xRatio)
-        y = int(top + (bottom - top) * yRatio)
+        if type(ratioX) is float:
+            x = left + int((right - left) * ratioX)
+        else:
+            x = (left if ratioX >= 0 else right) + ratioX
+        if type(ratioY) is float:
+            y = top + int((bottom - top) * ratioY)
+        else:
+            y = (top if ratioY >= 0 else bottom) + ratioY
         Win32API.MouseMoveTo(x, y)
 
     def MoveCursorToMyCenter(self):
@@ -1680,13 +1685,11 @@ class Control():
         '''
         left, top, right, bottom = self.BoundingRectangle
         if type(ratioX) is float:
-            w = right - left
-            x = left + int(w * ratioX)
+            x = left + int((right - left) * ratioX)
         else:
             x = (left if ratioX >= 0 else right) + ratioX
         if type(ratioY) is float:
-            h = bottom - top
-            y = top + int(h * ratioY)
+            y = top + int((bottom - top) * ratioY)
         else:
             y = (top if ratioY >= 0 else bottom) + ratioY
         if simulateMove:
