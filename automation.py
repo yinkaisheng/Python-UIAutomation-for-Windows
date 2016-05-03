@@ -1082,7 +1082,7 @@ class Win32API():
         return ctypes.windll.user32.ShowWindow(hWnd, cmdShow)
 
     @staticmethod
-    def MoveWindow(hWnd, x, y, width, height, repaint = 0):
+    def MoveWindow(hWnd, x, y, width, height, repaint = 1):
         '''Call API MoveWindow from user32.dll'''
         return ctypes.windll.user32.MoveWindow(hWnd, x, y, width, height, repaint)
 
