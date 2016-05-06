@@ -2638,7 +2638,7 @@ class Logger():
                 Win32API.SetConsoleColor(consoleColor)
             try:
                 sys.stdout.write(log)
-            except UnicodeError as e:
+            except Exception as e:
                 Win32API.SetConsoleColor(ConsoleColor.Red)
                 isValidColor = True
                 sys.stdout.write(str(type(e)) + ' can\'t print the log!\n')
