@@ -5,7 +5,7 @@ import time
 import automation
 
 def main():
-    firefoxWindow = automation.WindowControl(ClassName = 'MozillaWindowClass')
+    firefoxWindow = automation.WindowControl(searchDepth = 1, ClassName = 'MozillaWindowClass')
     if not firefoxWindow.Exists(0):
         automation.Logger.WriteLine('please run Firefox first', automation.ConsoleColor.Yellow)
         return
