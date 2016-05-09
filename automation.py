@@ -29,6 +29,7 @@ METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 change
 SEARCH_INTERVAL = 0.5 # search control interval seconds
 MAX_MOVE_SECOND = 1 # simulate mouse move or drag max seconds
 
+
 class _AutomationClient():
     def __init__(self):
         dir = os.path.dirname(__file__)
@@ -1551,6 +1552,8 @@ class Control():
             if control:
                 self._element = control.Element
                 control._element = 0 # control will be destroyed, but the element needs to be stroed in self._element
+                #elapsedTime = time.clock() - start
+                #Logger.Log('Found time: {:.3f}s, {}'.format(elapsedTime, self))
                 return True
             else:
                 if time.clock() - start > maxSearchSeconds:
