@@ -1,3 +1,4 @@
+#!python3
 # -*- coding: utf-8 -*-
 '''
 Author: yinkaisheng(Nanjing, China)
@@ -17,6 +18,7 @@ import os
 import time
 import ctypes
 import ctypes.wintypes
+
 IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
@@ -2007,7 +2009,7 @@ class ValuePattern():
         if pattern:
             isReadOnly = _automationClient.dll.ValuePatternCurrentIsReadOnly(pattern)
             _automationClient.dll.ReleasePattern(pattern)
-            return isReadOnly
+            return bool(isReadOnly)
         else:
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
 
@@ -2150,11 +2152,12 @@ class SelectionItemPattern():
             Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentIsSelected(self):
+        '''Return bool'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
         if pattern:
             isSelect = _automationClient.dll.SelectionItemPatternCurrentIsSelected(pattern)
             _automationClient.dll.ReleasePattern(pattern)
-            return isSelect
+            return bool(isSelect)
         else:
             Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
 
@@ -2262,7 +2265,7 @@ class WindowPattern():
         if pattern:
             value = _automationClient.dll.WindowPatternCurrentIsModal(pattern)
             _automationClient.dll.ReleasePattern(pattern)
-            return value
+            return bool(value)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
@@ -2271,7 +2274,7 @@ class WindowPattern():
         if pattern:
             value = _automationClient.dll.WindowPatternCurrentIsTopmost(pattern)
             _automationClient.dll.ReleasePattern(pattern)
-            return value
+            return bool(value)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
@@ -2641,10 +2644,12 @@ class Logger():
                 Win32API.SetConsoleColor(consoleColor)
             try:
                 sys.stdout.write(log)
-            except Exception as e:
+            except Exception as ex:
                 Win32API.SetConsoleColor(ConsoleColor.Red)
                 isValidColor = True
-                sys.stdout.write(str(type(e)) + ' can\'t print the log!\n')
+                sys.stdout.write(ex.__class__.__name__ + ': can\'t print the log!')
+                if log.endswith(Logger.LineSep):
+                    sys.stdout.write(Logger.LineSep)
             if isValidColor:
                 Win32API.ResetConsoleColor()
         if not writeToFile:
@@ -2658,7 +2663,7 @@ class Logger():
             # logFile.flush() # need flush in python 3, otherwise log won't be saved
         except Exception as ex:
             logFile.close()
-            sys.stdout.write('can not write log with exception: {0} {1}'.format(type(ex), ex))
+            sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
 
     @staticmethod
     def WriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
@@ -2842,6 +2847,10 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     showAllName: bool
     showMore: bool
     '''
+    def getKeyName(theDict, theValue):
+        for key in theDict:
+            if theValue == theDict[key]:
+                return key
     name = control.Name
     if not showAllName and name and len(name) > 30:
         name = name[:30] + '...'
@@ -2862,9 +2871,35 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     Logger.Write('0x{0:X}({0})'.format(handle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
     Logger.Write(str(depth), ConsoleColor.DarkGreen)
-    if isinstance(control, EditControl):
+    if ((isinstance(control, ValuePattern) and control.IsValuePatternAvailable()) or
+        (isinstance(control, RangeValuePattern) and control.IsRangeValuePatternAvailable())):
         Logger.Write('    Value: ')
-        Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen)
+        value = control.CurrentValue()
+        if IsPy3:
+            if not isinstance(value, str):
+                value = str(value)
+        else:
+            if not isinstance(value, unicode):
+                value = unicode(value)
+        Logger.Write(value, ConsoleColor.DarkGreen)
+    if isinstance(control, TogglePattern) and control.IsTogglePatternAvailable():
+        Logger.Write('    CurrentToggleState: ')
+        Logger.Write('ToggleState.' + getKeyName(ToggleState.__dict__, control.CurrentToggleState()), ConsoleColor.DarkGreen)
+    if isinstance(control, SelectionItemPattern) and control.IsSelectionItemPatternAvailable():
+        Logger.Write('    CurrentIsSelected: ')
+        Logger.Write(str(control.CurrentIsSelected()), ConsoleColor.DarkGreen)
+    if isinstance(control, ExpandCollapsePattern) and control.IsExpandCollapsePatternAvailable():
+        Logger.Write('    CurrentExpandCollapseState: ')
+        Logger.Write('ExpandCollapseState.' + getKeyName(ExpandCollapseState.__dict__, control.CurrentExpandCollapseState()), ConsoleColor.DarkGreen)
+    if isinstance(control, ScrollPattern) and control.IsScrollPatternAvailable():
+        Logger.Write('    CurrentHorizontalViewSize: ')
+        Logger.Write(str(control.CurrentHorizontalViewSize()), ConsoleColor.DarkGreen)
+        Logger.Write('    CurrentVerticalViewSize: ')
+        Logger.Write(str(control.CurrentVerticalViewSize()), ConsoleColor.DarkGreen)
+        Logger.Write('    CurrentHorizontalScrollPercent: ')
+        Logger.Write(str(control.CurrentHorizontalScrollPercent()), ConsoleColor.DarkGreen)
+        Logger.Write('    CurrentVerticalScrollPercent: ')
+        Logger.Write(str(control.CurrentVerticalScrollPercent()), ConsoleColor.DarkGreen)
     if showMore:
         Logger.Write('    SupportedPattern:')
         for key in PatternDict:
@@ -3067,7 +3102,8 @@ def usage():
 -n      show control full name
 -m      show more properties
 
-if UnicodeError or LookupError occurred when printing, try to change the active code page of console window by using chcp
+if UnicodeError or LookupError occurred when printing,
+try to change the active code page of console window by using chcp or see the log file @AutomationLog.txt
 chcp, get current active code page
 chcp 936, set active code page to gbk
 chcp 65001, set active code page to utf-8
@@ -3080,6 +3116,9 @@ automation.py -c -t3
 ''')
 
 def main():
+    #if not IsPy3 and sys.getdefaultencoding() == 'ascii':
+        #reload(sys)
+        #sys.setdefaultencoding('utf-8')
     import getopt
     sys.stdout.write(str(sys.argv) + '\n')
     options, args = getopt.getopt(sys.argv[1:], 'hrfcamnd:t:',
