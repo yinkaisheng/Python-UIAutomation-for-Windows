@@ -2582,6 +2582,8 @@ class WindowControl(Control, WindowPattern):
     def SetActive(self):
         if self.CurrentWindowVisualState() == WindowVisualState.Minimized:
             self.ShowWindow(ShowWindow.Restore)
+        else:
+            self.ShowWindow(ShowWindow.Show)
         return Win32API.SetForegroundWindow(self.Handle)
 
 
