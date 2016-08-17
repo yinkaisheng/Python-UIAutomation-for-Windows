@@ -3,6 +3,7 @@
 '''
 Author: yinkaisheng(Nanjing, China)
 Mail: yinkaisheng@foxmail.com
+Source: https://github.com/yinkaisheng/Python-UIAutomation-for-Windows
 
 This module is for automation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
 It supports automation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
