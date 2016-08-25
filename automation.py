@@ -51,6 +51,7 @@ class _AutomationClient():
     def __del__(self):
         self.dll.ReleaseInstance()
 
+
 _automationClient = _AutomationClient()
 _rootControl = None
 
@@ -67,6 +68,7 @@ class WString():
         if self.cwcharp:
             return self.cwcharp.value
 '''
+
 
 class ControlType():
     '''This class defines the values of control type'''
@@ -111,6 +113,7 @@ class ControlType():
     TreeItemControl = 0xc368
     WindowControl = 0xc370
 
+
 ControlTypeNameDict = {
     ControlType.ButtonControl : 'ButtonControl',
     ControlType.CalendarControl : 'CalendarControl',
@@ -154,6 +157,7 @@ ControlTypeNameDict = {
     ControlType.WindowControl : 'WindowControl',
     }
 
+
 class PatternId():
     '''This class defines the values of pattern id'''
     UIA_AnnotationPatternId = 0x2727
@@ -189,6 +193,7 @@ class PatternId():
     UIA_VirtualizedItemPatternId = 0x2724
     UIA_WindowPatternId = 0x2719
 
+
 PatternDict = {
     PatternId.UIA_DockPatternId : 'DockPattern',
     PatternId.UIA_ExpandCollapsePatternId : 'ExpandCollapsePattern',
@@ -213,11 +218,134 @@ PatternDict = {
     PatternId.UIA_VirtualizedItemPatternId : 'VirtualizedItemPattern',
     PatternId.UIA_WindowPatternId : 'WindowPattern'}
 
+
+class AccessibleRole():
+    '''This class defines the values of Accessible Role'''
+    SystemTitleBar = 0x1
+    SystemMenuBar = 0x2
+    SystemScrollBar = 0x3
+    SystemGrip = 0x4
+    SystemSound = 0x5
+    SystemCursor = 0x6
+    SystemCaret = 0x7
+    SystemAlert = 0x8
+    SystemWindow = 0x9
+    SystemClient = 0xa
+    SystemMenuPopup = 0xb
+    SystemMenuItem = 0xc
+    SystemToolTip = 0xd
+    SystemApplication = 0xe
+    SystemDocument = 0xf
+    SystemPane = 0x10
+    SystemChart = 0x11
+    SystemDialog = 0x12
+    SystemBorder = 0x13
+    SystemGrouping = 0x14
+    SystemSeparator = 0x15
+    SystemToolbar = 0x16
+    SystemStatusBar = 0x17
+    SystemTable = 0x18
+    SystemColumnHeader = 0x19
+    SystemRowHeader = 0x1a
+    SystemColumn = 0x1b
+    SystemRow = 0x1c
+    SystemCell = 0x1d
+    SystemLink = 0x1e
+    SystemHelpBalloon = 0x1f
+    SystemCharacter = 0x20
+    SystemList = 0x21
+    SystemListItem = 0x22
+    SystemOutline = 0x23
+    SystemOutlineItem = 0x24
+    SystemPageTab = 0x25
+    SystemPropertyPage = 0x26
+    SystemIndicator = 0x27
+    SystemGraphic = 0x28
+    SystemStaticText = 0x29
+    SystemText = 0x2a
+    SystemPushButton = 0x2b
+    SystemCheckButton = 0x2c
+    SystemRadioButton = 0x2d
+    SystemComboBox = 0x2e
+    SystemDropList = 0x2f
+    SystemProgressBar = 0x30
+    SystemDial = 0x31
+    SystemHotkeyField = 0x32
+    SystemSlider = 0x33
+    SystemSpinButton = 0x34
+    SystemDiagram = 0x35
+    SystemAnimation = 0x36
+    SystemEquation = 0x37
+    SystemButtonDropDown = 0x38
+    SystemButtonMenu = 0x39
+    SystemButtonDropDownGrid = 0x3a
+    SystemWhiteSpace = 0x3b
+    SystemPageTabList = 0x3c
+    SystemClock = 0x3d
+    SystemSplitButton = 0x3e
+    SystemIpAddress = 0x3f
+    SystemOutlineButton = 0x40
+
+
+class AccessibleState():
+    SystemNormal = 0
+    SystemUnavailable = 0x1
+    SystemSelected = 0x2
+    SystemFocused = 0x4
+    SystemPressed = 0x8
+    SystemChecked = 0x10
+    SystemMixed = 0x20
+    SystemIndeterminate = 0x20
+    SystemReadOnly = 0x40
+    SystemHotTracked = 0x80
+    SystemDefault = 0x100
+    SystemExpanded = 0x200
+    SystemCollapsed = 0x400
+    SystemBusy = 0x800
+    SystemFloating = 0x1000
+    SystemMarqueed = 0x2000
+    SystemAnimated = 0x4000
+    SystemInvisible = 0x8000
+    SystemOffscreen = 0x10000
+    SystemSizeable = 0x20000
+    SystemMoveable = 0x40000
+    SystemSelfVoicing = 0x80000
+    SystemFocusable = 0x100000
+    SystemSelectable = 0x200000
+    SystemLinked = 0x400000
+    SystemTraversed = 0x800000
+    SystemMultiSelectable = 0x1000000
+    SystemExtSelectable = 0x2000000
+    SystemAlertLow = 0x4000000
+    SystemAlertMedium = 0x8000000
+    SystemAlertHigh = 0x10000000
+    SystemProtected = 0x20000000
+    SystemValid = 0x7fffffff
+    SystemHasPopup = 0x40000000
+
+
+class AccessibleSelectFlag():
+    FlagNone = 0
+    FlagTakeFocus = 0x1
+    FlagTakeSelection = 0x2
+    FlagExtendSelection = 0x4
+    FlagAddSelection = 0x8
+    FlagRemoveSelection = 0x10
+    FlagValid = 0x1f
+
+
+class RowOrColumnMajor():
+    RowMajor = 0
+    ColumnMajor = 1
+    Indeterminate = 2
+
 class Point(ctypes.Structure):
     _fields_ = [("x", ctypes.c_ulong), ("y", ctypes.c_ulong)]
 
+
 class Coord(ctypes.Structure):
     _fields_ = [('X', ctypes.c_short), ('Y', ctypes.c_short)]
+
 
 class SmallRect(ctypes.Structure):
     _fields_ = [('Left', ctypes.c_short),
@@ -226,12 +354,14 @@ class SmallRect(ctypes.Structure):
                ('Bottom', ctypes.c_short),
               ]
 
+
 class Rect(ctypes.Structure):
     _fields_ = [('left', ctypes.c_int),
                ('top', ctypes.c_int),
                ('right', ctypes.c_int),
                ('bottom', ctypes.c_int),
               ]
+
 
 class ConsoleScreenBufferInfo(ctypes.Structure):
     _fields_ = [('dwSize', Coord),
@@ -240,6 +370,7 @@ class ConsoleScreenBufferInfo(ctypes.Structure):
                ('srWindow', SmallRect),
                ('dwMaximumWindowSize', Coord),
               ]
+
 
 class tagPROCESSENTRY32(ctypes.Structure):
     _fields_ = [('dwSize',              ctypes.wintypes.DWORD),
@@ -254,6 +385,7 @@ class tagPROCESSENTRY32(ctypes.Structure):
                 ('szExeFile',           ctypes.c_wchar * 260)
                ]
 
+
 class MSG(ctypes.Structure):
     _fields_=[("hwnd",      ctypes.c_uint),
               ("message",   ctypes.c_uint),
@@ -261,6 +393,7 @@ class MSG(ctypes.Structure):
               ("lParam",    ctypes.c_uint),
               ("time",      ctypes.c_uint),
               ("pt",        ctypes.c_ulonglong)]
+
 
 class MouseEventFlags():
     '''This class defines the MouseEventFlags from Win32'''
@@ -274,11 +407,13 @@ class MouseEventFlags():
     RightUp = 0x0010
     Wheel = 0x0800
 
+
 class KeyboardEventFlags():
     '''This class defines the KeyboardEventFlags from Win32'''
     KeyDown = 0x0000
     ExtendedKey = 0x0001
     KeyUp = 0x0002
+
 
 class ModifierKey():
     MOD_ALT = 0x0001
@@ -286,6 +421,7 @@ class ModifierKey():
     MOD_SHIFT = 0x0004
     MOD_WIN = 0x0008
     MOD_NOREPEAT = 0x4000
+
 
 class Keys():
     '''This class defines the Key Code from Win32'''
@@ -463,6 +599,7 @@ class Keys():
     VK_PA1 = 0xFD                           #PA1 key
     VK_OEM_CLEAR = 0xFE                     #Clear key
 
+
 class ConsoleColor():
     '''This class defines the values of color for printing on console window'''
     Black = 0
@@ -482,21 +619,25 @@ class ConsoleColor():
     Yellow = 14
     White = 15
 
+
 class ExpandCollapseState():
     Collapsed = 0
     Expanded = 1
     PartiallyExpanded = 2
     LeafNode = 3
 
+
 class ToggleState():
     Off = 0
     On = 1
     Indeterminate = 2
 
+
 class WindowVisualState():
     Normal = 0
     Maximized = 1
     Minimized = 2
+
 
 class ShowWindow():
     Hide = 0
@@ -514,6 +655,7 @@ class ShowWindow():
     ShowDefault = 10
     ForceMinimize = 11
     Max = 11
+
 
 class SWP():
     HWND_TOP = 0
@@ -535,6 +677,7 @@ class SWP():
     SWP_NOREPOSITION = SWP_NOOWNERZORDER
     SWP_DEFERERASE = 0x2000
     SWP_ASYNCWINDOWPOS = 0x4000
+
 
 class MB():
     OK = 0x00000000
@@ -589,6 +732,7 @@ class MB():
     IDTRYAGAIN = 10
     IDCONTINUE = 11
     IDTIMEOUT = 32000
+
 
 class Win32API():
     '''Some native methods for python calling'''
@@ -1458,7 +1602,172 @@ class Win32API():
             #Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
             #Win32API.keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
 
-class Control():
+
+class LegacyIAccessiblePattern():
+    def IsLegacyIAccessiblePatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId) != 0
+
+    def AccessibleSelect(self, flag):
+        '''call IUIAutomationLegacyIAccessiblePattern Select, flag: a value in AccessibleSelectFlag'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            _automationClient.dll.LegacyIAccessiblePatternSelect(pattern, flag)
+            _automationClient.dll.ReleasePattern(pattern)
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleDoDefaultAction(self):
+        '''call IUIAutomationLegacyIAccessiblePattern DoDefaultAction'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            _automationClient.dll.LegacyIAccessiblePatternDoDefaultAction(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleSetValue(self, value):
+        '''call IUIAutomationLegacyIAccessiblePattern SetValue, value: str'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            c_value = ctypes.c_wchar_p(value)
+            _automationClient.dll.LegacyIAccessiblePatternSetValue(pattern, c_value)
+            _automationClient.dll.ReleasePattern(pattern)
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleCurrentChildId(self):
+        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentChildId, return int. If the element is not a child element, CHILDID_SELF (0) is returned'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            value = _automationClient.dll.LegacyIAccessiblePatternCurrentChildId(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleCurrentName(self):
+        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentName, return str'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentName(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if bstrValue:
+                value = ctypes.c_wchar_p(bstrValue).value[:]
+                _automationClient.dll.FreeBSTR(bstrValue)
+                return value
+            return ''
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleCurrentValue(self):
+        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentValue, return str'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentValue(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if bstrValue:
+                value = ctypes.c_wchar_p(bstrValue).value[:]
+                _automationClient.dll.FreeBSTR(bstrValue)
+                return value
+            return ''
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleCurrentDescription(self):
+        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentDescription, return str'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentDescription(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if bstrValue:
+                value = ctypes.c_wchar_p(bstrValue).value[:]
+                _automationClient.dll.FreeBSTR(bstrValue)
+                return value
+            return ''
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleCurrentRole(self):
+        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentRole, return int, a value in AccessibleRole'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            value = _automationClient.dll.LegacyIAccessiblePatternCurrentRole(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleCurrentState(self):
+        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentState, return int, a combine value in AccessibleState'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            value = _automationClient.dll.LegacyIAccessiblePatternCurrentState(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleCurrentHelp(self):
+        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentHelp, return str'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentHelp(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if bstrValue:
+                value = ctypes.c_wchar_p(bstrValue).value[:]
+                _automationClient.dll.FreeBSTR(bstrValue)
+                return value
+            return ''
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleCurrentKeyboardShortcut(self):
+        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentKeyboardShortcut, return str'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentKeyboardShortcut(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if bstrValue:
+                value = ctypes.c_wchar_p(bstrValue).value[:]
+                _automationClient.dll.FreeBSTR(bstrValue)
+                return value
+            return ''
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleGetCurrentSelection(self):
+        '''call IUIAutomationLegacyIAccessiblePattern GetCurrentSelection, return list of Control'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            lists = []
+            iUIAutomationElementArray = _automationClient.dll.LegacyIAccessiblePatternGetCurrentSelection(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if iUIAutomationElementArray:
+                length = _automationClient.dll.ElementArrayGetLength(iUIAutomationElementArray)
+                for i in range(length):
+                    lists.append(Control.CreateControlFromElement(_automationClient.dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
+                _automationClient.dll.ReleaseElementArray(iUIAutomationElementArray)
+            return lists
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+    def AccessibleCurrentDefaultAction(self):
+        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentDefaultAction, return str'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
+        if pattern:
+            bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentDefaultAction(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if bstrValue:
+                value = ctypes.c_wchar_p(bstrValue).value[:]
+                _automationClient.dll.FreeBSTR(bstrValue)
+                return value
+            return ''
+        else:
+            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+
+
+class Control(LegacyIAccessiblePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         '''
         element: integer
@@ -1900,45 +2209,12 @@ class Control():
 
 
 #Patterns -----
-class InvokePattern():
-    def IsInvokePatternAvailable(self):
+
+class DockPattern():
+    def IsDockPatternAvailable(self):
         '''Return bool'''
-        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId) != 0
-
-    def Invoke(self):
-        '''invoke'''
-        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId)
-        if pattern:
-            _automationClient.dll.InvokePatternInvoke(pattern)
-            _automationClient.dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('InvokePattern is not supported!', ConsoleColor.Yellow)
-
-
-class TogglePattern():
-    def IsTogglePatternAvailable(self):
-        '''Return bool'''
-        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId) != 0
-
-    def Toggle(self):
-        '''Toggle or UnToggle the control'''
-        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
-        if pattern:
-            _automationClient.dll.TogglePatternToggle(pattern)
-            _automationClient.dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
-
-
-    def CurrentToggleState(self):
-        '''Return an integer of class ToggleState'''
-        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
-        if pattern:
-            state = _automationClient.dll.TogglePatternCurrentToggleState(pattern)
-            _automationClient.dll.ReleasePattern(pattern)
-            return state
-        else:
-            Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_DockPatternId) != 0
+    #todo
 
 
 class ExpandCollapsePattern():
@@ -1975,44 +2251,121 @@ class ExpandCollapsePattern():
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
 
-class ValuePattern():
-    def IsValuePatternAvailable(self):
+class GridItemPattern():
+    def IsGridItemPatternAvailable(self):
         '''Return bool'''
-        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId) != 0
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId) != 0
 
-    def CurrentValue(self):
-        '''Return unicode string'''
-        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
+    def CurrentContainingGrid(self):
+        '''return Control'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
-            bstrValue = _automationClient.dll.ValuePatternCurrentValue(pattern)
-            if bstrValue:
-                value = ctypes.c_wchar_p(bstrValue).value[:]
-                _automationClient.dll.ReleasePattern(pattern)
-                _automationClient.dll.FreeBSTR(bstrValue)
-                return value
+            element = _automationClient.dll.GridItemPatternCurrentContainingGrid(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if element:
+                return Control.CreateControlFromElement(element)
         else:
-            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
-        return ''
+            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
-    def SetValue(self, value):
-        '''Set unicode string to control's value'''
-        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
+    def CurrentRow(self):
+        '''return int'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
-            c_value = ctypes.c_wchar_p(value)
-            value = _automationClient.dll.ValuePatternSetValue(pattern, c_value)
+            value = _automationClient.dll.GridItemPatternCurrentRow(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentColumn(self):
+        '''return int'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
+        if pattern:
+            value = _automationClient.dll.GridItemPatternCurrentColumn(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentRowSpan(self):
+        '''return int'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
+        if pattern:
+            value = _automationClient.dll.GridItemPatternCurrentRowSpan(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentColumnSpan(self):
+        '''return int'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
+        if pattern:
+            value = _automationClient.dll.GridItemPatternCurrentColumnSpan(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
+
+
+
+class GridPattern():
+    def IsGridPatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId) != 0
+
+    def GetItem(self, row, column):
+        '''return Control'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
+        if pattern:
+            element = _automationClient.dll.GridPatternGetItem(pattern, row, column)
+            _automationClient.dll.ReleasePattern(pattern)
+            if element:
+                return Control.CreateControlFromElement(element)
+        else:
+            Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentRowCount(self):
+        '''return int'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
+        if pattern:
+            value = _automationClient.dll.GridPatternCurrentRowCount(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentColumnCount(self):
+        '''return int'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
+        if pattern:
+            value = _automationClient.dll.GridPatternCurrentColumnCount(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
+
+
+class InvokePattern():
+    def IsInvokePatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId) != 0
+
+    def Invoke(self):
+        '''invoke'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId)
+        if pattern:
+            _automationClient.dll.InvokePatternInvoke(pattern)
             _automationClient.dll.ReleasePattern(pattern)
         else:
-            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
+            Logger.WriteLine('InvokePattern is not supported!', ConsoleColor.Yellow)
 
-    def CurrentIsReadOnly(self):
+
+class MultipleViewPattern():
+    def IsMultipleViewPatternAvailable(self):
         '''Return bool'''
-        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
-        if pattern:
-            isReadOnly = _automationClient.dll.ValuePatternCurrentIsReadOnly(pattern)
-            _automationClient.dll.ReleasePattern(pattern)
-            return bool(isReadOnly)
-        else:
-            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_MultipleViewPatternId) != 0
+    #todo
 
 
 class ScrollItemPattern():
@@ -2065,7 +2418,6 @@ class ScrollPattern():
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
-
     def CurrentVerticallyScrollable(self):
         '''Return bool'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
@@ -2105,22 +2457,6 @@ class ScrollPattern():
             _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
-
-
-class SelectionPattern():
-    def IsSelectionPatternAvailable(self):
-        '''Return bool'''
-        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId) != 0
-
-    def GetCurrentSelection(self):
-        '''Return an IUIAutomationElementArray'''
-        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId)
-        if pattern:
-            pElementArray = _automationClient.dll.SelectionPatternGetCurrentSelection(pattern)
-            _automationClient.dll.ReleasePattern(pattern)
-            return pElementArray
-        else:
-            Logger.WriteLine('SelectionPattern is not supported!', ConsoleColor.Yellow)
 
 
 class SelectionItemPattern():
@@ -2163,6 +2499,22 @@ class SelectionItemPattern():
             Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
 
 
+class SelectionPattern():
+    def IsSelectionPatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId) != 0
+
+    def GetCurrentSelection(self):
+        '''Return an IUIAutomationElementArray'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId)
+        if pattern:
+            pElementArray = _automationClient.dll.SelectionPatternGetCurrentSelection(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return pElementArray
+        else:
+            Logger.WriteLine('SelectionPattern is not supported!', ConsoleColor.Yellow)
+
+
 class RangeValuePattern():
     def IsRangeValuePatternAvailable(self):
         '''Return bool'''
@@ -2202,6 +2554,177 @@ class RangeValuePattern():
             return value
         else:
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
+
+
+class TableItemPattern():
+    def IsTableItemPatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId) != 0
+
+    def CurrentRowHeaderItems(self):
+        '''return list of Control'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId)
+        if pattern:
+            lists = []
+            iUIAutomationElementArray = _automationClient.dll.TableItemPatternCurrentRowHeaderItems(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if iUIAutomationElementArray:
+                length = _automationClient.dll.ElementArrayGetLength(iUIAutomationElementArray)
+                for i in range(length):
+                    lists.append(Control.CreateControlFromElement(_automationClient.dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
+                _automationClient.dll.ReleaseElementArray(iUIAutomationElementArray)
+            return lists
+        else:
+            Logger.WriteLine('TableItemPattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentColumnHeaderItems(self):
+        '''return list of Control'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId)
+        if pattern:
+            lists = []
+            iUIAutomationElementArray = _automationClient.dll.TableItemPatternCurrentColumnHeaderItems(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if iUIAutomationElementArray:
+                length = _automationClient.dll.ElementArrayGetLength(iUIAutomationElementArray)
+                for i in range(length):
+                    lists.append(Control.CreateControlFromElement(_automationClient.dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
+                _automationClient.dll.ReleaseElementArray(iUIAutomationElementArray)
+            return lists
+        else:
+            Logger.WriteLine('TableItemPattern is not supported!', ConsoleColor.Yellow)
+
+
+class TablePattern():
+    def IsTablePatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId) != 0
+
+    def CurrentRowHeaders(self):
+        '''return list of Control'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
+        if pattern:
+            lists = []
+            iUIAutomationElementArray = _automationClient.dll.TablePatternCurrentRowHeaders(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if iUIAutomationElementArray:
+                length = _automationClient.dll.ElementArrayGetLength(iUIAutomationElementArray)
+                for i in range(length):
+                    lists.append(Control.CreateControlFromElement(_automationClient.dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
+                _automationClient.dll.ReleaseElementArray(iUIAutomationElementArray)
+            return lists
+        else:
+            Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentColumnHeaders(self):
+        '''return list of Control'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
+        if pattern:
+            lists = []
+            iUIAutomationElementArray = _automationClient.dll.TablePatternCurrentColumnHeaders(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            if iUIAutomationElementArray:
+                length = _automationClient.dll.ElementArrayGetLength(iUIAutomationElementArray)
+                for i in range(length):
+                    lists.append(Control.CreateControlFromElement(_automationClient.dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
+                _automationClient.dll.ReleaseElementArray(iUIAutomationElementArray)
+            return lists
+        else:
+            Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentRowOrColumnMajor(self):
+        '''return int, a value in RowOrColumnMajor'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
+        if pattern:
+            value = _automationClient.dll.TablePatternCurrentRowOrColumnMajor(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return value
+        else:
+            Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
+
+
+class TextPattern():
+    def IsTextPatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TextPatternId) != 0
+    #todo
+
+
+class TogglePattern():
+    def IsTogglePatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId) != 0
+
+    def Toggle(self):
+        '''Toggle or UnToggle the control'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
+        if pattern:
+            _automationClient.dll.TogglePatternToggle(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+        else:
+            Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentToggleState(self):
+        '''Return an integer of class ToggleState'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
+        if pattern:
+            state = _automationClient.dll.TogglePatternCurrentToggleState(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return state
+        else:
+            Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
+
+
+class TransformPattern():
+    def IsTransformPatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId) != 0
+    #todo
+
+
+class TransformPattern2():
+    def IsTransformPattern2Available(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TransformPattern2Id) != 0
+
+
+class ValuePattern():
+    def IsValuePatternAvailable(self):
+        '''Return bool'''
+        return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId) != 0
+
+    def CurrentValue(self):
+        '''Return unicode string'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
+        if pattern:
+            bstrValue = _automationClient.dll.ValuePatternCurrentValue(pattern)
+            if bstrValue:
+                value = ctypes.c_wchar_p(bstrValue).value[:]
+                _automationClient.dll.ReleasePattern(pattern)
+                _automationClient.dll.FreeBSTR(bstrValue)
+                return value
+        else:
+            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
+        return ''
+
+    def SetValue(self, value):
+        '''Set unicode string to control's value'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
+        if pattern:
+            c_value = ctypes.c_wchar_p(value)
+            value = _automationClient.dll.ValuePatternSetValue(pattern, c_value)
+            _automationClient.dll.ReleasePattern(pattern)
+        else:
+            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
+
+    def CurrentIsReadOnly(self):
+        '''Return bool'''
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
+        if pattern:
+            isReadOnly = _automationClient.dll.ValuePatternCurrentIsReadOnly(pattern)
+            _automationClient.dll.ReleasePattern(pattern)
+            return bool(isReadOnly)
+        else:
+            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
 
 
 class WindowPattern():
@@ -2288,13 +2811,13 @@ class WindowPattern():
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
 
-class ButtonControl(Control, InvokePattern, TogglePattern, ExpandCollapsePattern):
+class ButtonControl(Control, ExpandCollapsePattern, InvokePattern, TogglePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ButtonControl)
 
 
-class CalendarControl(Control):
+class CalendarControl(Control, GridPattern, TablePattern, ScrollPattern, SelectionPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.CalendarControl)
@@ -2306,7 +2829,7 @@ class CheckBoxControl(Control, TogglePattern):
         self.AddSearchProperty(ControlType = ControlType.CheckBoxControl)
 
 
-class ComboBoxControl(Control, ValuePattern, ExpandCollapsePattern):
+class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ComboBoxControl)
@@ -2337,61 +2860,61 @@ class CustomControl(Control):
         self.AddSearchProperty(ControlType = ControlType.CustomControl)
 
 
-class DataGridControl(Control):
+class DataGridControl(Control, GridPattern, ScrollPattern, SelectionPattern, TablePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.DataGridControl)
 
 
-class DataItemControl(Control, ValuePattern, TogglePattern, ExpandCollapsePattern, SelectionItemPattern):
+class DataItemControl(Control, SelectionItemPattern, ExpandCollapsePattern, GridItemPattern, ScrollItemPattern, TableItemPattern, TogglePattern, ValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.DataItemControl)
 
 
-class DocumentControl(Control, ValuePattern, ScrollPattern):
+class DocumentControl(Control, TextPattern, ScrollPattern, ValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.DocumentControl)
 
 
-class EditControl(Control, ValuePattern):
+class EditControl(Control, RangeValuePattern, TextPattern, ValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.EditControl)
 
 
-class GroupControl(Control):
+class GroupControl(Control, ExpandCollapsePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.GroupControl)
 
 
-class HeaderControl(Control):
+class HeaderControl(Control, TransformPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.HeaderControl)
 
 
-class HeaderItemControl(Control):
+class HeaderItemControl(Control, InvokePattern, TransformPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.HeaderItemControl)
 
 
-class HyperlinkControl(Control):
+class HyperlinkControl(Control, InvokePattern, ValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.HyperlinkControl)
 
 
-class ImageControl(Control):
+class ImageControl(Control, GridItemPattern, TableItemPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ImageControl)
 
 
-class ListControl(Control, ScrollPattern, SelectionPattern):
+class ListControl(Control, GridPattern, MultipleViewPattern, ScrollPattern, SelectionPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ListControl)
@@ -2408,16 +2931,10 @@ class ListControl(Control, ScrollPattern, SelectionPattern):
         return lists
 
 
-class ListItemControl(Control, ExpandCollapsePattern, SelectionItemPattern, InvokePattern, TogglePattern, ScrollItemPattern, ValuePattern):
+class ListItemControl(Control, SelectionItemPattern, ExpandCollapsePattern, GridItemPattern, InvokePattern, ScrollItemPattern, TogglePattern, ValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ListItemControl)
-
-
-class MenuBarControl(Control):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType = ControlType.MenuBarControl)
 
 
 class MenuControl(Control):
@@ -2426,19 +2943,25 @@ class MenuControl(Control):
         self.AddSearchProperty(ControlType = ControlType.MenuControl)
 
 
-class MenuItemControl(Control, ExpandCollapsePattern, SelectionItemPattern, InvokePattern, TogglePattern):
+class MenuBarControl(Control):
+    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
+        self.AddSearchProperty(ControlType = ControlType.MenuBarControl)
+
+
+class MenuItemControl(Control, ExpandCollapsePattern, InvokePattern, SelectionItemPattern, TogglePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.MenuItemControl)
 
 
-class PaneControl(Control, ScrollPattern):
+class PaneControl(Control, DockPattern, ScrollPattern, TransformPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.PaneControl)
 
 
-class ProgressBarControl(Control):
+class ProgressBarControl(Control, RangeValuePattern, ValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ProgressBarControl)
@@ -2450,7 +2973,7 @@ class RadioButtonControl(Control, SelectionItemPattern):
         self.AddSearchProperty(ControlType = ControlType.RadioButtonControl)
 
 
-class ScrollBarControl(Control):
+class ScrollBarControl(Control, RangeValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ScrollBarControl)
@@ -2468,55 +2991,55 @@ class SeparatorControl(Control):
         self.AddSearchProperty(ControlType = ControlType.SeparatorControl)
 
 
-class SliderControl(Control, RangeValuePattern):
+class SliderControl(Control, RangeValuePattern, SelectionPattern, ValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.SliderControl)
 
 
-class SpinnerControl(Control, RangeValuePattern):
+class SpinnerControl(Control, RangeValuePattern, SelectionPattern, ValuePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.SpinnerControl)
 
 
-class SplitButtonControl(Control):
+class SplitButtonControl(Control, ExpandCollapsePattern, InvokePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.SplitButtonControl)
 
 
-class StatusBarControl(Control):
+class StatusBarControl(Control, GridPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.StatusBarControl)
 
 
-class TabControl(Control):
+class TabControl(Control, SelectionPattern, ScrollPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TabControl)
 
 
-class TabItemControl(Control):
+class TabItemControl(Control, SelectionItemPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TabItemControl)
 
 
-class TableControl(Control):
+class TableControl(Control, GridPattern, GridItemPattern, TablePattern, TableItemPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TableControl)
 
 
-class TextControl(Control):
+class TextControl(Control, GridItemPattern, TableItemPattern, TextPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TextControl)
 
 
-class ThumbControl(Control):
+class ThumbControl(Control, TransformPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ThumbControl)
@@ -2528,31 +3051,31 @@ class TitleBarControl(Control):
         self.AddSearchProperty(ControlType = ControlType.TitleBarControl)
 
 
-class ToolBarControl(Control):
+class ToolBarControl(Control, DockPattern, ExpandCollapsePattern, TransformPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ToolBarControl)
 
 
-class ToolTipControl(Control):
+class ToolTipControl(Control, TextPattern, WindowPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ToolTipControl)
 
 
-class TreeControl(Control, ScrollPattern):
+class TreeControl(Control, ScrollPattern, SelectionPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TreeControl)
 
 
-class TreeItemControl(Control, ExpandCollapsePattern, InvokePattern, TogglePattern, ScrollItemPattern, SelectionItemPattern):
+class TreeItemControl(Control, ExpandCollapsePattern, InvokePattern, ScrollItemPattern, SelectionItemPattern, TogglePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TreeItemControl)
 
 
-class WindowControl(Control, WindowPattern):
+class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.WindowControl)
