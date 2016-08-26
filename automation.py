@@ -2520,7 +2520,7 @@ class RangeValuePattern():
         '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId) != 0
 
-    def CurrentValue(self):
+    def RangeValuePatternCurrentValue(self):
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
         if pattern:
             value = _automationClient.dll.RangeValuePatternCurrentValue(pattern)
@@ -2529,7 +2529,7 @@ class RangeValuePattern():
         else:
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
 
-    def SetValue(self, value):
+    def RangeValuePatternSetValue(self, value):
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
         if pattern:
             _automationClient.dll.RangeValuePatternSetValue(pattern, value)
