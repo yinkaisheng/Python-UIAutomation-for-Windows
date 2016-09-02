@@ -3397,10 +3397,19 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     Logger.Write('0x{0:X}({0})'.format(handle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
     Logger.Write(str(depth), ConsoleColor.DarkGreen)
-    if ((isinstance(control, ValuePattern) and control.IsValuePatternAvailable()) or
-        (isinstance(control, RangeValuePattern) and control.IsRangeValuePatternAvailable())):
+    if ((isinstance(control, ValuePattern) and control.IsValuePatternAvailable())):
         Logger.Write('    Value: ')
         value = control.CurrentValue()
+        if IsPy3:
+            if not isinstance(value, str):
+                value = str(value)
+        else:
+            if not isinstance(value, unicode):
+                value = unicode(value)
+        Logger.Write(value, ConsoleColor.DarkGreen)
+    if ((isinstance(control, RangeValuePattern) and control.IsRangeValuePatternAvailable())):
+        Logger.Write('    RangeValue: ')
+        value = control.RangeValuePatternCurrentValue()
         if IsPy3:
             if not isinstance(value, str):
                 value = str(value)
