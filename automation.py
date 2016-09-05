@@ -1974,7 +1974,7 @@ class Control(LegacyIAccessiblePattern):
         '''Make the control have focus'''
         _automationClient.dll.SetElementFocus(self.Element)
 
-    def MoveCursor(self, xRatio = 0.5, yRatio = 0.5):
+    def MoveCursor(self, ratioX = 0.5, ratioY = 0.5):
         '''Move cursor to control's rect, default to center'''
         left, top, right, bottom = self.BoundingRectangle
         if type(ratioX) is float:
