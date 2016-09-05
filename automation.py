@@ -1974,7 +1974,7 @@ class Control(LegacyIAccessiblePattern):
         '''Make the control have focus'''
         _automationClient.dll.SetElementFocus(self.Element)
 
-    def MoveCursor(self, ratioX = 0.5, ratioY = 0.5):
+    def MoveCursor(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
         '''Move cursor to control's rect, default to center'''
         left, top, right, bottom = self.BoundingRectangle
         if type(ratioX) is float:
@@ -1985,7 +1985,11 @@ class Control(LegacyIAccessiblePattern):
             y = top + int((bottom - top) * ratioY)
         else:
             y = (top if ratioY >= 0 else bottom) + ratioY
-        Win32API.MouseMoveTo(x, y)
+        if simulateMove:
+            Win32API.MouseMoveTo(x, y)
+        else:
+            Win32API.SetCursorPos(x, y)
+        return x, y
 
     def MoveCursorToMyCenter(self):
         '''Move cursor to control's center'''
@@ -1998,80 +2002,37 @@ class Control(LegacyIAccessiblePattern):
         Click(-10, -10): click right-10, bottom-10
         simulateMove：bool, if True, first move cursor to control smoothly
         '''
-        left, top, right, bottom = self.BoundingRectangle
-        if type(ratioX) is float:
-            x = left + int((right - left) * ratioX)
-        else:
-            x = (left if ratioX >= 0 else right) + ratioX
-        if type(ratioY) is float:
-            y = top + int((bottom - top) * ratioY)
-        else:
-            y = (top if ratioY >= 0 else bottom) + ratioY
-        if simulateMove:
-            Win32API.MouseMoveTo(x, y)
+        x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseClick(x, y)
 
     def MiddleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
         '''
         Click(0.5, 0.5): click center
         Click(10, 10): click left+10, top+10
+        Click(-10, -10): click right-10, bottom-10
         simulateMove：bool, if True, first move cursor to control smoothly
         '''
-        left, top, right, bottom = self.BoundingRectangle
-        if type(ratioX) is float:
-            w = right - left
-            x = left + int(w * ratioX)
-        else:
-            x = left + ratioX
-        if type(ratioY) is float:
-            h = bottom - top
-            y = top + int(h * ratioY)
-        else:
-            y = top + ratioY
-        if simulateMove:
-            Win32API.MouseMoveTo(x, y)
+        x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseMiddleClick(x, y)
 
     def RightClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
         '''
         RightClick(0.5, 0.5): right click center
         RightClick(10, 10): right click left+10, top+10
+        RightClick(-10, -10): click right-10, bottom-10
         simulateMove：bool, if True, first move cursor to control smoothly
         '''
-        left, top, right, bottom = self.BoundingRectangle
-        if type(ratioX) is float:
-            w = right - left
-            x = left + int(w * ratioX)
-        else:
-            x = left + ratioX
-        if type(ratioY) is float:
-            h = bottom - top
-            y = top + int(h * ratioY)
-        else:
-            y = top + ratioY
-        if simulateMove:
-            Win32API.MouseMoveTo(x, y)
+        x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseRightClick(x, y)
 
     def DoubleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
         '''
         DoubleClick(0.5, 0.5): double click center
         DoubleClick(10, 10): double click left+10, top+10
+        DoubleClick(-10, -10): click right-10, bottom-10
         simulateMove：bool, if True, first move cursor to control smoothly
         '''
-        left, top, right, bottom = self.BoundingRectangle
-        if type(ratioX) is float:
-            w = right - left
-            x = left + int(w * ratioX)
-        else:
-            x = left + ratioX
-        if type(ratioY) is float:
-            h = bottom - top
-            y = top + int(h * ratioY)
-        else:
-            y = top + ratioY
-        if simulateMove:
-            Win32API.MouseMoveTo(x, y)
+        x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseClick(x, y)
         time.sleep(Win32API.GetDoubleClickTime() * 1.0 / 2000)
         Win32API.MouseClick(x, y)
