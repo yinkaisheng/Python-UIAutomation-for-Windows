@@ -12,8 +12,8 @@ It supports automation for the applications which implmented IUIAutomation, such
 
 Run 'automation.py -h' for help.
 
-automation is shared under the GNU Public Licence (GPLv2, v3, and the AGPLv3).
-This means that the code can be freely copied and distributed, and costs nothing to use in other GPL applications.
+automation is shared under the MIT Licence.
+This means that the code can be freely copied and distributed, and costs nothing to use.
 
 具体用法参考: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
 '''

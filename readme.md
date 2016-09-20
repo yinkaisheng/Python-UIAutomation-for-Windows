@@ -3,8 +3,8 @@
 This module is for automation on Windows(Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10).
 It supports automation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
 
-automation is shared under the GNU Public Licence (GPLv2, v3, and the AGPLv3).
-This means that the code can be freely copied and distributed, and costs nothing to use in other GPL applications.
+automation is shared under the MIT Licence.
+This means that the code can be freely copied and distributed, and costs nothing to use.
 
 Run 'automation.py -h' for help.
 Run automate_notepad_py3.py to see a simple demo.
