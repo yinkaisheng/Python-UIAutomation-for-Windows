@@ -1308,6 +1308,7 @@ class Win32API():
 
     @staticmethod
     def TerminateProcess(processId):
+        '''Terminate process by process id'''
         hProcess = ctypes.windll.kernel32.OpenProcess(0x0001, 0, processId);  #PROCESS_TERMINATE=0x0001
         if hProcess:
             ret = ctypes.windll.kernel32.TerminateProcess(hProcess, -1)
@@ -1315,8 +1316,15 @@ class Win32API():
             return ret
 
     @staticmethod
+    def TerminateProcessByName(processName):
+        '''Terminate process by process name, example: TerminateProcessByName('notepad.exe')'''
+        for pid, name in Win32API.EnumProcess():
+            if name.lower() == processName.lower():
+                Win32API.TerminateProcess(pid)
+
+    @staticmethod
     def EnumProcess():
-        '''Return a namedtuple's iter (for p in this p.pid p.name)'''
+        '''Return a namedtuple iter, (pid, name), see TerminateProcessByName'''
         import collections
         hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(15, 0)
         processEntry32 = tagPROCESSENTRY32()
