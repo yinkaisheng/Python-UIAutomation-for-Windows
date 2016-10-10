@@ -3519,9 +3519,9 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
 
     automation.RunHotKey(main, (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1), (automation.ModifierKey.MOD_CONTROL | automation.ModifierKey.MOD_SHIFT, automation.Keys.VK_2))
     '''
-    startHotKeyFlag = 1
-    stopHotKeyFlag = 2
-    ctrldFlag = 3
+    startHotKeyId = 1
+    stopHotKeyId = 2
+    exitHotKeyId = 3
     registed = True
     def getModName(theDict, theValue):
         name = ''
@@ -3538,7 +3538,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
     if startHotKey and len(startHotKey) == 2:
         mod = getModName(ModifierKey.__dict__, startHotKey[0])
         key = getKeyName(Keys.__dict__, startHotKey[1])
-        if ctypes.windll.user32.RegisterHotKey(0, startHotKeyFlag, startHotKey[0], startHotKey[1]):
+        if ctypes.windll.user32.RegisterHotKey(0, startHotKeyId, startHotKey[0], startHotKey[1]):
             sys.stdout.write('Register start hotKey {0} succeed\n'.format((mod, key)))
         else:
             registed = False
@@ -3546,14 +3546,14 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
     if stopHotKey and len(stopHotKey) == 2:
         mod = getModName(ModifierKey.__dict__, stopHotKey[0])
         key = getKeyName(Keys.__dict__, stopHotKey[1])
-        if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyFlag, stopHotKey[0], stopHotKey[1]):
+        if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
             sys.stdout.write('Register stop hotKey {0} succeed\n'.format((mod, key)))
         else:
             registed = False
             sys.stdout.write('Register stop hotKey {0} failed, maybe it was allready registered by another program\n'.format((mod, key)))
     if not registed:
         return
-    if ctypes.windll.user32.RegisterHotKey(0, ctrldFlag, ModifierKey.MOD_CONTROL, Keys.VK_D):
+    if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, ModifierKey.MOD_CONTROL, Keys.VK_D):
         sys.stdout.write('Register Ctrl+D succeed, for exiting current script.\n')
     else:
         sys.stdout.write('Register Ctrl+D failed')
@@ -3566,7 +3566,7 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
         function(stopEvent)
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
-            if startHotKeyFlag == msg.wParam:
+            if startHotKeyId == msg.wParam:
                 if msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
                     sys.stdout.write('----------start hotkey pressed----------\n')
                     if not funcThread:
@@ -3582,12 +3582,12 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
                             funcThread.start()
                         else:
                             Logger.WriteLine('There is a thread that had already run.', ConsoleColor.Yellow)
-            elif stopHotKeyFlag == msg.wParam:
+            elif stopHotKeyId == msg.wParam:
                 if msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
                     sys.stdout.write('----------stop hotkey pressed----------\n')
                     stopEvent.set()
                     funcThread = None
-            elif ctrldFlag == msg.wParam:
+            elif exitHotKeyId == msg.wParam:
                 if msg.lParam&0x0000FFFF == ModifierKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
                     if ControlsAreSame(GetForegroundControl(), cmdWindow):
                         Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow)
