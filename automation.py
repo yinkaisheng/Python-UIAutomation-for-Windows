@@ -2053,11 +2053,17 @@ class Control(LegacyIAccessiblePattern):
 
     def GetTopWindow(self):
         '''Return control's top window'''
-        control = self.GetParentControl()
+        control = self
+        parents = []
         while control:
             if control.ControlType == ControlType.WindowControl:
                 return control
+            parents.insert(0, control)
             control = control.GetParentControl()
+        if len(parents) > 1:
+            return parents[1]
+        elif len(parents) == 1:
+            return parents[0]
 
     def GetFirstChildControl(self):
         '''Return Control'''
