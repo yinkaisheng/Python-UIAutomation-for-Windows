@@ -31,7 +31,7 @@ AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
 MAX_MOVE_SECOND = 1 # simulate mouse move or drag max seconds
-
+TIME_OUT_SECOND = 15
 
 class _AutomationClient():
     def __init__(self):
@@ -1880,7 +1880,7 @@ class Control(LegacyIAccessiblePattern):
                     return False
             time.sleep(searchIntervalSeconds)
 
-    def Refind(self, maxSearchSeconds = 15, searchIntervalSeconds = SEARCH_INTERVAL, raiseException = True):
+    def Refind(self, maxSearchSeconds = TIME_OUT_SECOND, searchIntervalSeconds = SEARCH_INTERVAL, raiseException = True):
         '''Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds, raise an LookupError if timed out'''
         if not self.Exists(maxSearchSeconds, searchIntervalSeconds):
             if raiseException:
@@ -1898,7 +1898,7 @@ class Control(LegacyIAccessiblePattern):
         '''Return value of control's IUIAutomationElement'''
         if not self._element:
             #print 'property Element call Refind'
-            self.Refind(searchIntervalSeconds = self.searchWaitTime)
+            self.Refind(maxSearchSeconds = TIME_OUT_SECOND, searchIntervalSeconds = self.searchWaitTime)
         return self._element
 
     @property
@@ -2132,6 +2132,54 @@ class Control(LegacyIAccessiblePattern):
         hWnd = self.Handle
         if hWnd:
             return Win32API.GetPixelColor(x, y, hWnd)
+
+    def CaptureToImage(self, savePath, x = 0, y = 0, width = 0, height = 0):
+        '''
+        savePath, savePath shoud end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff
+        x, y: the point in control's internal position(from 0,0)
+        width, height: image's width and height, use 0 for entire area
+        '''
+        control = self
+        left, top, right, bottom = control.BoundingRectangle
+        while right == 0 or bottom == 0:
+            #some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
+            control = control.GetParentControl()
+            if not control:
+                return False
+            left, top, right, bottom = control.BoundingRectangle
+        if width <= 0:
+            width = right - left - x
+        if height <= 0:
+            height = bottom - top - y
+        hWnd = control.Handle
+        if hWnd:
+            left = x
+            top = y
+            right = left + width
+            bottom = top + height
+        else:
+            while True:
+                control = control.GetParentControl()
+                #LogControl(control)
+                hWnd = control.Handle
+                if hWnd:
+                    pleft, ptop, pright, pbottom = control.BoundingRectangle
+                    left = left - pleft + x
+                    top = top - ptop + y
+                    right = left + width
+                    bottom = top + height
+                    break
+        name, ext = os.path.splitext(savePath);
+        extMap = {'.bmp': 'image/bmp'
+                  , '.jpg': 'image/jpeg'
+                  , '.jpeg': 'image/jpeg'
+                  , '.gif': 'image/gif'
+                  , '.tif': 'image/tiff'
+                  , '.tiff': 'image/tiff'
+                  , '.png': 'image/png'
+                  }
+        gdiplusImageFormat = extMap.get(ext.lower(), 'image/png')
+        return 0 == _automationClient.dll.CaptureWndToImage(hWnd, savePath, gdiplusImageFormat, left, top, right, bottom)
 
     def Convert(self):
         '''
