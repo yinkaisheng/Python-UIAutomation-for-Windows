@@ -6,7 +6,7 @@ It supports automation for the applications which implmented IUIAutomation, such
 automation is shared under the MIT Licence.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
-Only 3 files(**automation.py, AutomationClientX86.dll and AutomationClientX64.dll**) are needed for UIAutomation. Other scripts are all demos.
+Only 3 files(<font color=blue>**automation.py, AutomationClientX86.dll and AutomationClientX64.dll**</font>) are needed for UIAutomation. Other scripts are all demos.
 
 Run 'automation.py -h' for help.
 Run automate_notepad_py3.py to see a simple demo.
