@@ -1,5 +1,6 @@
 #!python2
 # -*- coding: utf-8 -*-
+import os
 import time
 import subprocess
 import ctypes
@@ -42,6 +43,9 @@ def testNotepadCN():
     automation.SendKeys('`~!@#$%^&*()-_=+{ENTER}')
     automation.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}{Ctrl}a')
     time.sleep(1)
+    window.CaptureToImage('Notepad.png')
+    automation.SendKeys('Image Notepad.png was captured, you will see it later.', 0.05)
+    time.sleep(1)
     #查找菜单
     menuItemFormat = automation.MenuItemControl(searchFromControl = window, Name = u'格式(O)')
     menuItemFont = automation.MenuItemControl(searchFromControl = window, Name = u'字体(F)...')
@@ -55,7 +59,7 @@ def testNotepadCN():
     time.sleep(1)
     window.Close()
     time.sleep(1)
-    
+
     # buttonNotSave = ButtonControl(searchFromControl = window, SubName = u'不保存')
     # buttonNotSave.Click()
     # or send alt+n to not save and quit
@@ -64,6 +68,7 @@ def testNotepadCN():
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and u'不保存' in control.Name)
     buttonNotSave.Click()
+    os.popen('Notepad.png')
 
 
 def testNotepadEN():
@@ -90,6 +95,9 @@ def testNotepadEN():
     automation.SendKeys('`~!@#$%^&*()-_=+{ENTER}')
     automation.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}{CTRL}a')
     time.sleep(1)
+    window.CaptureToImage('Notepad.png')
+    automation.SendKeys('Image Notepad.png was captured, you will see it later.', 0.05)
+    time.sleep(1)
     menuItemFormat = automation.MenuItemControl(searchFromControl = window, Name = 'Format')
     menuItemFont = automation.enuItemControl(searchFromControl = window, Name = 'Font...')
     windowFont = automation.WindowControl(searchFromControl = window, Name = 'Font')
@@ -110,6 +118,7 @@ def testNotepadEN():
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and 'Don\'t Save' == control.Name)
     buttonNotSave.Click()
+    os.popen('Notepad.png')
 
 if __name__ == '__main__':
     uiLanguage = ctypes.windll.kernel32.GetUserDefaultUILanguage()

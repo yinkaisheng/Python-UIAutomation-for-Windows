@@ -1,5 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
+import os
 import time
 import subprocess
 import ctypes
@@ -28,7 +29,7 @@ def testNotepadCN():
     #if window.Exists(maxSearchSeconds = 3):
     screenWidth, screenHeight = automation.Win32API.GetScreenSize()
     window.MoveWindow(screenWidth // 4, screenHeight // 4, screenWidth // 2, screenHeight // 2)
-    #查找edit    
+    #查找edit
     edit = automation.EditControl(searchFromControl = window)
     edit.DoubleClick()
     time.sleep(1)
@@ -41,6 +42,9 @@ def testNotepadCN():
     automation.SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}')
     automation.SendKeys('`~!@#$%^&*()-_=+{ENTER}')
     automation.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}{CTRL}a')
+    time.sleep(1)
+    window.CaptureToImage('Notepad.png')
+    automation.SendKeys('Image Notepad.png was captured, you will see it later.', 0.05)
     time.sleep(1)
     #查找菜单
     menuItemFormat = automation.MenuItemControl(searchFromControl = window, Name = '格式(O)')
@@ -64,6 +68,7 @@ def testNotepadCN():
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and '不保存' in control.Name)
     buttonNotSave.Click()
+    os.popen('Notepad.png')
 
 
 def testNotepadEN():
@@ -89,6 +94,9 @@ def testNotepadEN():
     automation.SendKeys('`~!@#$%^&*()-_=+{Enter}')
     automation.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}{Ctrl}a')
     time.sleep(1)
+    window.CaptureToImage('Notepad.png')
+    automation.SendKeys('Image Notepad.png was captured, you will see it later.', 0.05)
+    time.sleep(1)
     menuItemFormat = automation.MenuItemControl(searchFromControl = window, Name = 'Format')
     menuItemFont = automation.enuItemControl(searchFromControl = window, Name = 'Font...')
     windowFont = automation.WindowControl(searchFromControl = window, Name = 'Font')
@@ -109,6 +117,7 @@ def testNotepadEN():
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and 'Don\'t Save' == control.Name)
     buttonNotSave.Click()
+    os.popen('Notepad.png')
 
 if __name__ == '__main__':
     uiLanguage = ctypes.windll.kernel32.GetUserDefaultUILanguage()
