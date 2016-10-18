@@ -10,59 +10,37 @@ PrintTree = False
 ExpandFromRoot = False
 MaxExpandDepth = 0xFFFFFFFF
 
-def getKeyName(theDict, theValue):
-    for key in theDict:
-        if theValue == theDict[key]:
-            return key
-
-def ExpandTreeItemRecursively(treeItem, depth = 0):
-    if isinstance(treeItem, automation.TreeItemControl):
-        if PrintTree:
-            automation.Logger.WriteLine(' ' * (depth * 4) + treeItem.Name)
-        if depth >= MaxExpandDepth:
-            return
-        children = []
-        state = treeItem.CurrentExpandCollapseState()
-        #print(treeItem.Name, getKeyName(automation.ExpandCollapseState.__dict__, state))
-        if state == automation.ExpandCollapseState.Collapsed:
-            treeItem.Expand()
-        elif state == automation.ExpandCollapseState.LeafNode:
-            return
-        children = treeItem.GetChildren()
-        #some tree items need some time to finish expanding
-        tryCount = 0
-        while not children:
-            if tryCount > 10:
-                break
-            time.sleep(0.1)
-            children = treeItem.GetChildren()
-            tryCount += 1
-        for it in children:
-            it.ScrollIntoView()
-            ExpandTreeItemRecursively(it, depth + 1)
+def GetTreeItemChildren(item):
+    if isinstance(item, automation.TreeItemControl):
+        if automation.ExpandCollapseState.Expanded == item.CurrentExpandCollapseState():
+            children = item.GetChildren()
+            #some tree items need some time to finish expanding
+            while not children:
+                time.sleep(0.1)
+                children = item.GetChildren()
+            return children
+    else:
+        return item.GetChildren()
 
 def ExpandTreeItem(treeItem):
-    for item, depth in automation.WalkTree(treeItem, getChildrenFunc = lambda c : c.GetChildren(), includeTop = True, maxDepth = MaxExpandDepth):
+    for item, depth in automation.WalkTree(treeItem, getChildrenFunc = GetTreeItemChildren, includeTop = True, maxDepth = MaxExpandDepth):
         if isinstance(item, automation.TreeItemControl):  #or item.ControlType == automation.ControlType.TreeItemControl
-            #item.Select()
-            if depth < MaxExpandDepth and automation.ExpandCollapseState.Collapsed == item.CurrentExpandCollapseState():
-                item.Expand()
-            item.ScrollIntoView()
             if PrintTree:
                 automation.Logger.WriteLine(' ' * (depth * 4) + item.Name)
+            if depth < MaxExpandDepth:  # and automation.ExpandCollapseState.Collapsed == item.CurrentExpandCollapseState():
+                item.Expand()
+            item.ScrollIntoView()
 
 def main():
     treeItem = automation.ControlFromCursor()
     if isinstance(treeItem, automation.TreeItemControl) or isinstance(treeItem, automation.TreeControl):
         while ExpandFromRoot:
-            pc = treeItem.GetParentControl()
-            if isinstance(pc, automation.TreeControl) or not pc:
+            if isinstance(treeItem, automation.TreeControl):
                 break
-            treeItem = pc
-        ExpandTreeItemRecursively(treeItem)
+            treeItem = treeItem.GetParentControl()
+        ExpandTreeItem(treeItem)
     else:
         automation.Logger.WriteLine('the control under cursor is not a tree control', automation.ConsoleColor.Yellow)
-
 
 def HotKeyFunc(stopEvent):
     scriptName = os.path.basename(__file__)
@@ -96,7 +74,7 @@ if __name__ == '__main__':
         parser.add_argument('-r', '--root', action='store_true', help = 'expand from root')
         parser.add_argument('-p', '--print', action='store_true', help = 'print tree node text')
         args = parser.parse_args()
-        automation.Logger.WriteLine(str(args))
+        #automation.Logger.WriteLine(str(args))
         ExpandFromRoot = args.root
         MaxExpandDepth = args.depth
         PrintTree = args.print

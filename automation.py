@@ -17,6 +17,7 @@ This means that the code can be freely copied and distributed, and costs nothing
 import sys
 import os
 import time
+import datetime
 import ctypes
 import ctypes.wintypes
 
@@ -1896,7 +1897,7 @@ class QTPLikeSyntaxSupport():
     def WindowControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         return WindowControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-class Control(LegacyIAccessiblePattern,QTPLikeSyntaxSupport):
+class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         '''
         element: integer
@@ -2287,7 +2288,6 @@ class Control(LegacyIAccessiblePattern,QTPLikeSyntaxSupport):
         else:
             while True:
                 control = control.GetParentControl()
-                #LogControl(control)
                 hWnd = control.Handle
                 if hWnd:
                     pleft, ptop, pright, pbottom = control.BoundingRectangle
@@ -3344,20 +3344,26 @@ class Logger():
         Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout)
 
     @staticmethod
-    def Log(log, consoleColor = -1, writeToFile = True, printToStdout = True):
+    def Log(log = '', consoleColor = -1, writeToFile = True, printToStdout = True):
         '''
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
         '''
-        t = time.localtime()
-        log = '{0}-{1:02}-{2:02} {3:02}:{4:02}:{5:02} - {6}{7}'.format(t.tm_year, t.tm_mon, t.tm_mday,
-            t.tm_hour, t.tm_min, t.tm_sec, log, Logger.LineSep)
+        t = datetime.datetime.now()
+        frame = sys._getframe(1)
+        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}{}'.format(t.year, t.month, t.day,
+            t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log, Logger.LineSep)
         Logger.Write(log, consoleColor, writeToFile, printToStdout)
 
     @staticmethod
     def DeleteLog():
         if os.path.exists(Logger.LogFile):
             os.remove(Logger.LogFile)
+
+
+def SetGlobalSearchTimeOut(seconds):
+    global TIME_OUT_SECOND
+    TIME_OUT_SECOND = seconds
 
 def SendKey(key):
     '''
@@ -3833,7 +3839,7 @@ def main():
     if seconds > 0:
         sys.stdout.write('please wait for {0} seconds\n\n'.format(seconds))
         time.sleep(seconds)
-    Logger.Log('Starts')
+    Logger.Log('Starts, Current Cursor Position: {}'.format(Win32API.GetCursorPos()))
     control = None
     if root:
         control = GetRootControl()
@@ -3847,7 +3853,15 @@ def main():
         EnumControlAncestor(control, showAllName, showMore)
     else:
         if not control:
-            control = GetForegroundControl()
+            control = GetFocusedControl()
+            controlList = []
+            while control:
+                controlList.insert(0, control)
+                control = control.GetParentControl()
+            if len(controlList) == 1:
+                control = controlList[0]
+            else:
+                control = controlList[1]
         EnumControl(control, depth, showAllName, showMore)
     Logger.Log('Ends' + Logger.LineSep)
 
