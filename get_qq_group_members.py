@@ -22,11 +22,11 @@ def GetPersonDetail():
     return details
 
 def main():
-    print('请把鼠标放在QQ群聊天窗口中的一个成员上面，3秒后获取\n')
+    automation.Logger.WriteLine('请把鼠标放在QQ群聊天窗口中的一个成员上面，3秒后获取\n')
     time.sleep(3)
     listItem = automation.ControlFromCursor()
     if listItem.ControlType != automation.ControlType.ListItemControl:
-        print('没有放在群成员上面，程序退出！')
+        automation.Logger.WriteLine('没有放在群成员上面，程序退出！')
         return
     consoleWindow = automation.GetConsoleWindow()
     consoleWindow.SetActive()
@@ -37,7 +37,7 @@ def main():
         automation.Logger.WriteLine(listItem.Name)
     answer = input('是否获取详细信息？按y和Enter继续\n')
     if answer.lower() == 'y':
-        print('\n3秒后开始获取QQ群成员详细资料，您可以一直按住F10键暂停脚本')
+        automation.Logger.WriteLine('\n3秒后开始获取QQ群成员详细资料，您可以一直按住F10键暂停脚本')
         time.sleep(3)
         qqWindow.SetActive()
         time.sleep(0.5)

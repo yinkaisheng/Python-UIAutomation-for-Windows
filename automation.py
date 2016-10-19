@@ -33,6 +33,7 @@ METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 change
 SEARCH_INTERVAL = 0.5 # search control interval seconds
 MAX_MOVE_SECOND = 1 # simulate mouse move or drag max seconds
 TIME_OUT_SECOND = 15
+OPERATION_WAIT_TIME = 0.5
 
 class _AutomationClient():
     def __init__(self):
@@ -1071,7 +1072,7 @@ class Win32API():
         return ctypes.windll.user32.SendMessageW(handle, msg, wparam, lparam)
 
     @staticmethod
-    def MouseClick(x, y):
+    def MouseClick(x, y, waitTime = OPERATION_WAIT_TIME):
         '''
         Simulate mouse click at point x, y
         x and y must be integer
@@ -1080,9 +1081,11 @@ class Win32API():
         Win32API.mouse_event(MouseEventFlags.LeftDown | MouseEventFlags.Absolute, x, y, 0, 0)
         time.sleep(0.1)
         Win32API.mouse_event(MouseEventFlags.LeftUp | MouseEventFlags.Absolute, x, y, 0, 0)
+        if waitTime > 0:
+            time.sleep(waitTime)
 
     @staticmethod
-    def MouseMiddleClick(x, y):
+    def MouseMiddleClick(x, y, waitTime = OPERATION_WAIT_TIME):
         '''
         Simulate mouse middle click at point x, y
         x and y must be integer
@@ -1091,9 +1094,11 @@ class Win32API():
         Win32API.mouse_event(MouseEventFlags.MiddleDown | MouseEventFlags.Absolute, x, y, 0, 0)
         time.sleep(0.1)
         Win32API.mouse_event(MouseEventFlags.MiddleUp | MouseEventFlags.Absolute, x, y, 0, 0)
+        if waitTime > 0:
+            time.sleep(waitTime)
 
     @staticmethod
-    def MouseRightClick(x, y):
+    def MouseRightClick(x, y, waitTime = OPERATION_WAIT_TIME):
         '''
         Simulate mouse right click at point x, y
         x and y must be integer
@@ -1102,13 +1107,15 @@ class Win32API():
         Win32API.mouse_event(MouseEventFlags.RightDown | MouseEventFlags.Absolute, x, y, 0, 0)
         time.sleep(0.1)
         Win32API.mouse_event(MouseEventFlags.RightUp | MouseEventFlags.Absolute, x, y, 0, 0)
+        if waitTime > 0:
+            time.sleep(waitTime)
 
     @staticmethod
-    def MouseMoveTo(x, y, moveSpeed = 1):
+    def MouseMoveTo(x, y, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
         '''
         Simulate mouse move to point x, y from current cursor
         x and y must be integer
-        moveTime: double, the max simulating time
+        moveSpeed: double, 1 normal speed, < 1 move slower, > 1 move faster
         '''
         if moveSpeed <= 0:
             moveTime = 0
@@ -1139,13 +1146,15 @@ class Win32API():
                 Win32API.SetCursorPos(cx, cy)
                 time.sleep(interval)
         Win32API.SetCursorPos(x, y)
+        if waitTime > 0:
+            time.sleep(waitTime)
 
     @staticmethod
-    def MouseDragTo(x1, y1, x2, y2, moveSpeed = 1):
+    def MouseDragTo(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
         '''
         Simulate mouse drag from point x1, y1 to point x2, y2
-        x1, y1, x2, y2, step must be integer
-        dragTime: double, the drag will be done in dragTime
+        x1, y1, x2, y2, must be integer
+        moveSpeed: double, 1 normal speed, < 1 move slower, > 1 move faster
         '''
         if moveSpeed <= 0:
             moveTime = 0
@@ -1174,6 +1183,8 @@ class Win32API():
                 Win32API.SetCursorPos(int(x1), int(y1))
                 time.sleep(interval)
         Win32API.mouse_event(MouseEventFlags.Absolute | MouseEventFlags.LeftUp, x2*65536//screenWidth, y2*65536//screenHeight, 0, 0)
+        if waitTime > 0:
+            time.sleep(waitTime)
 
     @staticmethod
     def GetScreenSize():
@@ -1339,13 +1350,15 @@ class Win32API():
             continueFind = ctypes.windll.kernel32.Process32NextW(hSnapshot, ctypes.byref(processEntry32))
 
     @staticmethod
-    def SendKey(key):
+    def SendKey(key, waitTime = OPERATION_WAIT_TIME):
         '''
         Simulate typing a key
         key: a value in class Keys
         '''
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
+        if waitTime > 0:
+            time.sleep(waitTime)
 
     #@staticmethod
     #def SendWait(keys):
@@ -1419,7 +1432,7 @@ class Win32API():
         return scanCode
 
     @staticmethod
-    def SendKeys(text, interval = 0.01, debug = False):
+    def SendKeys(text, interval = 0.01, waitTime = OPERATION_WAIT_TIME, debug = False):
         '''
         Simulate typing keys on keyboard
         text: unicode, keys to type
@@ -1610,6 +1623,8 @@ class Win32API():
         #if shift & 0x8000:
             #Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
             #Win32API.keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
+        if waitTime > 0:
+            time.sleep(waitTime)
 
 
 class LegacyIAccessiblePattern():
@@ -2116,7 +2131,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         else:
             y = (top if ratioY >= 0 else bottom) + ratioY
         if simulateMove:
-            Win32API.MouseMoveTo(x, y)
+            Win32API.MouseMoveTo(x, y, waitTime = 0)
         else:
             Win32API.SetCursorPos(x, y)
         return x, y
@@ -2125,7 +2140,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         '''Move cursor to control's center'''
         self.MoveCursor()
 
-    def Click(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
+    def Click(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
         '''
         Click(0.5, 0.5): click center
         Click(10, 10): click left+10, top+10
@@ -2133,9 +2148,9 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         simulateMove：bool, if True, first move cursor to control smoothly
         '''
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
-        Win32API.MouseClick(x, y)
+        Win32API.MouseClick(x, y, waitTime)
 
-    def MiddleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
+    def MiddleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
         '''
         Click(0.5, 0.5): click center
         Click(10, 10): click left+10, top+10
@@ -2143,9 +2158,9 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         simulateMove：bool, if True, first move cursor to control smoothly
         '''
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
-        Win32API.MouseMiddleClick(x, y)
+        Win32API.MouseMiddleClick(x, y, waitTime)
 
-    def RightClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
+    def RightClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
         '''
         RightClick(0.5, 0.5): right click center
         RightClick(10, 10): right click left+10, top+10
@@ -2153,9 +2168,9 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         simulateMove：bool, if True, first move cursor to control smoothly
         '''
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
-        Win32API.MouseRightClick(x, y)
+        Win32API.MouseRightClick(x, y, waitTime)
 
-    def DoubleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
+    def DoubleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
         '''
         DoubleClick(0.5, 0.5): double click center
         DoubleClick(10, 10): double click left+10, top+10
@@ -2163,9 +2178,9 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         simulateMove：bool, if True, first move cursor to control smoothly
         '''
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
-        Win32API.MouseClick(x, y)
+        Win32API.MouseClick(x, y, 0)
         time.sleep(Win32API.GetDoubleClickTime() * 1.0 / 2000)
-        Win32API.MouseClick(x, y)
+        Win32API.MouseClick(x, y, waitTime)
 
     def GetParentControl(self):
         '''Return Control'''
@@ -2366,21 +2381,25 @@ class ExpandCollapsePattern():
         '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId) != 0
 
-    def Expand(self):
+    def Expand(self, waitTime = OPERATION_WAIT_TIME):
         '''Expand the control'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
             _automationClient.dll.ExpandCollapsePatternExpand(pattern)
             _automationClient.dll.ReleasePattern(pattern)
+            if waitTime > 0:
+                time.sleep(waitTime)
         else:
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
-    def Collapse(self):
+    def Collapse(self, waitTime = OPERATION_WAIT_TIME):
         '''Collapse the control'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
             _automationClient.dll.ExpandCollapsePatternCollapse(pattern)
             _automationClient.dll.ReleasePattern(pattern)
+            if waitTime > 0:
+                time.sleep(waitTime)
         else:
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
@@ -2495,12 +2514,14 @@ class InvokePattern():
         '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId) != 0
 
-    def Invoke(self):
+    def Invoke(self, waitTime = OPERATION_WAIT_TIME):
         '''invoke'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId)
         if pattern:
             _automationClient.dll.InvokePatternInvoke(pattern)
             _automationClient.dll.ReleasePattern(pattern)
+            if waitTime > 0:
+                time.sleep(waitTime)
         else:
             Logger.WriteLine('InvokePattern is not supported!', ConsoleColor.Yellow)
 
@@ -2798,12 +2819,14 @@ class TogglePattern():
         '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId) != 0
 
-    def Toggle(self):
+    def Toggle(self, waitTime = OPERATION_WAIT_TIME):
         '''Toggle or UnToggle the control'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
         if pattern:
             _automationClient.dll.TogglePatternToggle(pattern)
             _automationClient.dll.ReleasePattern(pattern)
+            if waitTime > 0:
+                time.sleep(waitTime)
         else:
             Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
 
@@ -2850,13 +2873,15 @@ class ValuePattern():
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
         return ''
 
-    def SetValue(self, value):
+    def SetValue(self, value, waitTime = OPERATION_WAIT_TIME):
         '''Set unicode string to control's value'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
             c_value = ctypes.c_wchar_p(value)
             value = _automationClient.dll.ValuePatternSetValue(pattern, c_value)
             _automationClient.dll.ReleasePattern(pattern)
+            if waitTime > 0:
+                time.sleep(waitTime)
         else:
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
 
@@ -2885,11 +2910,13 @@ class WindowPattern():
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def SetWindowVisualState(self, value):
+    def SetWindowVisualState(self, value, waitTime = OPERATION_WAIT_TIME):
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             _automationClient.dll.WindowPatternSetWindowVisualState(pattern, value)
             _automationClient.dll.ReleasePattern(pattern)
+            if waitTime > 0:
+                time.sleep(waitTime)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
@@ -2902,9 +2929,9 @@ class WindowPattern():
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def Maximize(self):
+    def Maximize(self, waitTime = OPERATION_WAIT_TIME):
         if self.CurrentCanMaximize():
-            self.SetWindowVisualState(WindowVisualState.Maximized)
+            self.SetWindowVisualState(WindowVisualState.Maximized, waitTime)
 
     def CurrentCanMinimize(self):
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
@@ -2915,12 +2942,12 @@ class WindowPattern():
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def Minimize(self):
+    def Minimize(self, waitTime = OPERATION_WAIT_TIME):
         if self.CurrentCanMinimize():
-            self.SetWindowVisualState(WindowVisualState.Minimized)
+            self.SetWindowVisualState(WindowVisualState.Minimized, waitTime)
 
-    def Normal(self):
-        self.SetWindowVisualState(WindowVisualState.Normal)
+    def Normal(self, waitTime = OPERATION_WAIT_TIME):
+        self.SetWindowVisualState(WindowVisualState.Normal, waitTime)
 
     def IsMaximize(self):
         return self.CurrentWindowVisualState() == WindowVisualState.Maximized
@@ -2946,11 +2973,13 @@ class WindowPattern():
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def Close(self):
+    def Close(self, waitTime = OPERATION_WAIT_TIME):
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             _automationClient.dll.WindowPatternClose(pattern)
             _automationClient.dll.ReleasePattern(pattern)
+            if waitTime > 0:
+                time.sleep(waitTime)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
@@ -2978,7 +3007,7 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ComboBoxControl)
 
-    def Select(self, name):
+    def Select(self, name, waitTime = OPERATION_WAIT_TIME):
         '''not support Qt's ComboBoxControl'''
         supportExpandCollapse = self.IsExpandCollapsePatternAvailable()
         if supportExpandCollapse:
@@ -2989,13 +3018,13 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
         listItemControl = ListItemControl(searchFromControl = self, Name = name)
         if listItemControl.Exists(1, SEARCH_INTERVAL):
             listItemControl.ScrollIntoView()
-            listItemControl.Click()
+            listItemControl.Click(waitTime = waitTime)
         else:
             Logger.WriteLine('Can\'t find {} in ComboBoxControl'.format(name), ConsoleColor.Yellow)
             if supportExpandCollapse:
-                self.Collapse()
+                self.Collapse(waitTime)
             else:
-                self.Click(-10, 0.5, False)
+                self.Click(-10, 0.5, False, waitTime)
 
 
 class CustomControl(Control):
@@ -3236,23 +3265,25 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
         if y < 0: y = 0
         return Win32API.SetWindowPos(self.Handle, SWP.HWND_TOP, x, y, 0, 0, SWP.SWP_NOSIZE)
 
-    def MetroClose(self):
+    def MetroClose(self, waitTime = OPERATION_WAIT_TIME):
         '''only works in Windows 8/8.1, if current window is Metro UI'''
         window = WindowControl(searchDepth = 1, ClassName = METRO_WINDOW_CLASS_NAME)
         if window.Exists(0, 0):
             screenWidth, screenHeight = Win32API.GetScreenSize()
-            Win32API.MouseMoveTo(screenWidth//2, 0)
-            Win32API.MouseDragTo(screenWidth//2, 0, screenWidth//2, screenHeight)
-            time.sleep(1)
+            Win32API.MouseMoveTo(screenWidth//2, 0, waitTime = 0)
+            Win32API.MouseDragTo(screenWidth//2, 0, screenWidth//2, screenHeight, waitTime = waitTime)
         else:
             Logger.WriteLine('Window is not Metro!', ConsoleColor.Yellow)
 
-    def SetActive(self):
+    def SetActive(self, waitTime = OPERATION_WAIT_TIME):
         if self.CurrentWindowVisualState() == WindowVisualState.Minimized:
             self.ShowWindow(ShowWindow.Restore)
         else:
             self.ShowWindow(ShowWindow.Show)
-        return Win32API.SetForegroundWindow(self.Handle)
+        ret = Win32API.SetForegroundWindow(self.Handle)
+        if waitTime > 0:
+            time.sleep(waitTime)
+        return ret
 
 
 ControlDict = {
@@ -3365,15 +3396,15 @@ def SetGlobalSearchTimeOut(seconds):
     global TIME_OUT_SECOND
     TIME_OUT_SECOND = seconds
 
-def SendKey(key):
+def SendKey(key, waitTime = OPERATION_WAIT_TIME):
     '''
     Simulate typing a key
     key: a value in class Keys
     example: SendKey(automation.Keys.VK_F)
     '''
-    Win32API.SendKey(key)
+    Win32API.SendKey(key, waitTime)
 
-def SendKeys(text, interval=0.01, debug=False):
+def SendKeys(text, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
     '''
     Simulate typing keys on keyboard
     text: unicode, keys to type
@@ -3392,7 +3423,7 @@ def SendKeys(text, interval=0.01, debug=False):
     SendKeys('`~!@#$%^&*()-_=+{Enter}')
     SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
     '''
-    Win32API.SendKeys(text, interval, debug)
+    Win32API.SendKeys(text, interval, waitTime, debug)
 
 def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):
     '''

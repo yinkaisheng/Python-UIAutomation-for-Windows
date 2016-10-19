@@ -13,7 +13,7 @@ def CollapseTreeItem(treeItem):
     if children:
         for it in children:
             CollapseTreeItem(it)
-        treeItem.Collapse()
+        treeItem.Collapse(0)
         return True
     return False
 
@@ -24,7 +24,7 @@ def main():
 def HotKeyFunc(stopEvent):
     scriptName = os.path.basename(__file__)
     cmd = r'py.exe {} main {}'.format(scriptName, ' '.join(sys.argv[1:]))
-    print('call ' + cmd)
+    automation.Logger.WriteLine('call ' + cmd)
     p = subprocess.Popen(cmd)
     while True:
         if None != p.poll():
@@ -40,7 +40,7 @@ def HotKeyFunc(stopEvent):
                 automation.Logger.WriteLine('kill process: {}, {}, "{}"'.format(pid, pname, cmd), automation.ConsoleColor.Yellow)
                 automation.Win32API.TerminateProcess(pid)
             break
-    print('HotKeyFunc exit')
+    automation.Logger.WriteLine('HotKeyFunc exit')
 
 
 if __name__ == '__main__':
