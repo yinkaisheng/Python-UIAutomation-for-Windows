@@ -1441,7 +1441,7 @@ class Win32API():
         example:
         {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
         SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
-        SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type )
+        SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
         SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
         SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
         SendKeys('{{}你好{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {你好}abc abc test}}}!a ()()
