@@ -2333,8 +2333,9 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     @staticmethod
     def CreateControlFromElement(element):
         '''element: value of IUIAutomationElement'''
-        controlType = _automationClient.dll.GetElementControlType(element)
-        return ControlDict[controlType](element)
+        if element:
+            controlType = _automationClient.dll.GetElementControlType(element)
+            return ControlDict[controlType](element)
 
     @staticmethod
     def CreateControlFromControl(control):
@@ -3712,11 +3713,12 @@ def ShowDesktop():
         #Win32API.PostMessage(paneTray.Handle, WM_COMMAND, MIN_ALL, 0)
         #time.sleep(1)
 
-def RunWithHotKey(function, startHotKey, stopHotKey = None):
+def RunWithHotKey(keyFunctionDict, stopHotKey = None):
     '''
+    keyFunctionDict: hotkey, function dict, like {(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1) : func}
     bind function with hotkey, the function will be run or stopped in another thread when the hotkey was pressed
-    automation doesn't support multi thread, so you can't use automation in the function
-    you can call another script that uses automation
+    automation doesn't support multi thread, so you can't use UI Control in the function
+    you can call another script that uses UI Control
 
     def main(stopEvent):
         n = 0
@@ -3727,13 +3729,14 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
             n += 1
             stopEvent.wait(1)
         print('main exit')
-        print(automation.GetRootControl())      # will raise exception, can't use automation, todo
+        print(automation.GetRootControl())      # will raise exception, can't use UI Control, todo
 
-    automation.RunHotKey(main, (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1), (automation.ModifierKey.MOD_CONTROL | automation.ModifierKey.MOD_SHIFT, automation.Keys.VK_2))
+    automation.RunHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1) : main}
+                        , (automation.ModifierKey.MOD_CONTROL | automation.ModifierKey.MOD_SHIFT, automation.Keys.VK_2))
     '''
-    startHotKeyId = 1
-    stopHotKeyId = 2
-    exitHotKeyId = 3
+    stopHotKeyId = 1
+    exitHotKeyId = 2
+    hotKeyId = 3
     registed = True
     def getModName(theDict, theValue):
         name = ''
@@ -3747,22 +3750,32 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
         for key in theDict:
             if theValue == theDict[key]:
                 return key
-    if startHotKey and len(startHotKey) == 2:
-        mod = getModName(ModifierKey.__dict__, startHotKey[0])
-        key = getKeyName(Keys.__dict__, startHotKey[1])
-        if ctypes.windll.user32.RegisterHotKey(0, startHotKeyId, startHotKey[0], startHotKey[1]):
-            sys.stdout.write('Register start hotKey {0} succeed\n'.format((mod, key)))
+
+    id2HotKey = {}
+    id2Function = {}
+    id2Thread = {}
+    id2Name = {}
+    for hotkey in keyFunctionDict:
+        id2HotKey[hotKeyId] = hotkey
+        id2Function[hotKeyId] = keyFunctionDict[hotkey]
+        id2Thread[hotKeyId] = None
+        modName = getModName(ModifierKey.__dict__, hotkey[0])
+        keyName = getKeyName(Keys.__dict__, hotkey[1])
+        id2Name[hotKeyId] = str((modName, keyName))
+        if ctypes.windll.user32.RegisterHotKey(0, hotKeyId, hotkey[0], hotkey[1]):
+            sys.stdout.write('Register hotKey {0} succeed\n'.format((modName, keyName)))
         else:
             registed = False
-            sys.stdout.write('Register start hotKey {0} failed, maybe it was allready registered by another program\n'.format((mod, key)))
+            sys.stdout.write('Register hotKey {0} failed, maybe it was allready registered by another program\n'.format((modName, keyName)))
+        hotKeyId += 1
     if stopHotKey and len(stopHotKey) == 2:
-        mod = getModName(ModifierKey.__dict__, stopHotKey[0])
-        key = getKeyName(Keys.__dict__, stopHotKey[1])
+        modName = getModName(ModifierKey.__dict__, stopHotKey[0])
+        keyName = getKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
-            sys.stdout.write('Register stop hotKey {0} succeed\n'.format((mod, key)))
+            sys.stdout.write('Register stop hotKey {0} succeed\n'.format((modName, keyName)))
         else:
             registed = False
-            sys.stdout.write('Register stop hotKey {0} failed, maybe it was allready registered by another program\n'.format((mod, key)))
+            sys.stdout.write('Register stop hotKey {0} failed, maybe it was allready registered by another program\n'.format((modName, keyName)))
     if not registed:
         return
     if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, ModifierKey.MOD_CONTROL, Keys.VK_D):
@@ -3778,27 +3791,30 @@ def RunWithHotKey(function, startHotKey, stopHotKey = None):
         function(stopEvent)
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
-            if startHotKeyId == msg.wParam:
-                if msg.lParam&0x0000FFFF == startHotKey[0] and msg.lParam>>16&0x0000FFFF == startHotKey[1]:
-                    sys.stdout.write('----------start hotkey pressed----------\n')
-                    if not funcThread:
+            if msg.wParam in id2HotKey:
+                if msg.lParam&0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam>>16&0x0000FFFF == id2HotKey[msg.wParam][1]:
+                    sys.stdout.write('----------hotkey {} pressed----------\n'.format(id2Name[msg.wParam]))
+                    if not id2Thread[msg.wParam]:
                         stopEvent.clear()
-                        funcThread=Thread(None, threadFunc, args = (function, stopEvent))
+                        funcThread=Thread(None, threadFunc, args = (id2Function[msg.wParam], stopEvent))
                         funcThread.setDaemon(True)
                         funcThread.start()
+                        id2Thread[msg.wParam] = funcThread
                     else:
-                        if not funcThread.isAlive():
+                        if not id2Thread[msg.wParam].isAlive():
                             stopEvent.clear()
-                            funcThread=Thread(None, threadFunc, args = (function, stopEvent))
+                            funcThread=Thread(None, threadFunc, args = (id2Function[msg.wParam], stopEvent))
                             funcThread.setDaemon(True)
                             funcThread.start()
+                            id2Thread[msg.wParam] = funcThread
                         else:
-                            Logger.WriteLine('There is a thread that had already run.', ConsoleColor.Yellow)
+                            Logger.WriteLine('There is a thread that had already run for hotkey {}.'.format(id2Name[msg.wParam]), ConsoleColor.Yellow)
             elif stopHotKeyId == msg.wParam:
                 if msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
                     sys.stdout.write('----------stop hotkey pressed----------\n')
                     stopEvent.set()
-                    funcThread = None
+                    for id in id2Thread:
+                        id2Thread[id] = None
             elif exitHotKeyId == msg.wParam:
                 if msg.lParam&0x0000FFFF == ModifierKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
                     if ControlsAreSame(GetForegroundControl(), cmdWindow):
@@ -3813,7 +3829,7 @@ def usage():
 -d      enumerate tree depth, this must be an integer, if it is null, enumerate the whole tree
 -r      enumerate from root:desktop window, if it is null, enumerate from foreground window
 -f      enumerate from focused control, if it is null, enumerate from foreground window
--c      enumerate the control under cursor
+-c      enumerate the control under cursor, if depth is < 0, enumerate from its ancestor up to depth
 -a      show ancestors of the control under cursor
 -n      show control full name
 -m      show more properties
@@ -3878,6 +3894,11 @@ def main():
         control = GetFocusedControl()
     if cursor:
         control = ControlFromCursor()
+        while depth < 0:
+            control = control.GetParentControl()
+            depth += 1
+        else:
+            depth = 0xFFFFFFFF
     if ancestor:
         control = ControlFromCursor()
         # control = ControlFromCursor2()

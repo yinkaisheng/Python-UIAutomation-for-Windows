@@ -13,7 +13,7 @@ def main():
         if isinstance(item, automation.TreeItemControl):  #or item.ControlType == automation.ControlType.TreeItemControl
             item.Select()
             if automation.ExpandCollapseState.Collapsed == item.CurrentExpandCollapseState():
-                item.Expand()
+                item.Expand(0)
             automation.Logger.WriteLine(' ' * (depth - 1) * 4 + item.Name, automation.ConsoleColor.Green)
             time.sleep(0.1)
 

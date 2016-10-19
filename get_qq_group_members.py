@@ -40,19 +40,16 @@ def main():
         automation.Logger.WriteLine('\n3秒后开始获取QQ群成员详细资料，您可以一直按住F10键暂停脚本')
         time.sleep(3)
         qqWindow.SetActive()
-        time.sleep(0.5)
         #确保群里第一个成员可见在最上面
         left, top, right, bottom = list.BoundingRectangle
         while allListItems[0].BoundingRectangle[1] < top:
             automation.Win32API.MouseClick(right - 5, top + 20)
-            time.sleep(0.5)
         for listItem in allListItems:
             if listItem.ControlType == automation.ControlType.ListItemControl:
                 if automation.Win32API.IsKeyPressed(automation.Keys.VK_F10):
                     consoleWindow.SetActive()
                     input('\n您暂停了脚本，按Enter继续\n')
                     qqWindow.SetActive()
-                    time.sleep(0.5)
                 listItem.RightClick()
                 menu = automation.MenuControl(searchDepth= 1, ClassName = 'TXGuiFoundation')
                 menuItems = menu.GetChildren()
@@ -63,9 +60,7 @@ def main():
                 automation.Logger.WriteLine(listItem.Name, automation.ConsoleColor.Green)
                 automation.Logger.WriteLine(GetPersonDetail())
                 listItem.Click()
-                time.sleep(0.5)
                 automation.SendKeys('{Down}')
-                time.sleep(0.5)
 
 if __name__ == '__main__':
     main()
