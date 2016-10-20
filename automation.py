@@ -1791,7 +1791,11 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
 class QTPLikeSyntaxSupport():
-
+    '''
+    Add syntax support like QTP, with that, user can locate object like following example:
+    WindowControl(Name="SomeWindowTitle").ButtonControl(AutomationId="OneOfButton").Click()
+    This class inherited by Control class
+    '''
     def ButtonControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         return ButtonControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self, **searchPorpertyDict)
 
