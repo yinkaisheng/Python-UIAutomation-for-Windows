@@ -48,5 +48,5 @@ if __name__ == '__main__':
         main()
     else:
         automation.Logger.WriteLine('move mouse to a tree control and press Ctrl+3', automation.ConsoleColor.Green)
-        automation.RunWithHotKey(HotKeyFunc, (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_3), (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_4))
+        automation.RunWithHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_3) : HotKeyFunc}, (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_4))
 

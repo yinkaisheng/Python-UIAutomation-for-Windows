@@ -81,5 +81,5 @@ if __name__ == '__main__':
         main()
     else:
         automation.Logger.WriteLine('move mouse to a tree control and press Ctrl+1', automation.ConsoleColor.Green)
-        automation.RunWithHotKey(HotKeyFunc, (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1), (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_2))
+        automation.RunWithHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1) : HotKeyFunc}, (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_2))
 
