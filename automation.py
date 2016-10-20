@@ -48,7 +48,7 @@ class _AutomationClient():
         if dir:
             os.chdir(oldDir)
         if not self.dll.InitInstance():
-            raise RuntimeError('Can not get an instance of IUIAutomation')
+            raise RuntimeError('Can not get an instance of IUIAutomation.\nYou may need to install Windows Update KB971513.\nhttps://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation')
 
     def __del__(self):
         self.dll.ReleaseInstance()
