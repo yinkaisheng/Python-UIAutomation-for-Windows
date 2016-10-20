@@ -16,15 +16,15 @@ def main():
     newTabButton = automation.ButtonControl(searchFromControl= tab, searchDepth= 1)
     newTabButton.Click()
     edit = automation.EditControl(searchFromControl= firefoxWindow)
-    edit.Click()
-    automation.SendKeys('http://global.bing.com/?rb=0&setmkt=en-us&setlang=en-us{Enter}')
+    # edit.Click()
+    edit.SendKeys('http://global.bing.com/?rb=0&setmkt=en-us&setlang=en-us{Enter}')
     time.sleep(2)
     searchEdit = automation.FindControl(firefoxWindow,
                            lambda c:
                            (isinstance(c, automation.EditControl) or isinstance(c, automation.ComboBoxControl)) and c.Name == 'Enter your search term'
                            )
-    searchEdit.Click()
-    automation.SendKeys('Python-UIAutomation-for-Windows site:github.com{Enter}', 0.05)
+    # searchEdit.Click()
+    searchEdit.SendKeys('Python-UIAutomation-for-Windows site:github.com{Enter}', 0.05)
     link = automation.HyperlinkControl(searchFromControl= firefoxWindow, SubName = 'yinkaisheng/Python-UIAutomation-for-Windows')
     automation.Win32API.PressKey(automation.Keys.VK_CONTROL)
     link.Click()  #press control to open the page in a new tab

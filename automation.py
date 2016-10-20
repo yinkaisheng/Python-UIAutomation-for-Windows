@@ -1198,7 +1198,7 @@ class Win32API():
     @staticmethod
     def GetPixelColor(x, y, handle = 0):
         '''
-        If handle is 0, get pixel from desktop, return r, g, b, int, hex
+        If handle is 0, get pixel from desktop, return r, g, b, int, 0xhexstring, #hexstring
         Not all devices support GetPixel. An application should call GetDeviceCaps to determine whether a specified device supports this function. Console window doesn't support.
         '''
         hdc = ctypes.windll.user32.GetWindowDC(handle)
@@ -1435,7 +1435,7 @@ class Win32API():
     def SendKeys(text, interval = 0.01, waitTime = OPERATION_WAIT_TIME, debug = False):
         '''
         Simulate typing keys on keyboard
-        text: unicode, keys to type
+        text: str, keys to type
         interval: double, seconds between keys
         debug: bool, if True, print the Keys
         example:
@@ -2274,8 +2274,25 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         if hWnd:
             return Win32API.SetWindowText(hWnd, text)
 
+    def SendKey(self, key, waitTime = OPERATION_WAIT_TIME):
+        '''
+        Simulate typing a key
+        key: a value in class Keys
+        '''
+        self.SetFocus()
+        Win32API.SendKey(key, waitTime)
+
+    def SendKeys(self, keys, interval = 0.01, waitTime = OPERATION_WAIT_TIME):
+        '''
+        Simulate typing keys
+        keys: str, keys to type, see docstring of Win32API.SendKeys
+        interval: double, seconds between keys
+        '''
+        self.SetFocus()
+        Win32API.SendKeys(keys, interval, waitTime)
+
     def GetPixelColor(self, x, y):
-        '''only works if Handle is valid'''
+        '''return r, g, b, int, 0xhexstring, #hexstring, only works if Handle is valid'''
         hWnd = self.Handle
         if hWnd:
             return Win32API.GetPixelColor(x, y, hWnd)
@@ -3409,16 +3426,16 @@ def SendKey(key, waitTime = OPERATION_WAIT_TIME):
     '''
     Win32API.SendKey(key, waitTime)
 
-def SendKeys(text, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
+def SendKeys(keys, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
     '''
     Simulate typing keys on keyboard
-    text: unicode, keys to type
+    keys: str, keys to type
     interval: double, seconds between keys
     debug: bool, if True, print the Keys
     example:
     {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
     SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
-    SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type )
+    SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
     SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
     SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
     SendKeys('{{}你好{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {你好}abc abc test}}}!a ()()
@@ -3428,7 +3445,7 @@ def SendKeys(text, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
     SendKeys('`~!@#$%^&*()-_=+{Enter}')
     SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
     '''
-    Win32API.SendKeys(text, interval, waitTime, debug)
+    Win32API.SendKeys(keys, interval, waitTime, debug)
 
 def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):
     '''
