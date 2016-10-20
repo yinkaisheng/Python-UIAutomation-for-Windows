@@ -11,6 +11,16 @@ Only 3 files(<font color=blue>**automation.py, AutomationClientX86.dll and Autom
 Run 'automation.py -h' for help.
 Run automate_notepad_py3.py to see a simple demo.
 
+Microsoft IUIAutomation Minimum supported client:
+Windows 7, Windows Vista with SP2 and Platform Update for Windows Vista, Windows XP with SP3 and Platform Update for Windows Vista [desktop apps only]
+
+Microsoft IUIAutomation Minimum supported server:
+Windows Server 2008 R2, Windows Server 2008 with SP2 and Platform Update for Windows Server 2008, Windows Server 2003 with SP2 and Platform Update for Windows Server 2008 [desktop apps only]
+
+If "RuntimeError: Can not get an instance of IUIAutomation" occured when running automation.py,
+You need to install update [KB971513](https://support.microsoft.com/en-us/kb/971513) for your Windows.
+You can also download from here [https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation](https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation)
+
 Another UI tool inspectX86.exe or inspectX64.exe supplied by Microsoft can also be used to see the UI elements.
 
 [Inspect (Inspect.exe)](https://msdn.microsoft.com/en-us/library/windows/desktop/dd318521%28v=vs.85%29.aspx) is a Windows-based tool that enables you select any UI element and view the element's accessibility data. You can view Microsoft UI Automation properties and control patterns, as well as Microsoft Active Accessibility properties. Inspect also enables you to test the navigational structure of the automation elements in the UI Automation tree, and the accessible objects in the Microsoft Active Accessibility hierarchy.
