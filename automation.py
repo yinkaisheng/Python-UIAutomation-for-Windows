@@ -1305,6 +1305,17 @@ class Win32API():
         return ctypes.windll.user32.GetForegroundWindow()
 
     @staticmethod
+    def PlayWaveFile(filePath, isAsync = True):
+        '''play wave file'''
+        SND_ASYNC = 0x0001
+        SND_NODEFAULT = 0x0002
+        flag = SND_NODEFAULT
+        if isAsync:
+            flag |= SND_ASYNC
+        c_text = ctypes.c_wchar_p(filePath)
+        ctypes.windll.winmm.sndPlaySoundW(c_text, flag)
+
+    @staticmethod
     def GetProcessCommandLine(processId):
         wstr = _automationClient.dll.GetProcessCommandLine(processId)
         if wstr:
@@ -1923,7 +1934,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         searchFromControl: Control
         searchDepth: integer
         foundIndex: integer, value must be greater or equal to 1
-        searchWaitTime: float
+        searchWaitTime: float, wait searchWaitTime before every search
         searchPorpertyDict: a dict that defines how to search, only the following keys are valid
                             ControlType: integer in class ControlType
                             ClassName: str or unicode
@@ -1987,7 +1998,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def Exists(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
         '''Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds, if found, return True else False'''
         if self._element and self._elementDirectAssign:
-            #if element is directly assigned, not by searching, juce check whether self._element is valid
+            #if element is directly assigned, not by searching, just check whether self._element is valid
             #but I can't find an API in UIAutomation that can directly check
             rootElement = GetRootControl().Element
             if self._element == rootElement:
@@ -2038,7 +2049,6 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def Element(self):
         '''Return value of control's IUIAutomationElement'''
         if not self._element:
-            #print 'property Element call Refind'
             self.Refind(maxSearchSeconds = TIME_OUT_SECOND, searchIntervalSeconds = self.searchWaitTime)
         return self._element
 
