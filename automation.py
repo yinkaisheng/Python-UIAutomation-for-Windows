@@ -1305,6 +1305,16 @@ class Win32API():
         return ctypes.windll.user32.GetForegroundWindow()
 
     @staticmethod
+    def IsDesktopLocked():
+        '''desktop is locked if press Win+L, Ctrl+Alt+Del or in remote desktop mode'''
+        isLocked = False
+        desk = ctypes.windll.user32.OpenDesktopW(ctypes.c_wchar_p('Default'), 0, 0, 0x0100)  #DESKTOP_SWITCHDESKTOP = 0x0100
+        if desk:
+            isLocked = not ctypes.windll.user32.SwitchDesktop(desk)
+            ctypes.windll.user32.CloseDesktop(desk)
+        return isLocked
+
+    @staticmethod
     def PlayWaveFile(filePath, isAsync = True):
         '''play wave file'''
         SND_ASYNC = 0x0001
@@ -3052,7 +3062,7 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
             listItemControl.ScrollIntoView()
             listItemControl.Click(waitTime = waitTime)
         else:
-            Logger.WriteLine('Can\'t find {} in ComboBoxControl'.format(name), ConsoleColor.Yellow)
+            Logger.ColorfulWriteLine('Can\'t find <Color=Cyan>{}<Color> in ComboBoxControl'.format(name), ConsoleColor.Yellow)
             if supportExpandCollapse:
                 self.Collapse(waitTime)
             else:
@@ -3365,6 +3375,25 @@ ControlDict = {
 class Logger():
     LogFile = '@AutomationLog.txt'
     LineSep = '\n'
+    ColorName2Value = {
+        "Black"       : ConsoleColor.Black          ,
+        "DarkBlue"    : ConsoleColor.DarkBlue       ,
+        "DarkGreen"   : ConsoleColor.DarkGreen      ,
+        "DarkCyan"    : ConsoleColor.DarkCyan       ,
+        "DarkRed"     : ConsoleColor.DarkRed        ,
+        "DarkMagenta" : ConsoleColor.DarkMagenta    ,
+        "DarkYellow"  : ConsoleColor.DarkYellow     ,
+        "Gray"        : ConsoleColor.Gray           ,
+        "DarkGray"    : ConsoleColor.DarkGray       ,
+        "Blue"        : ConsoleColor.Blue           ,
+        "Green"       : ConsoleColor.Green          ,
+        "Cyan"        : ConsoleColor.Cyan           ,
+        "Red"         : ConsoleColor.Red            ,
+        "Magenta"     : ConsoleColor.Magenta        ,
+        "Yellow"      : ConsoleColor.Yellow         ,
+        "White"       : ConsoleColor.White          ,
+    }
+
     @staticmethod
     def Write(log, consoleColor = -1, writeToFile = True, printToStdout = True):
         '''
@@ -3405,6 +3434,33 @@ class Logger():
         if consoleColor == -1, use default color
         '''
         Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout)
+
+    @staticmethod
+    def ColorfulWrite(log, consoleColor = -1, writeToFile = True, printToStdout = True):
+        '''ColorfulWrite(Hello <Color=Green>Green</Color> !!!), color name must in Logger.ColorName2Value'''
+        text = []
+        start = 0
+        while True:
+            index1 = log.find('<Color=', start)
+            if index1 >= 0:
+                if index1 > start:
+                    text.append((log[start:index1], consoleColor))
+                index2 = log.find('>', index1)
+                colorName = log[index1+7:index2]
+                index3 = log.find('</Color>', index2 + 1)
+                text.append((log[index2+1:index3], Logger.ColorName2Value[colorName]))
+                start = index3 + 8
+            else:
+                if start < len(log):
+                    text.append((log[start:], consoleColor))
+                break
+        for t, c in text:
+            Logger.Write(t, c, writeToFile, printToStdout)
+
+    @staticmethod
+    def ColorfulWriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
+        '''ColorfulWriteLine(Hello <Color=Green>Green</Color> !!!), color name must in Logger.ColorName2Value'''
+        Logger.ColorfulWrite(log + Logger.LineSep, consoleColor, writeToFile, printToStdout)
 
     @staticmethod
     def Log(log = '', consoleColor = -1, writeToFile = True, printToStdout = True):
@@ -3794,25 +3850,25 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
         keyName = getKeyName(Keys.__dict__, hotkey[1])
         id2Name[hotKeyId] = str((modName, keyName))
         if ctypes.windll.user32.RegisterHotKey(0, hotKeyId, hotkey[0], hotkey[1]):
-            sys.stdout.write('Register hotKey {0} succeed\n'.format((modName, keyName)))
+            Logger.ColorfulWriteLine('Register hotKey <Color=DarkGreen>{}</Color> succeed'.format((modName, keyName)), writeToFile = False)
         else:
             registed = False
-            sys.stdout.write('Register hotKey {0} failed, maybe it was allready registered by another program\n'.format((modName, keyName)))
+            Logger.ColorfulWriteLine('Register hotKey <Color=DarkGreen>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile = False)
         hotKeyId += 1
     if stopHotKey and len(stopHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, stopHotKey[0])
         keyName = getKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
-            sys.stdout.write('Register stop hotKey {0} succeed\n'.format((modName, keyName)))
+            Logger.ColorfulWriteLine('Register stop hotKey <Color=DarkGreen>{}</Color> succeed'.format((modName, keyName)), writeToFile = False)
         else:
             registed = False
-            sys.stdout.write('Register stop hotKey {0} failed, maybe it was allready registered by another program\n'.format((modName, keyName)))
+            Logger.ColorfulWriteLine('Register stop hotKey <Color=DarkGreen>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile = False)
     if not registed:
         return
     if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, ModifierKey.MOD_CONTROL, Keys.VK_D):
-        sys.stdout.write('Register Ctrl+D succeed, for exiting current script.\n')
+        Logger.ColorfulWriteLine('Register <Color=DarkGreen>Ctrl+D</Color> succeed, for exiting current script', writeToFile = False)
     else:
-        sys.stdout.write('Register Ctrl+D failed')
+        Logger.ColorfulWriteLine('Register <Color=DarkGreen>Ctrl+D</Color> failed', writeToFile = False)
     cmdWindow = GetConsoleWindow()
     from threading import Thread, Event
     funcThread = None
@@ -3824,7 +3880,7 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if msg.wParam in id2HotKey:
                 if msg.lParam&0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam>>16&0x0000FFFF == id2HotKey[msg.wParam][1]:
-                    sys.stdout.write('----------hotkey {} pressed----------\n'.format(id2Name[msg.wParam]))
+                    Logger.ColorfulWriteLine('----------hotkey <Color=DarkGreen>{}</Color> pressed----------'.format(id2Name[msg.wParam]), writeToFile = False)
                     if not id2Thread[msg.wParam]:
                         stopEvent.clear()
                         funcThread=Thread(None, threadFunc, args = (id2Function[msg.wParam], stopEvent))
@@ -3839,34 +3895,34 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
                             funcThread.start()
                             id2Thread[msg.wParam] = funcThread
                         else:
-                            Logger.WriteLine('There is a thread that had already run for hotkey {}.'.format(id2Name[msg.wParam]), ConsoleColor.Yellow)
+                            Logger.WriteLine('There is a thread that had already run for hotkey {}'.format(id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile = False)
             elif stopHotKeyId == msg.wParam:
                 if msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
-                    sys.stdout.write('----------stop hotkey pressed----------\n')
+                    Logger.WriteLine('----------stop hotkey pressed----------', writeToFile = False)
                     stopEvent.set()
                     for id in id2Thread:
                         id2Thread[id] = None
             elif exitHotKeyId == msg.wParam:
                 if msg.lParam&0x0000FFFF == ModifierKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
                     if ControlsAreSame(GetForegroundControl(), cmdWindow):
-                        Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow)
+                        Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow, False)
                         break
 
 def usage():
-    sys.stdout.write('''usage
--h      show command help
--t      delay time, default 3 seconds, begin to enumerate after Value seconds, this must be an integer
+    Logger.ColorfulWrite('''usage
+<Color=Cyan>-h</Color>      show command help
+<Color=Cyan>-t</Color>      delay time, default 3 seconds, begin to enumerate after Value seconds, this must be an integer
         you can delay a few seconds and make a window active so automation can enumerate the active window
--d      enumerate tree depth, this must be an integer, if it is null, enumerate the whole tree
--r      enumerate from root:desktop window, if it is null, enumerate from foreground window
--f      enumerate from focused control, if it is null, enumerate from foreground window
--c      enumerate the control under cursor, if depth is < 0, enumerate from its ancestor up to depth
--a      show ancestors of the control under cursor
--n      show control full name
--m      show more properties
+<Color=Cyan>-d</Color>      enumerate tree depth, this must be an integer, if it is null, enumerate the whole tree
+<Color=Cyan>-r</Color>      enumerate from root:desktop window, if it is null, enumerate from foreground window
+<Color=Cyan>-f</Color>      enumerate from focused control, if it is null, enumerate from foreground window
+<Color=Cyan>-c</Color>      enumerate the control under cursor, if depth is < 0, enumerate from its ancestor up to depth
+<Color=Cyan>-a</Color>      show ancestors of the control under cursor
+<Color=Cyan>-n</Color>      show control full name
+<Color=Cyan>-m</Color>      show more properties
 
-if UnicodeError or LookupError occurred when printing,
-try to change the active code page of console window by using chcp or see the log file @AutomationLog.txt
+if <Color=Red>UnicodeError</Color> or <Color=Red>LookupError</Color> occurred when printing,
+try to change the active code page of console window by using <Color=Cyan>chcp</Color> or see the log file <Color=Cyan>@AutomationLog.txt</Color>
 chcp, get current active code page
 chcp 936, set active code page to gbk
 chcp 65001, set active code page to utf-8
@@ -3876,14 +3932,14 @@ automation.py -t3
 automation.py -t3 -r -d1 -m -n
 automation.py -c -t3
 
-''')
+''', writeToFile = False)
 
 def main():
     #if not IsPy3 and sys.getdefaultencoding() == 'ascii':
         #reload(sys)
         #sys.setdefaultencoding('utf-8')
     import getopt
-    sys.stdout.write(str(sys.argv) + '\n')
+    Logger.WriteLine(str(sys.argv))
     options, args = getopt.getopt(sys.argv[1:], 'hrfcamnd:t:',
                                   ['help', 'root', 'focus', 'cursor', 'ancestor', 'showMore', 'showAllName', 'depth=', 'time='])
     root = False
@@ -3915,7 +3971,7 @@ def main():
         elif o in ('-t', '-time'):
             seconds = int(v)
     if seconds > 0:
-        sys.stdout.write('please wait for {0} seconds\n\n'.format(seconds))
+        Logger.Write('please wait for {0} seconds\n\n'.format(seconds), writeToFile = False)
         time.sleep(seconds)
     Logger.Log('Starts, Current Cursor Position: {}'.format(Win32API.GetCursorPos()))
     control = None
@@ -3946,7 +4002,7 @@ def main():
             else:
                 control = controlList[1]
         EnumControl(control, depth, showAllName, showMore)
-    Logger.Log('Ends' + Logger.LineSep)
+    Logger.Log('Ends\n')
 
 if __name__ == '__main__':
     main()

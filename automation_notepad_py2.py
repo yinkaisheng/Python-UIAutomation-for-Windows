@@ -20,6 +20,10 @@ This means that the code can be freely copied and distributed, and costs nothing
 '''
 
 def testNotepadCN():
+    consoleWindow = automation.GetConsoleWindow()
+    consoleWindow.SetActive()
+    automation.Logger.ColorfulWriteLine('\nI will open <Color=Green>Notepad</Color> and <Color=Yellow>automate</Color> it. Please wait for a while.')
+    time.sleep(2)
     automation.ShowDesktop()
     #打开notepad
     subprocess.Popen('notepad')
@@ -60,10 +64,17 @@ def testNotepadCN():
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and u'不保存' in control.Name)
     buttonNotSave.Click()
-    os.popen('Notepad.png')
-
+    subprocess.Popen('Notepad.png', shell = True)
+    time.sleep(2)
+    consoleWindow.SetActive()
+    automation.Logger.WriteLine('script exits', automation.ConsoleColor.Cyan)
+    time.sleep(2)
 
 def testNotepadEN():
+    consoleWindow = automation.GetConsoleWindow()
+    consoleWindow.SetActive()
+    automation.Logger.ColorfulWriteLine('\nI will open <Color=Green>Notepad</Color> and <Color=Yellow>automate</Color> it. Please wait for a while.')
+    time.sleep(2)
     automation.ShowDesktop()
     subprocess.Popen('notepad')
     #search notepad window, if searchFromControl is None, search from RootControl
@@ -102,7 +113,11 @@ def testNotepadEN():
     buttonNotSave = automation.FindControl(window,
         lambda control: control.ControlType == automation.ControlType.ButtonControl and 'Don\'t Save' == control.Name)
     buttonNotSave.Click()
-    os.popen('Notepad.png')
+    subprocess.Popen('Notepad.png', shell = True)
+    time.sleep(2)
+    consoleWindow.SetActive()
+    automation.Logger.WriteLine('script exits', automation.ConsoleColor.Cyan)
+    time.sleep(2)
 
 if __name__ == '__main__':
     uiLanguage = ctypes.windll.kernel32.GetUserDefaultUILanguage()

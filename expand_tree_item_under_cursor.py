@@ -61,6 +61,7 @@ def HotKeyFunc(stopEvent):
                 automation.Logger.WriteLine('kill process: {}, {}, "{}"'.format(pid, pname, cmd), automation.ConsoleColor.Yellow)
                 automation.Win32API.TerminateProcess(pid)
             break
+        stopEvent.wait(1)
     automation.Logger.WriteLine('HotKeyFunc exit')
 
 

@@ -35,7 +35,7 @@ def show():
 def HideWindowFunc(stopEvent):
     scriptName = os.path.basename(__file__)
     cmd = r'py.exe {} hide {}'.format(scriptName, ' '.join(sys.argv[1:]))
-    automation.Logger.WriteLine('HideWindowFunc call ' + cmd)
+    automation.Logger.ColorfulWriteLine('HideWindowFunc call <Color=Green>{}</Color>'.format(cmd))
     p = subprocess.Popen(cmd)
     while True:
         if None != p.poll():
@@ -57,7 +57,7 @@ def HideWindowFunc(stopEvent):
 def ShowWindowFunc(stopEvent):
     scriptName = os.path.basename(__file__)
     cmd = r'py.exe {} show {}'.format(scriptName, ' '.join(sys.argv[1:]))
-    automation.Logger.WriteLine('ShowWindowFunc call ' + cmd)
+    automation.Logger.ColorfulWriteLine('ShowWindowFunc call <Color=Green>{}</Color>'.format(cmd))
     p = subprocess.Popen(cmd)
     while True:
         if None != p.poll():
