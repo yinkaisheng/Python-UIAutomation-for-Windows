@@ -3062,7 +3062,7 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
             listItemControl.ScrollIntoView()
             listItemControl.Click(waitTime = waitTime)
         else:
-            Logger.ColorfulWriteLine('Can\'t find <Color=Cyan>{}<Color> in ComboBoxControl'.format(name), ConsoleColor.Yellow)
+            Logger.ColorfulWriteLine('Can\'t find <Color=Cyan>{}</Color> in ComboBoxControl'.format(name), ConsoleColor.Yellow)
             if supportExpandCollapse:
                 self.Collapse(waitTime)
             else:
