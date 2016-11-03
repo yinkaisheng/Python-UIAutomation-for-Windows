@@ -1598,16 +1598,16 @@ class Win32API():
         if debug:
             for i, key in enumerate(printKeys):
                 if key[1] == 'UnicodeChar':
-                    sys.stdout.write(str(key) + ', sleep({})\n'.format(interval))
+                    Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(key, interval), writeToFile = False)
                 else:
                     if i + 1 == len(printKeys):
-                        sys.stdout.write(str(key) + ', sleep({})\n'.format(interval))
+                        Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(key, interval), writeToFile = False)
                     else:
                         if 'KeyUp'in key[1] and (printKeys[i+1][1] == 'UnicodeChar' or 'KeyDown' in printKeys[i+1][1]):
-                            sys.stdout.write(str(key) + ', sleep({})\n'.format(interval))
+                            Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(key, interval), writeToFile = False)
                         else:
-                            sys.stdout.write(str(key) + '\n')
-            sys.stdout.write('\n')
+                            Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>\n'.format(key), writeToFile = False)
+            Logger.Write('\n', writeToFile = False)
         for i, key in enumerate(keys):
             if key[1] == 'UnicodeChar':
                 wchar = ctypes.c_wchar_p(key[0])
@@ -3437,7 +3437,7 @@ class Logger():
 
     @staticmethod
     def ColorfulWrite(log, consoleColor = -1, writeToFile = True, printToStdout = True):
-        '''ColorfulWrite(Hello <Color=Green>Green</Color> !!!), color name must in Logger.ColorName2Value'''
+        '''ColorfulWrite('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value'''
         text = []
         start = 0
         while True:
@@ -3459,7 +3459,7 @@ class Logger():
 
     @staticmethod
     def ColorfulWriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
-        '''ColorfulWriteLine(Hello <Color=Green>Green</Color> !!!), color name must in Logger.ColorName2Value'''
+        '''ColorfulWriteLine('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value'''
         Logger.ColorfulWrite(log + Logger.LineSep, consoleColor, writeToFile, printToStdout)
 
     @staticmethod
@@ -3939,7 +3939,7 @@ def main():
         #reload(sys)
         #sys.setdefaultencoding('utf-8')
     import getopt
-    Logger.WriteLine(str(sys.argv))
+    Logger.Write('Python {}.{}.{}, {}\n'.format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro, sys.argv))
     options, args = getopt.getopt(sys.argv[1:], 'hrfcamnd:t:',
                                   ['help', 'root', 'focus', 'cursor', 'ancestor', 'showMore', 'showAllName', 'depth=', 'time='])
     root = False
