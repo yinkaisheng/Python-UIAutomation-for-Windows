@@ -3414,6 +3414,7 @@ class Logger():
                     sys.stdout.write(Logger.LineSep)
             if isValidColor:
                 Win32API.ResetConsoleColor()
+            sys.stdout.flush()
         if not writeToFile:
             return
         if IsPy3:
@@ -3424,8 +3425,9 @@ class Logger():
             logFile.write(log)
             # logFile.flush() # need flush in python 3, otherwise log won't be saved
         except Exception as ex:
-            logFile.close()
             sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
+        finally:
+            logFile.close()
 
     @staticmethod
     def WriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
@@ -3910,16 +3912,16 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
 
 def usage():
     Logger.ColorfulWrite('''usage
-<Color=Cyan>-h</Color>      show command help
-<Color=Cyan>-t</Color>      delay time, default 3 seconds, begin to enumerate after Value seconds, this must be an integer
+<Color=Cyan>-h</Color>      show command <Color=Cyan>help</Color>
+<Color=Cyan>-t</Color>      delay <Color=Cyan>time</Color>, default 3 seconds, begin to enumerate after Value seconds, this must be an integer
         you can delay a few seconds and make a window active so automation can enumerate the active window
-<Color=Cyan>-d</Color>      enumerate tree depth, this must be an integer, if it is null, enumerate the whole tree
-<Color=Cyan>-r</Color>      enumerate from root:desktop window, if it is null, enumerate from foreground window
-<Color=Cyan>-f</Color>      enumerate from focused control, if it is null, enumerate from foreground window
-<Color=Cyan>-c</Color>      enumerate the control under cursor, if depth is < 0, enumerate from its ancestor up to depth
-<Color=Cyan>-a</Color>      show ancestors of the control under cursor
-<Color=Cyan>-n</Color>      show control full name
-<Color=Cyan>-m</Color>      show more properties
+<Color=Cyan>-d</Color>      enumerate tree <Color=Cyan>depth</Color>, this must be an integer, if it is null, enumerate the whole tree
+<Color=Cyan>-r</Color>      enumerate from <Color=Cyan>root</Color>:desktop window, if it is null, enumerate from foreground window
+<Color=Cyan>-f</Color>      enumerate from <Color=Cyan>focused</Color> control, if it is null, enumerate from foreground window
+<Color=Cyan>-c</Color>      enumerate the control under <Color=Cyan>cursor</Color>, if depth is < 0, enumerate from its ancestor up to depth
+<Color=Cyan>-a</Color>      show <Color=Cyan>ancestors</Color> of the control under cursor
+<Color=Cyan>-n</Color>      show control full <Color=Cyan>name</Color>
+<Color=Cyan>-m</Color>      show <Color=Cyan>more</Color> properties
 
 if <Color=Red>UnicodeError</Color> or <Color=Red>LookupError</Color> occurred when printing,
 try to change the active code page of console window by using <Color=Cyan>chcp</Color> or see the log file <Color=Cyan>@AutomationLog.txt</Color>
