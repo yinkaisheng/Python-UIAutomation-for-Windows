@@ -1198,18 +1198,17 @@ class Win32API():
     @staticmethod
     def GetPixelColor(x, y, handle = 0):
         '''
-        If handle is 0, get pixel from desktop, return r, g, b, int, 0xhexstring, #hexstring
+        If handle is 0, get pixel from desktop, return bgr
+        r = bgr & 0x0000FF
+        g = (bgr & 0x00FF00) >> 8
+        b = (bgr & 0xFF0000) >> 16
+
         Not all devices support GetPixel. An application should call GetDeviceCaps to determine whether a specified device supports this function. Console window doesn't support.
         '''
         hdc = ctypes.windll.user32.GetWindowDC(handle)
-        pixel = ctypes.windll.gdi32.GetPixel(hdc, x, y)
+        bgr = ctypes.windll.gdi32.GetPixel(hdc, x, y)
         ctypes.windll.user32.ReleaseDC(handle, hdc)
-        # if pixel == 0xFFFFFFFF: # CLR_INVALID
-            # return None
-        r = pixel & 0x0000FF
-        g = (pixel & 0x00FF00) >> 8
-        b = (pixel & 0xFF0000) >> 16
-        return r, g, b, pixel, '0x{0:02X}{1:02X}{2:02X}'.format(b,g,r), '#{0:02X}{1:02X}{2:02X}'.format(r,g,b)
+        return bgr
 
     @staticmethod
     def MessageBox(content, title, flags = MB.OK):
@@ -1646,6 +1645,156 @@ class Win32API():
             #Win32API.keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
         if waitTime > 0:
             time.sleep(waitTime)
+
+class Bitmap():
+    def __init__(self, width = 0, height = 0):
+        self._width = width
+        self._height = height
+        self._bitmap = 0
+        if width > 0 and height > 0:
+            self._bitmap = _automationClient.dll.BitmapCreate(width, height)
+
+    def __del__(self):
+        self.Release()
+
+    def _getsize(self):
+        size = _automationClient.dll.BitmapGetWidthAndHeight(self._bitmap)
+        self._width = size & 0xFFFF
+        self._height = size >> 16
+
+    def Release(self):
+        if self._bitmap:
+            _automationClient.dll.BitmapRelease(self._bitmap)
+            self._bitmap = 0
+            self._width = 0
+            self._height = 0
+
+    @property
+    def Width(self):
+        return self._width
+
+    @property
+    def Height(self):
+        return self._height
+
+    def FromHandle(self, hwnd, left = 0, top = 0, right = 0, bottom = 0):
+        '''
+        capture Win32 Window to image by its handle
+        left, top, right, bottom, control's internal postion
+        '''
+        self.Release()
+        self._bitmap = _automationClient.dll.BitmapFromWindow(hwnd, left, top, right, bottom)
+        self._getsize()
+        return self._bitmap > 0
+
+    def FromControl(self, control, x = 0, y = 0, width = 0, height = 0):
+        '''
+        capture control to image
+        x, y, control's internal postion
+        '''
+        left, top, right, bottom = control.BoundingRectangle
+        while right == 0 or bottom == 0:
+            #some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
+            control = control.GetParentControl()
+            if not control:
+                return False
+            left, top, right, bottom = control.BoundingRectangle
+        if width <= 0:
+            width = right - left - x
+        if height <= 0:
+            height = bottom - top - y
+        hWnd = control.Handle
+        if hWnd:
+            left = x
+            top = y
+            right = left + width
+            bottom = top + height
+        else:
+            while True:
+                control = control.GetParentControl()
+                hWnd = control.Handle
+                if hWnd:
+                    pleft, ptop, pright, pbottom = control.BoundingRectangle
+                    left = left - pleft + x
+                    top = top - ptop + y
+                    right = left + width
+                    bottom = top + height
+                    break
+        return self.FromHandle(hWnd, left, top, right, bottom)
+
+    def FromFile(self, filePath):
+        '''load image from file'''
+        self.Release()
+        self._bitmap = _automationClient.dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
+        self._getsize()
+        return self._bitmap > 0
+
+    def ToFile(self, savePath):
+        '''savePath shoud end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff'''
+        name, ext = os.path.splitext(savePath);
+        extMap = {'.bmp': 'image/bmp'
+                  , '.jpg': 'image/jpeg'
+                  , '.jpeg': 'image/jpeg'
+                  , '.gif': 'image/gif'
+                  , '.tif': 'image/tiff'
+                  , '.tiff': 'image/tiff'
+                  , '.png': 'image/png'
+                  }
+        gdiplusImageFormat = extMap.get(ext.lower(), 'image/png')
+        return _automationClient.dll.BitmapToFile(self._bitmap, ctypes.c_wchar_p(savePath), ctypes.c_wchar_p(gdiplusImageFormat))
+
+    def GetPixelColor(self, x, y):
+        '''
+        return argb
+        b = argb & 0x0000FF
+        g = (argb & 0x00FF00) >> 8
+        r = (argb & 0xFF0000) >> 16
+        a = (argb & 0xFF0000) >> 24
+        '''
+        return _automationClient.dll.BitmapGetPixel(self._bitmap, x, y)
+
+    def SetPixelColor(self, x, y, argb):
+        return _automationClient.dll.BitmapSetPixel(self._bitmap, x, y, argb)
+
+    def GetPixelColorsHorizontally(self, x, y, count):
+        '''get count of argb form x,y horizontally'''
+        colorArray = ctypes.c_uint32 * count
+        values = colorArray(*(0 for n in range(count)))
+        _automationClient.dll.BitmapGetPixelsHorizontally(self._bitmap, x, y, values, count)
+        return values
+
+    def GetPixelColorsVertically(self, x, y, count):
+        '''get count of argb form x,y vertically'''
+        colorArray = ctypes.c_uint32 * count
+        values = colorArray(*(0 for n in range(count)))
+        _automationClient.dll.BitmapGetPixelsVertically(self._bitmap, x, y, values, count)
+        return values
+
+    def GetPixelColorsOfRow(self, y):
+        '''return array of argb of y row'''
+        return self.GetPixelColorsHorizontally(0, y, self.Width)
+
+    def GetPixelColorsOfColumn(self, x):
+        '''return array of argb of x column'''
+        return self.GetPixelColorsVertically(x, 0, self.Height)
+
+    def GetAllPixelColors(self):
+        '''return all argb of all pixels horizontally from 0,0'''
+        return self.GetPixelColorsHorizontally(0, 0, self.Width * self.Height)
+
+    def SetPixelColorsHorizontally(self, x, y, colors):
+        '''set colors form x,y horizontally'''
+        count = len(colors)
+        colorArray = ctypes.c_uint32 * count
+        values = colorArray(*colors)
+        return _automationClient.dll.BitmapSetPixelsHorizontally(self._bitmap, x, y, values, count)
+
+    def SetPixelColorsVertically(self, x, y, colors):
+        '''set colors form x,y vertically'''
+        count = len(colors)
+        colorArray = ctypes.c_uint32 * count
+        values = colorArray(*colors)
+        return _automationClient.dll.BitmapSetPixelsVertically(self._bitmap, x, y, values, count)
 
 
 class LegacyIAccessiblePattern():
@@ -2323,46 +2472,9 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         x, y: the point in control's internal position(from 0,0)
         width, height: image's width and height, use 0 for entire area
         '''
-        control = self
-        left, top, right, bottom = control.BoundingRectangle
-        while right == 0 or bottom == 0:
-            #some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
-            control = control.GetParentControl()
-            if not control:
-                return False
-            left, top, right, bottom = control.BoundingRectangle
-        if width <= 0:
-            width = right - left - x
-        if height <= 0:
-            height = bottom - top - y
-        hWnd = control.Handle
-        if hWnd:
-            left = x
-            top = y
-            right = left + width
-            bottom = top + height
-        else:
-            while True:
-                control = control.GetParentControl()
-                hWnd = control.Handle
-                if hWnd:
-                    pleft, ptop, pright, pbottom = control.BoundingRectangle
-                    left = left - pleft + x
-                    top = top - ptop + y
-                    right = left + width
-                    bottom = top + height
-                    break
-        name, ext = os.path.splitext(savePath);
-        extMap = {'.bmp': 'image/bmp'
-                  , '.jpg': 'image/jpeg'
-                  , '.jpeg': 'image/jpeg'
-                  , '.gif': 'image/gif'
-                  , '.tif': 'image/tiff'
-                  , '.tiff': 'image/tiff'
-                  , '.png': 'image/png'
-                  }
-        gdiplusImageFormat = extMap.get(ext.lower(), 'image/png')
-        return 0 == _automationClient.dll.CaptureWndToImage(hWnd, savePath, gdiplusImageFormat, left, top, right, bottom)
+        bitmap = Bitmap()
+        if bitmap.FromControl(self, x, y, width, height):
+            return bitmap.ToFile(savePath)
 
     def Convert(self):
         '''
@@ -3618,7 +3730,7 @@ def GetConsoleWindow():
             #return ControlFromHandle(consoleHandle)
 
 def ControlFromPoint(x, y):
-    '''use IUIAutomation ElementFromPoint x,y'''
+    '''use IUIAutomation ElementFromPoint x,y, may return 0 if mouse is over cmd's title bar icon'''
     element = _automationClient.dll.ElementFromPoint(x, y)
     return Control.CreateControlFromElement(element)
 
@@ -3990,8 +4102,10 @@ def main():
             depth = 0xFFFFFFFF
     if ancestor:
         control = ControlFromCursor()
-        # control = ControlFromCursor2()
-        EnumControlAncestor(control, showAllName, showMore)
+        if control:
+            EnumControlAncestor(control, showAllName, showMore)
+        else:
+            Logger.Write('IUIAutomation return null element under cursor\n', ConsoleColor.Yellow)
     else:
         if not control:
             control = GetFocusedControl()
