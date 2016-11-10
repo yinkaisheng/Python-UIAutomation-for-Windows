@@ -1680,7 +1680,7 @@ class Bitmap():
     def FromHandle(self, hwnd, left = 0, top = 0, right = 0, bottom = 0):
         '''
         capture Win32 Window to image by its handle
-        left, top, right, bottom, control's internal postion
+        left, top, right, bottom: control's internal postion(from 0,0)
         '''
         self.Release()
         self._bitmap = _automationClient.dll.BitmapFromWindow(hwnd, left, top, right, bottom)
@@ -1689,8 +1689,9 @@ class Bitmap():
 
     def FromControl(self, control, x = 0, y = 0, width = 0, height = 0):
         '''
-        capture control to image
-        x, y, control's internal postion
+        capture control to Bitmap
+        x, y: the point in control's internal position(from 0,0)
+        width, height: image's width and height, use 0 for control's entire area
         '''
         left, top, right, bottom = control.BoundingRectangle
         while right == 0 or bottom == 0:
@@ -2466,8 +2467,19 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         if hWnd:
             return Win32API.GetPixelColor(x, y, hWnd)
 
+    def ToBitmap(self, x = 0, y = 0, width = 0, height = 0):
+        '''
+        capture control to Bitmap object
+        x, y: the point in control's internal position(from 0,0)
+        width, height: image's width and height, use 0 for entire area
+        '''
+        bitmap = Bitmap()
+        bitmap.FromControl(self, x, y, width, height)
+        return bitmap
+
     def CaptureToImage(self, savePath, x = 0, y = 0, width = 0, height = 0):
         '''
+        capture control to image file
         savePath, savePath shoud end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff
         x, y: the point in control's internal position(from 0,0)
         width, height: image's width and height, use 0 for entire area
