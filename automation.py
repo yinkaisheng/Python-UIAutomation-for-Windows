@@ -1079,7 +1079,7 @@ class Win32API():
         '''
         Win32API.SetCursorPos(x, y)
         Win32API.mouse_event(MouseEventFlags.LeftDown | MouseEventFlags.Absolute, x, y, 0, 0)
-        time.sleep(0.1)
+        time.sleep(0.05)
         Win32API.mouse_event(MouseEventFlags.LeftUp | MouseEventFlags.Absolute, x, y, 0, 0)
         if waitTime > 0:
             time.sleep(waitTime)
@@ -1092,7 +1092,7 @@ class Win32API():
         '''
         Win32API.SetCursorPos(x, y)
         Win32API.mouse_event(MouseEventFlags.MiddleDown | MouseEventFlags.Absolute, x, y, 0, 0)
-        time.sleep(0.1)
+        time.sleep(0.05)
         Win32API.mouse_event(MouseEventFlags.MiddleUp | MouseEventFlags.Absolute, x, y, 0, 0)
         if waitTime > 0:
             time.sleep(waitTime)
@@ -1105,7 +1105,7 @@ class Win32API():
         '''
         Win32API.SetCursorPos(x, y)
         Win32API.mouse_event(MouseEventFlags.RightDown | MouseEventFlags.Absolute, x, y, 0, 0)
-        time.sleep(0.1)
+        time.sleep(0.05)
         Win32API.mouse_event(MouseEventFlags.RightUp | MouseEventFlags.Absolute, x, y, 0, 0)
         if waitTime > 0:
             time.sleep(waitTime)
@@ -1758,26 +1758,49 @@ class Bitmap():
         return _automationClient.dll.BitmapSetPixel(self._bitmap, x, y, argb)
 
     def GetPixelColorsHorizontally(self, x, y, count):
-        '''get count of argb form x,y horizontally'''
+        '''get list of argb form x,y horizontally'''
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*(0 for n in range(count)))
         _automationClient.dll.BitmapGetPixelsHorizontally(self._bitmap, x, y, values, count)
         return values
 
     def GetPixelColorsVertically(self, x, y, count):
-        '''get count of argb form x,y vertically'''
+        '''get list of argb form x,y vertically'''
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*(0 for n in range(count)))
         _automationClient.dll.BitmapGetPixelsVertically(self._bitmap, x, y, values, count)
         return values
 
     def GetPixelColorsOfRow(self, y):
-        '''return array of argb of y row'''
+        '''return list of argb of y row'''
         return self.GetPixelColorsHorizontally(0, y, self.Width)
 
     def GetPixelColorsOfColumn(self, x):
-        '''return array of argb of x column'''
+        '''return list of argb of x column'''
         return self.GetPixelColorsVertically(x, 0, self.Height)
+
+    def GetPixelColorsOfRect(self, x, y, width, height):
+        '''return list of argb of rect'''
+        allColors = self.GetAllPixelColors()
+        colors = []
+        for row in range(height):
+            colors.extend(allColors[(y+row)*self.Width+x:(y+row)*self.Width+x+width])
+        return colors
+
+    def GetPixelColorsOfRects(self, rects):
+        '''
+        return list of argb of rects
+        rects example: [[x1, y1, width, height], [x2, y2, width, height]], return [rect1colors, rect2colors]
+        '''
+        allColors = self.GetAllPixelColors()
+        colorsOfRects = []
+        for rect in rects:
+            x, y, width, height = rect
+            colors = []
+            for row in range(height):
+                colors.extend(allColors[(y+row)*self.Width+x:(y+row)*self.Width+x+width])
+            colorsOfRects.append(colors)
+        return colorsOfRects
 
     def GetAllPixelColors(self):
         '''return all argb of all pixels horizontally from 0,0'''
@@ -2312,7 +2335,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     def MoveCursorToMyCenter(self):
         '''Move cursor to control's center'''
-        self.MoveCursor()
+        return self.MoveCursor()
 
     def Click(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
         '''
