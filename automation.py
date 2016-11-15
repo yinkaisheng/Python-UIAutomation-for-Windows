@@ -1694,7 +1694,7 @@ class Bitmap():
         width, height: image's width and height, use 0 for control's entire area
         '''
         left, top, right, bottom = control.BoundingRectangle
-        while right == 0 or bottom == 0:
+        while (right - left) == 0 or (bottom - top) == 0:
             #some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
             control = control.GetParentControl()
             if not control:
