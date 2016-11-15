@@ -4,7 +4,7 @@ import os
 import sys
 import time
 import subprocess
-import automation
+import uiautomation as automation
 
 def CollapseTreeItem(treeItem):
     if not isinstance(treeItem, automation.TreeItemControl):

@@ -4,7 +4,7 @@ import os
 import time
 import subprocess
 import ctypes
-import automation
+import uiautomation as automation
 
 text = u'''The automation module
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import subprocess
-import automation
+import uiautomation as automation
 
 def main():
     char2Id = {

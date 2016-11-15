@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-import automation
+import uiautomation as automation
 
 def CaptureControl(c, path, up = False):
     if c.CaptureToImage(path):

@@ -3,7 +3,7 @@
 import os
 import time
 import subprocess
-import automation
+import uiautomation as automation
 
 def test1(stopEvent):
     n = 0

@@ -15,7 +15,7 @@ run this script
 
 import sys
 import time
-import automation
+import uiautomation as automation
 
 
 class PacketInfo():

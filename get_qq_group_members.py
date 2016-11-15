@@ -6,7 +6,7 @@
 2016-01-06
 '''
 import time
-import automation
+import uiautomation as automation
 
 def GetPersonDetail():
     detailWindow = automation.WindowControl(searchDepth= 1, ClassName = 'TXGuiFoundation', SubName = '的资料')

@@ -7,7 +7,7 @@ import sys
 import time
 import ctypes
 import subprocess
-import automation
+import uiautomation as automation
 
 WindowsWantToHide = ('Warcraft III', 'Valve001', 'Counter-Strike', 'Notepad')
 

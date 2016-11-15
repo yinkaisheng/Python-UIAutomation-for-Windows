@@ -3,7 +3,7 @@
 
 import time
 import subprocess
-import automation
+import uiautomation as automation
 
 def main():
     subprocess.Popen('mmc.exe devmgmt.msc')

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-import automation
+import uiautomation as automation
 
 def main():
     firefoxWindow = automation.WindowControl(searchDepth = 1, ClassName = 'MozillaWindowClass')

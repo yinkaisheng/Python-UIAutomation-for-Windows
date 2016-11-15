@@ -1,14 +1,14 @@
-# The automation module
+# The uiautomation module
 
-This module is for automation on Windows(Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10).
-It supports automation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
+This module is for UIAutomatoin on Windows(Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10).
+It supports UIAutomatoin for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
 
-automation is shared under the MIT Licence.
+uiautomation is shared under the MIT Licence.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
-Only 3 files(<font color=blue>**automation.py, AutomationClientX86.dll and AutomationClientX64.dll**</font>) are needed for UIAutomation. Other scripts are all demos.
+Only 3 files(**uiautomation.py, AutomationClientX86.dll and AutomationClientX64.dll**) are needed for UIAutomation. Other scripts are all demos.
 
-Run 'automation.py -h' for help.
+Run 'uiautomation.py -h' for help.
 Run automate_notepad_py3.py to see a simple demo.
 
 Microsoft IUIAutomation Minimum supported client:
@@ -17,7 +17,7 @@ Windows 7, Windows Vista with SP2 and Platform Update for Windows Vista, Windows
 Microsoft IUIAutomation Minimum supported server:
 Windows Server 2008 R2, Windows Server 2008 with SP2 and Platform Update for Windows Server 2008, Windows Server 2003 with SP2 and Platform Update for Windows Server 2008 [desktop apps only]
 
-If "RuntimeError: Can not get an instance of IUIAutomation" occured when running automation.py,
+If "RuntimeError: Can not get an instance of IUIAutomation" occured when running uiautomation.py,
 You need to install update [KB971513](https://support.microsoft.com/en-us/kb/971513) for your Windows.
 You can also download from here [https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation](https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation)
 

@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 import os
-import automation
+import uiautomation as automation
 
 def walkDir():
     def GetDirChildren(dir):

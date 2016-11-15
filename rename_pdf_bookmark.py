@@ -3,7 +3,7 @@
 #rename pdf bookmarks with FoxitReader 7.2.4, 参考: http://www.cnblogs.com/Yinkaisheng/p/4820954.html
 import sys
 import time
-import automation
+import uiautomation as automation
 
 TreeDepth = 1 #书签树需要命名的层数
 RenameFunction = None

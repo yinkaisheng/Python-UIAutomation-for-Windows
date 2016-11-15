@@ -3,7 +3,7 @@
 import os
 import time
 import subprocess
-import automation
+import uiautomation as automation
 
 def main():
     width = 500

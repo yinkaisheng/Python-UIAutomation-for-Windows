@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 import sys
 import subprocess
-import automation
+import uiautomation as automation
 
 if __name__ == '__main__':
     isTop = 1

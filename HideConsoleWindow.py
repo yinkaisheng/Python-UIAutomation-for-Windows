@@ -1,7 +1,7 @@
 #!python3
 # -*- coding:utf-8 -*-
 import time
-import automation
+import uiautomation as automation
 
 def main():
     consoleWindow = automation.GetConsoleWindow()
