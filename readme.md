@@ -7,6 +7,7 @@ uiautomation is shared under the MIT Licence.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
 Only 3 files(**uiautomation.py, AutomationClientX86.dll and AutomationClientX64.dll**) are needed for UIAutomation. Other scripts are all demos.
+You can install uiautomation by "pip install uiautomation"
 
 Run 'uiautomation.py -h' for help.
 Run automate_notepad_py3.py to see a simple demo.

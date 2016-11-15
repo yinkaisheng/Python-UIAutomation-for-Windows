@@ -5,11 +5,11 @@ Author: yinkaisheng(Nanjing, China)
 Mail: yinkaisheng@foxmail.com
 Source: https://github.com/yinkaisheng/Python-UIAutomation-for-Windows
 
-This module is for automation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
-It supports automation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
-Run 'automation.py -h' for help.
+This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
+It supports UIAutomation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
+Run 'uiautomation.py -h' for help.
 
-automation is shared under the MIT Licence.
+uiautomation is shared under the MIT Licence.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
 具体用法参考: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
@@ -25,9 +25,7 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-#from platform import win32_ver
-# version = win32_ver() # ('8', '6.2.9200', '', 'Multiprocessor Free')
-
+VERSION = '1.0.1'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
