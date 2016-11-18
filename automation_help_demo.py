@@ -52,24 +52,24 @@ def DemoCN():
     time.sleep(1)
 
     dir = os.path.dirname(__file__)
-    scriptPath = os.path.join(dir, 'automation.py')
+    scriptPath = os.path.join(dir, 'uiautomation.py')
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('运行"<Color=Cyan>automation.py -h</Color>"显示帮助\n\n')
+    automation.Logger.ColorfulWrite('运行"<Color=Cyan>uiautomation.py -h</Color>"显示帮助\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -h'.format(scriptPath) + '{Enter}', 0.05)
     time.sleep(3)
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('运行"<Color=Cyan>automation.py -r -d1</Color>"显示所有顶层窗口, 即桌面的子窗口\n\n')
+    automation.Logger.ColorfulWrite('运行"<Color=Cyan>uiautomation.py -r -d1</Color>"显示所有顶层窗口, 即桌面的子窗口\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -r -d1 -t0'.format(scriptPath) + '{Enter}', 0.05)
     time.sleep(3)
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('运行"<Color=Cyan>automation.py -c</Color>"显示鼠标光标下的控件\n\n')
+    automation.Logger.ColorfulWrite('运行"<Color=Cyan>uiautomation.py -c</Color>"显示鼠标光标下的控件\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -c -t3'.format(scriptPath) + '{Enter}', 0.05)
@@ -79,7 +79,7 @@ def DemoCN():
     cmdWindow.SetActive(waitTime = 2)
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('运行"<Color=Cyan>automation.py -a</Color>"显示鼠标光标下的控件和它的所有父控件\n\n')
+    automation.Logger.ColorfulWrite('运行"<Color=Cyan>uiautomation.py -a</Color>"显示鼠标光标下的控件和它的所有父控件\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -a -t3'.format(scriptPath) + '{Enter}', 0.05)
@@ -89,7 +89,7 @@ def DemoCN():
     cmdWindow.SetActive(waitTime = 2)
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('运行"<Color=Cyan>automation.py</Color>"显示当前激活窗口和它的所有子控件\n\n')
+    automation.Logger.ColorfulWrite('运行"<Color=Cyan>uiautomation.py</Color>"显示当前激活窗口和它的所有子控件\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -t3'.format(scriptPath) + '{Enter}', 0.05)
@@ -130,24 +130,24 @@ def DemoEN():
     time.sleep(1)
 
     dir = os.path.dirname(__file__)
-    scriptPath = os.path.join(dir, 'automation.py')
+    scriptPath = os.path.join(dir, 'uiautomation.py')
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('run "<Color=Cyan>automation.py -h</Color>" to display the help\n\n')
+    automation.Logger.ColorfulWrite('run "<Color=Cyan>uiautomation.py -h</Color>" to display the help\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -h'.format(scriptPath) + '{Enter}', 0.05)
     time.sleep(3)
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('run "<Color=Cyan>automation.py -r -d1</Color>" to display the top level windows, desktop\'s children\n\n')
+    automation.Logger.ColorfulWrite('run "<Color=Cyan>uiautomation.py -r -d1</Color>" to display the top level windows, desktop\'s children\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -r -d1 -t0'.format(scriptPath) + '{Enter}', 0.05)
     time.sleep(3)
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('run "<Color=Cyan>automation.py -c</Color>" to display the control under mouse cursor\n\n')
+    automation.Logger.ColorfulWrite('run "<Color=Cyan>uiautomation.py -c</Color>" to display the control under mouse cursor\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -c -t3'.format(scriptPath) + '{Enter}', 0.05)
@@ -157,7 +157,7 @@ def DemoEN():
     cmdWindow.SetActive(waitTime = 2)
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('run "<Color=Cyan>automation.py -a</Color>" to display the control under mouse cursor and its ancestors\n\n')
+    automation.Logger.ColorfulWrite('run "<Color=Cyan>uiautomation.py -a</Color>" to display the control under mouse cursor and its ancestors\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -a -t3'.format(scriptPath) + '{Enter}', 0.05)
@@ -167,7 +167,7 @@ def DemoEN():
     cmdWindow.SetActive(waitTime = 2)
 
     thisWindow.SetActive()
-    automation.Logger.ColorfulWrite('run "<Color=Cyan>automation.py</Color>" to display the active window\n\n')
+    automation.Logger.ColorfulWrite('run "<Color=Cyan>uiautomation.py</Color>" to display the active window\n\n')
     time.sleep(3)
 
     cmdWindow.SendKeys('"{}" -t3'.format(scriptPath) + '{Enter}', 0.05)
