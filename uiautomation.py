@@ -40,9 +40,9 @@ class _AutomationClient():
             oldDir = os.getcwd()
             os.chdir(dir)
         if '32 bit' in sys.version:
-            self.dll = ctypes.cdll.AutomationClientX86
+            self.dll = ctypes.cdll.UIAutomationClientX86
         else:
-            self.dll = ctypes.cdll.AutomationClientX64
+            self.dll = ctypes.cdll.UIAutomationClientX64
         if dir:
             os.chdir(oldDir)
         if not self.dll.InitInstance():
@@ -2331,9 +2331,9 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             Win32API.SetCursorPos(x, y)
         return x, y
 
-    def MoveCursorToMyCenter(self):
+    def MoveCursorToMyCenter(self, simulateMove = True):
         '''Move cursor to control's center'''
-        return self.MoveCursor()
+        return self.MoveCursor(simulateMove = simulateMove)
 
     def Click(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
         '''

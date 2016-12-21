@@ -41,7 +41,7 @@ def Analyze(sampleRate = 90000, beginNo = 0, maxPackets = 0xFFFFFFFF, calculateL
     else:
         automation.Logger.WriteLine('can not find wireshark', automation.ConsoleColor.Yellow)
         return
-    tree = automation.TreeControl(searchFromControl= wireSharkWindow, searchDepth= 4, SubName = 'Packet list')
+    tree = wireSharkWindow.TreeControl(searchDepth= 4, SubName = 'Packet list')
     left, top, right, bottom = tree.BoundingRectangle
     tree.Click(10, 30)
     automation.SendKeys('{Home}{Ctrl}{Alt}4')

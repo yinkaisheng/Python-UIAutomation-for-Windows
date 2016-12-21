@@ -7,8 +7,9 @@ import uiautomation as automation
 
 def main():
     subprocess.Popen('mmc.exe devmgmt.msc')
+    time.sleep(1)
     mmcWindow = automation.WindowControl(searchDepth = 1, ClassName = 'MMCMainFrame')
-    tree = automation.TreeControl(searchFromControl = mmcWindow)
+    tree = mmcWindow.TreeControl()
     for item, depth in automation.WalkTree(tree, getChildrenFunc = lambda c : c.GetChildren(), includeTop = True):
         if isinstance(item, automation.TreeItemControl):  #or item.ControlType == automation.ControlType.TreeItemControl
             item.Select()

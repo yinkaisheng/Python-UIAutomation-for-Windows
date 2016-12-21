@@ -6,14 +6,14 @@ import subprocess
 import ctypes
 import uiautomation as automation
 
-text = u'''The automation module
+text = u'''The uiautomation module
 
-This module is for automation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
-It supports automation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
+This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
+It supports UIAutomation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
 
-Run 'automation.py -h' for help.
+Run 'uiautomation.py -h' for help.
 
-automation is shared under the MIT Licence.
+uiautomation is shared under the MIT Licence.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
 具体用法参考: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
@@ -45,7 +45,8 @@ def testNotepadCN():
     edit.SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{ENTER}', waitTime = 0)
     edit.SendKeys('abcdefghijklmnopqrstuvwxyz{ENTER}', waitTime = 0)
     edit.SendKeys('`~!@#$%^&*()-_=+{ENTER}', waitTime = 0)
-    edit.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}{CTRL}a')
+    edit.SendKeys('[]{{}{}}\\|;:\'\",<.>/?{ENTER}', waitTime = 0)
+    edit.SendKeys(u'™®①②③④⑤⑥⑦⑧⑨⑩§№☆★○●◎◇◆□℃‰€■△▲※→←↑↓〓¤°＃＆＠＼＾＿―♂♀{ENTER}{CTRL}a')
     window.CaptureToImage('Notepad.png')
     edit.SendKeys('Image Notepad.png was captured, you will see it later.', 0.05)
     #查找菜单
