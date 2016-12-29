@@ -25,7 +25,7 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-VERSION = '1.0.1'
+VERSION = '1.0.2'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
@@ -72,6 +72,7 @@ class WString():
 
 class ControlType():
     '''This class defines the values of control type'''
+    AppBarControl = 0xc378
     ButtonControl = 0xc350
     CalendarControl = 0xc351
     CheckBoxControl = 0xc352
@@ -115,6 +116,7 @@ class ControlType():
 
 
 ControlTypeNameDict = {
+    ControlType.AppBarControl : 'AppBarControl',
     ControlType.ButtonControl : 'ButtonControl',
     ControlType.CalendarControl : 'CalendarControl',
     ControlType.CheckBoxControl : 'CheckBoxControl',
@@ -3171,6 +3173,12 @@ class WindowPattern():
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
 
+class AppBarControl(Control):
+    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
+        self.AddSearchProperty(ControlType = ControlType.AppBarControl)
+
+
 class ButtonControl(Control, ExpandCollapsePattern, InvokePattern, TogglePattern):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
@@ -3474,6 +3482,7 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
 
 
 ControlDict = {
+            ControlType.AppBarControl : AppBarControl,
             ControlType.ButtonControl : ButtonControl,
             ControlType.CalendarControl : CalendarControl,
             ControlType.CheckBoxControl : CheckBoxControl,
@@ -3620,6 +3629,18 @@ class Logger():
         log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}{}'.format(t.year, t.month, t.day,
             t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log, Logger.LineSep)
         Logger.Write(log, consoleColor, writeToFile, printToStdout)
+
+    @staticmethod
+    def ColorfulLog(log = '', consoleColor = -1, writeToFile = True, printToStdout = True):
+        '''
+        consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
+        if consoleColor == -1, use default color
+        '''
+        t = datetime.datetime.now()
+        frame = sys._getframe(1)
+        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}{}'.format(t.year, t.month, t.day,
+            t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log, Logger.LineSep)
+        Logger.ColorfulWrite(log, consoleColor, writeToFile, printToStdout)
 
     @staticmethod
     def DeleteLog():
@@ -4075,9 +4096,9 @@ chcp 936, set active code page to gbk
 chcp 65001, set active code page to utf-8
 
 examples:
-automation.py -t3
-automation.py -t3 -r -d1 -m -n
-automation.py -c -t3
+uiautomation.py -t3
+uiautomation.py -t3 -r -d1 -m -n
+uiautomation.py -c -t3
 
 ''', writeToFile = False)
 
