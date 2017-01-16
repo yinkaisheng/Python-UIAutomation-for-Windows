@@ -63,7 +63,7 @@ def testNotepadCN():
     # automation.SendKeys('{Alt}n')
     # 使用另一种查找方法
     buttonNotSave = automation.FindControl(window,
-        lambda control: control.ControlType == automation.ControlType.ButtonControl and u'不保存' in control.Name)
+        lambda control, depth: control.ControlType == automation.ControlType.ButtonControl and u'不保存' in control.Name)
     buttonNotSave.Click()
     subprocess.Popen('Notepad.png', shell = True)
     time.sleep(2)
@@ -112,7 +112,7 @@ def testNotepadEN():
     # automation.SendKeys('{Alt}n')
     # another way to find the button using lambda
     buttonNotSave = automation.FindControl(window,
-        lambda control: control.ControlType == automation.ControlType.ButtonControl and 'Don\'t Save' == control.Name)
+        lambda control, depth: control.ControlType == automation.ControlType.ButtonControl and 'Don\'t Save' == control.Name)
     buttonNotSave.Click()
     subprocess.Popen('Notepad.png', shell = True)
     time.sleep(2)

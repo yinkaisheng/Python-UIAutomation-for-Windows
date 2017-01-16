@@ -23,7 +23,7 @@ def main():
 
 def HotKeyFunc(stopEvent):
     scriptName = os.path.basename(__file__)
-    cmd = r'py.exe {} main {}'.format(scriptName, ' '.join(sys.argv[1:]))
+    cmd = r'python.exe {} main {}'.format(scriptName, ' '.join(sys.argv[1:]))
     automation.Logger.WriteLine('call ' + cmd)
     p = subprocess.Popen(cmd)
     while True:

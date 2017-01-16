@@ -25,7 +25,7 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-VERSION = '1.0.2'
+VERSION = '1.0.3'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
@@ -1358,7 +1358,7 @@ class Win32API():
     def EnumProcess():
         '''Return a namedtuple iter, (pid, name), see TerminateProcessByName'''
         import collections
-        hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(15, 0)
+        hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(15, 0)  #TH32CS_SNAPALL is 15
         processEntry32 = tagPROCESSENTRY32()
         processClass = collections.namedtuple('processInfo', 'pid name')
         processEntry32.dwSize = ctypes.sizeof(processEntry32)
@@ -2115,7 +2115,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         '''
         element: integer
         searchFromControl: Control
-        searchDepth: integer
+        searchDepth: integer, max search depth
         foundIndex: integer, value must be greater or equal to 1
         searchWaitTime: float, wait searchWaitTime before every search
         searchPorpertyDict: a dict that defines how to search, only the following keys are valid
@@ -2124,11 +2124,12 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                             AutomationId: str or unicode
                             Name: str or unicode
                             SubName: str or unicode
+                            Depth: integer, depth from searchFromControl, if set, searchDepth will be set to Depth too
         '''
         self._element = element
         self._elementDirectAssign = True if element else False
         self.searchFromControl = searchFromControl
-        self.searchDepth = searchDepth
+        self.searchDepth = searchPorpertyDict.get('Depth', searchDepth)
         self.searchWaitTime = searchWaitTime
         self.foundIndex = foundIndex
         self.searchPorpertyDict = searchPorpertyDict
@@ -2159,23 +2160,27 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         for key in searchPorpertyDict:
             del self.searchPorpertyDict[key]
 
-    def _CompareFunction(self, control):
+    def _CompareFunction(self, control, depth):
         '''This function defines how to search, return True if found'''
-        if 'ControlType' in self.searchPorpertyDict:
-            if self.searchPorpertyDict['ControlType'] != control.ControlType:
-                return False
-        if 'ClassName' in self.searchPorpertyDict:
-            if self.searchPorpertyDict['ClassName'] != control.ClassName:
-                return False
-        if 'AutomationId' in self.searchPorpertyDict:
-            if self.searchPorpertyDict['AutomationId'] != control.AutomationId:
-                return False
-        if 'SubName' in self.searchPorpertyDict:
-            if self.searchPorpertyDict['SubName'] not in control.Name:
-                return False
-        if 'Name' in self.searchPorpertyDict:
-            if self.searchPorpertyDict['Name'] != control.Name:
-                return False
+        for key, value in self.searchPorpertyDict.items():
+            if 'ControlType' == key:
+                if value != control.ControlType:
+                    return False
+            if 'ClassName' == key:
+                if value != control.ClassName:
+                    return False
+            if 'AutomationId' == key:
+                if value != control.AutomationId:
+                    return False
+            if 'Name' == key:
+                if value != control.Name:
+                    return False
+            if 'SubName' == key:
+                if value not in control.Name:
+                    return False
+            if 'Depth' == key:
+                if value != depth:
+                    return False
         return True
 
     def Exists(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
@@ -3929,7 +3934,7 @@ def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = Fals
     if not control:
         control = GetRootControl()
     depth = 0
-    if findFromSelf and compareFunc(control):
+    if findFromSelf and compareFunc(control, depth):
         foundCount += 1
         if foundCount == foundIndex:
             return control
@@ -3940,7 +3945,7 @@ def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = Fals
     while depth >= 0:
         lastControl = controlList[-1]
         if lastControl:
-            if compareFunc(lastControl):
+            if compareFunc(lastControl, depth + 1):
                 foundCount += 1
                 if foundCount == foundIndex:
                     return lastControl
@@ -4037,7 +4042,6 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
         Logger.ColorfulWriteLine('Register <Color=DarkGreen>Ctrl+D</Color> succeed, for exiting current script', writeToFile = False)
     else:
         Logger.ColorfulWriteLine('Register <Color=DarkGreen>Ctrl+D</Color> failed', writeToFile = False)
-    cmdWindow = GetConsoleWindow()
     from threading import Thread, Event
     funcThread = None
     stopEvent = Event()
@@ -4072,9 +4076,8 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
                         id2Thread[id] = None
             elif exitHotKeyId == msg.wParam:
                 if msg.lParam&0x0000FFFF == ModifierKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
-                    if ControlsAreSame(GetForegroundControl(), cmdWindow):
-                        Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow, False)
-                        break
+                    Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow, False)
+                    break
 
 def usage():
     Logger.ColorfulWrite('''usage
