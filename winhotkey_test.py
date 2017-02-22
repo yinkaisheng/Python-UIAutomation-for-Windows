@@ -17,7 +17,7 @@ def test1(stopEvent):
 
 def test2(stopEvent):
     p = subprocess.Popen('python.exe automation_notepad_py3.py')
-    automation.Logger.WriteLine('call python.exe automation_notepad_py3.py'.format(p.pid), automation.ConsoleColor.DarkGreen)
+    automation.Logger.WriteLine('call python.exe automation_notepad_py3.py', automation.ConsoleColor.DarkGreen)
     while True:
         if None != p.poll():
             break

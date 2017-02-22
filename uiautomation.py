@@ -1731,7 +1731,7 @@ class Bitmap():
         return self._bitmap > 0
 
     def ToFile(self, savePath):
-        '''savePath shoud end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff'''
+        '''savePath should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff'''
         name, ext = os.path.splitext(savePath);
         extMap = {'.bmp': 'image/bmp'
                   , '.jpg': 'image/jpeg'
@@ -2259,6 +2259,16 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def ControlTypeName(self):
         '''Return str ControlTypeName'''
         return ControlTypeNameDict[self.ControlType]
+
+    @property
+    def LocalizedControlType(self):
+        '''Return unicode LocalizedControlType name'''
+        bstrName = _automationClient.dll.GetElementLocalizedControlType(self.Element)
+        if bstrName:
+            name = ctypes.c_wchar_p(bstrName).value[:]
+            _automationClient.dll.FreeBSTR(bstrName)
+            return name
+        return ''
 
     @property
     def ClassName(self):
@@ -3480,7 +3490,7 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
             self.ShowWindow(ShowWindow.Restore)
         else:
             self.ShowWindow(ShowWindow.Show)
-        ret = Win32API.SetForegroundWindow(self.Handle)
+        ret = Win32API.SetForegroundWindow(self.Handle)  #maybe fail if foreground windows's process is not python
         if waitTime > 0:
             time.sleep(waitTime)
         return ret

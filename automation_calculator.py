@@ -1,5 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
+# test only on windows 7
 import time
 import subprocess
 import uiautomation as automation
