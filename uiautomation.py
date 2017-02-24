@@ -4165,8 +4165,6 @@ def main():
         while depth < 0:
             control = control.GetParentControl()
             depth += 1
-        else:
-            depth = 0xFFFFFFFF
     if ancestor:
         control = ControlFromCursor()
         if control:
