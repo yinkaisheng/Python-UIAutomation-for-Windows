@@ -4162,9 +4162,11 @@ def main():
         control = GetFocusedControl()
     if cursor:
         control = ControlFromCursor()
-        while depth < 0:
-            control = control.GetParentControl()
-            depth += 1
+        if depth < 0:
+            while depth < 0:
+                control = control.GetParentControl()
+                depth += 1
+            depth = 0xFFFFFFFF
     if ancestor:
         control = ControlFromCursor()
         if control:
