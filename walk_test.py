@@ -30,10 +30,17 @@ def walkDesktop():
     for control, depth in automation.WalkTree(desktop, getFirstChildFunc= GetFirstChild, getNextSiblingFunc= GetNextSibling, includeTop= True, maxDepth= 1):
         print(' ' * depth * 4 + str(control))
 
+def walkDesktop2():
+    desktop = automation.GetRootControl()
+    for control, depth in automation.WalkControl(desktop, True, 1):
+        print(' ' * depth * 4 + str(control))
+
 def main():
     walkDir()
     print()
     walkDesktop()
+    print()
+    walkDesktop2()
 
 if __name__ == '__main__':
     main()

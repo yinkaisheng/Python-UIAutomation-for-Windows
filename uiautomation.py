@@ -25,7 +25,7 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-VERSION = '1.0.3'
+VERSION = '1.0.4'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
@@ -3564,6 +3564,10 @@ class Logger():
     }
 
     @staticmethod
+    def SetLogFile(path):
+        Logger.LogFile = path
+
+    @staticmethod
     def Write(log, consoleColor = -1, writeToFile = True, printToStdout = True):
         '''
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
@@ -3710,11 +3714,11 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
     for it, depth in WalkTree('D:\\', getChildrenFunc= GetDirChildren):
         print(it, depth)
     '''
-    depth = 0
     if includeTop:
-        yield top, depth
+        yield top, 0
     if maxDepth <= 0:
         return
+    depth = 0
     if getChildrenFunc:
         children = getChildrenFunc(top)
         childList = [children]
@@ -3818,6 +3822,33 @@ def ControlFromCursor2():
 def ControlFromHandle(handle):
     return Control.CreateControlFromElement(_automationClient.dll.ElementFromHandle(handle))
 
+def WalkControl(control, includeTop = False, maxDepth = 0xFFFFFFFF):
+    '''
+    control: Control
+    maxDepth: integer
+    '''
+    if includeTop:
+        yield control, 0
+    if maxDepth <= 0:
+        return
+    depth = 0
+    child = control.GetFirstChildControl()
+    controlList = [child]
+    while depth >= 0:
+        lastControl = controlList[-1]
+        if lastControl:
+            yield lastControl, depth + 1
+            child = lastControl.GetNextSiblingControl()
+            controlList[depth] = child
+            if depth < maxDepth - 1:
+                child = lastControl.GetFirstChildControl()
+                if child:
+                    depth += 1
+                    controlList.append(child)
+        else:
+            del controlList[depth]
+            depth -= 1
+
 def LogControl(control, depth = 0, showAllName = True, showMore = False):
     '''
     control: Control
@@ -3896,7 +3927,7 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
                 Logger.Write(' ' + PatternDict[key], ConsoleColor.DarkGreen)
     Logger.Write(Logger.LineSep)
 
-def EnumControlAncestor(control, showAllName = True, showMore = False):
+def EnumAndLogControlAncestors(control, showAllName = True, showMore = False):
     lists = []
     while control:
         lists.insert(0, control)
@@ -3904,33 +3935,15 @@ def EnumControlAncestor(control, showAllName = True, showMore = False):
     for (i, control) in enumerate(lists):
         LogControl(control, i, showAllName, showMore)
 
-def EnumControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMore = False):
+def EnumAndLogControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMore = False):
     '''
     control: Control
     maxDepth: integer
     showAllName: bool
     showMore: bool
     '''
-    depth = 0
-    LogControl(control, depth, showAllName, showMore)
-    if maxDepth <= 0:
-        return
-    child = control.GetFirstChildControl()
-    controlList = [child]
-    while depth >= 0:
-        lastControl = controlList[-1]
-        if lastControl:
-            LogControl(lastControl, depth + 1, showAllName, showMore)
-            child = lastControl.GetNextSiblingControl()
-            controlList[depth] = child
-            if depth < maxDepth - 1:
-                child = lastControl.GetFirstChildControl()
-                if child:
-                    depth += 1
-                    controlList.append(child)
-        else:
-            del controlList[depth]
-            depth -= 1
+    for c, d in WalkControl(control, maxDepth, True):
+        LogControl(c, d, showAllName, showMore)
 
 def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = False, foundIndex = 1):
     '''
@@ -4170,7 +4183,7 @@ def main():
     if ancestor:
         control = ControlFromCursor()
         if control:
-            EnumControlAncestor(control, showAllName, showMore)
+            EnumAndLogControlAncestors(control, showAllName, showMore)
         else:
             Logger.Write('IUIAutomation return null element under cursor\n', ConsoleColor.Yellow)
     else:
@@ -4184,7 +4197,7 @@ def main():
                 control = controlList[0]
             else:
                 control = controlList[1]
-        EnumControl(control, depth, showAllName, showMore)
+        EnumAndLogControl(control, depth, showAllName, showMore)
     Logger.Log('Ends\n')
 
 if __name__ == '__main__':
@@ -4194,7 +4207,7 @@ if __name__ == '__main__':
     # If use control object in global area, must del the control when not use it, otherwise it may throw an exception.
     # The exception is ctypes was None when control's __del__ was called!
     # It seems that the module ctypes was deleted before control's __del__ was called.
-    # _automationClient and control are all global object, _automationClient may be deleted before control,
+    # _automationClient and control are all global objects, _automationClient may be deleted before control,
     # but control's __del__ uses _automationClient's member.
     # You'd better not use control object in global area.
 

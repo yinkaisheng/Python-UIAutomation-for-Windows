@@ -10,7 +10,7 @@ def main():
     time.sleep(1)
     mmcWindow = automation.WindowControl(searchDepth = 1, ClassName = 'MMCMainFrame')
     tree = mmcWindow.TreeControl()
-    for item, depth in automation.WalkTree(tree, getChildrenFunc = lambda c : c.GetChildren(), includeTop = True):
+    for item, depth in automation.WalkControl(tree, includeTop = True):
         if isinstance(item, automation.TreeItemControl):  #or item.ControlType == automation.ControlType.TreeItemControl
             item.Select()
             if automation.ExpandCollapseState.Collapsed == item.CurrentExpandCollapseState():
