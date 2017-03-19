@@ -25,7 +25,7 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-VERSION = '1.0.4'
+VERSION = '1.0.5'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
@@ -3942,7 +3942,7 @@ def EnumAndLogControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMo
     showAllName: bool
     showMore: bool
     '''
-    for c, d in WalkControl(control, maxDepth, True):
+    for c, d in WalkControl(control, True, maxDepth):
         LogControl(c, d, showAllName, showMore)
 
 def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = False, foundIndex = 1):

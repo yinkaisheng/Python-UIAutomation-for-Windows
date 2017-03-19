@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+import subprocess
 import uiautomation as automation
 
 def CaptureControl(c, path, up = False):
     if c.CaptureToImage(path):
-        os.popen(path)
         automation.Logger.WriteLine('capture image: ' + path)
+        subprocess.Popen(path, shell = True)
     else:
         automation.Logger.WriteLine('capture failed', automation.ConsoleColor.Yellow)
     if up:

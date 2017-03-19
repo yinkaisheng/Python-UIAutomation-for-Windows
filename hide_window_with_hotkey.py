@@ -82,7 +82,7 @@ if __name__ == '__main__':
     elif 'show' in sys.argv[1:]:
         show()
     else:
-        automation.RunWithHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1) : HideWindowFunc
-                                    , (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_2) : ShowWindowFunc}
+        automation.RunWithHotKey({(automation.ModifierKey.MOD_CONTROL|automation.ModifierKey.MOD_SHIFT, automation.Keys.VK_1) : HideWindowFunc
+                                    , (automation.ModifierKey.MOD_CONTROL|automation.ModifierKey.MOD_SHIFT, automation.Keys.VK_2) : ShowWindowFunc}
                                  , (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_4)
                                 )
