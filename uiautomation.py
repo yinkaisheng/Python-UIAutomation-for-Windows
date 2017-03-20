@@ -2675,7 +2675,6 @@ class GridItemPattern():
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
 
-
 class GridPattern():
     def IsGridPatternAvailable(self):
         '''Return bool'''
@@ -3918,6 +3917,16 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
         Logger.Write(str(control.CurrentHorizontalScrollPercent()), ConsoleColor.DarkGreen)
         Logger.Write('    CurrentVerticalScrollPercent: ')
         Logger.Write(str(control.CurrentVerticalScrollPercent()), ConsoleColor.DarkGreen)
+    if isinstance(control, GridPattern) and control.IsGridPatternAvailable():
+        Logger.Write('    RowCount: ')
+        Logger.Write(str(control.CurrentRowCount()), ConsoleColor.DarkGreen)
+        Logger.Write('    ColumnCount: ')
+        Logger.Write(str(control.CurrentColumnCount()), ConsoleColor.DarkGreen)
+    if isinstance(control, GridItemPattern) and control.IsGridItemPatternAvailable():
+        Logger.Write('    Row: ')
+        Logger.Write(str(control.CurrentRow()), ConsoleColor.DarkGreen)
+        Logger.Write('    Column: ')
+        Logger.Write(str(control.CurrentColumn()), ConsoleColor.DarkGreen)
     if showMore:
         Logger.Write('    SupportedPattern:')
         for key in PatternDict:
