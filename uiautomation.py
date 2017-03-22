@@ -3839,7 +3839,7 @@ def WalkControl(control, includeTop = False, maxDepth = 0xFFFFFFFF):
             yield lastControl, depth + 1
             child = lastControl.GetNextSiblingControl()
             controlList[depth] = child
-            if depth < maxDepth - 1:
+            if depth + 1 < maxDepth:
                 child = lastControl.GetFirstChildControl()
                 if child:
                     depth += 1
@@ -3965,32 +3965,11 @@ def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = Fals
     foundCount = 0
     if not control:
         control = GetRootControl()
-    depth = 0
-    if findFromSelf and compareFunc(control, depth):
-        foundCount += 1
-        if foundCount == foundIndex:
-            return control
-    if maxDepth <= 0:
-        return
-    child = control.GetFirstChildControl()
-    controlList = [child]
-    while depth >= 0:
-        lastControl = controlList[-1]
-        if lastControl:
-            if compareFunc(lastControl, depth + 1):
-                foundCount += 1
-                if foundCount == foundIndex:
-                    return lastControl
-            child = lastControl.GetNextSiblingControl()
-            controlList[depth] = child
-            if depth < maxDepth - 1:
-                child = lastControl.GetFirstChildControl()
-                if child:
-                    depth += 1
-                    controlList.append(child)
-        else:
-            del controlList[depth]
-            depth -= 1
+    for child, depth in WalkControl(control, findFromSelf, maxDepth):
+        if compareFunc(child, depth):
+            foundCount += 1
+            if foundCount == foundIndex:
+                return child
 
 def ShowDesktop():
     '''show the desktop by win + d'''

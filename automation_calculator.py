@@ -26,10 +26,14 @@ def main():
         '(' : '128',
         ')' : '129',
     }
-    subprocess.Popen('calc')
     calcWindow = automation.WindowControl(searchDepth = 1, ClassName = 'CalcFrame')
+    if not calcWindow.Exists(0, 0):
+        subprocess.Popen('calc')
     calcWindow.SetTopmost()
     calcWindow.SendKeys('{Alt}2')
+    clearBtn = calcWindow.ButtonControl(foundIndex= 8, Depth = 3)  #test foundIndex and Depth, the 8th button is clear
+    if clearBtn.AutomationId == '82':
+        clearBtn.Click()
     char2Button = {}
     for key in char2Id:
         char2Button[key] = calcWindow.ButtonControl(AutomationId = char2Id[key])
