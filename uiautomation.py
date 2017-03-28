@@ -1356,18 +1356,21 @@ class Win32API():
 
     @staticmethod
     def EnumProcess():
-        '''Return a namedtuple iter, (pid, name), see TerminateProcessByName'''
+        '''Return a list of namedtuple (pid, name), see TerminateProcessByName'''
         import collections
         hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(15, 0)  #TH32CS_SNAPALL is 15
         processEntry32 = tagPROCESSENTRY32()
         processClass = collections.namedtuple('processInfo', 'pid name')
         processEntry32.dwSize = ctypes.sizeof(processEntry32)
+        processList = []
         continueFind = ctypes.windll.kernel32.Process32FirstW(hSnapshot, ctypes.byref(processEntry32))
         while continueFind:
             pid = processEntry32.th32ProcessID
             name = (processEntry32.szExeFile)
-            yield processClass(pid, name)
+            processList.append(processClass(pid, name))
             continueFind = ctypes.windll.kernel32.Process32NextW(hSnapshot, ctypes.byref(processEntry32))
+        ctypes.windll.kernel32.CloseHandle(hSnapshot)
+        return processList
 
     @staticmethod
     def SendKey(key, waitTime = OPERATION_WAIT_TIME):
