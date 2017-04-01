@@ -1,6 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
-# hide a window with hotkey Ctrl+1, show the hidden window with hotkey Ctrl+2
+# hide a window with hotkey Ctrl+Shift+1, show the hidden window with hotkey Ctrl+Shift+2
 # run notepad.exe first and then press the hotkey for test
 import os
 import sys
