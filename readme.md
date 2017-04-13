@@ -32,14 +32,14 @@ Inspect is installed with the Windows Software Development Kit (SDK) for Windows
 How to use uiautomation?
 run '**automation.py -h**' or '**uiautomation.py -h**'
 ![help](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/raw/master/uiautomation-h.png)
-Understand the arguments of uiautomation, and try the following examples
-**uiautomation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)
-**uiautomation.py -t 0**, print current active window's controls
-
-run notepad.exe, run uiautomation.py -t 3, swith to Notepad and wait for 5 seconds
-
-uiautomation will print the controls of Notepad:
-
+Understand the arguments of uiautomation, and try the following examples  
+**uiautomation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
+**uiautomation.py -t 0**, print current active window's controls  
+  
+run notepad.exe, run uiautomation.py -t 3, swith to Notepad and wait for 5 seconds  
+  
+uiautomation will print the controls of Notepad:  
+  
 ControlType: WindowControl    ClassName: Notepad
 　　ControlType: EditControl    ClassName: Edit
 　　　　ControlType: ScrollBarControl    ClassName:
@@ -69,21 +69,21 @@ edit.SetValue('Hello')
 edit.SendKeys('{Ctrl}{End}{Enter}World')
 
 ```
-automation.GetRootControl() returns the root control
-automation.WindowControl(searchDepth = 1, ClassName = 'Notepad') creates a WindowControl, the parameters specify how to search the control
-the following parameters can be used
-searchFromControl = None, 
-searchDepth = 0xFFFFFFFF, 
-searchWaitTime = SEARCH_INTERVAL, 
-foundIndex = 1
-Name
-ClassName
-AutomationId
-ControlType
-Depth
+automation.GetRootControl() returns the root control  
+automation.WindowControl(searchDepth = 1, ClassName = 'Notepad') creates a WindowControl, the parameters specify how to search the control  
+the following parameters can be used  
+searchFromControl = None,   
+searchDepth = 0xFFFFFFFF,   
+searchWaitTime = SEARCH_INTERVAL,   
+foundIndex = 1  
+Name  
+ClassName  
+AutomationId  
+ControlType  
+Depth  
 
-See Control.\_\_init\_\_ for the comment of the parameters
-See automation_notepad_py3.py for a detailed example
+See Control.\_\_init\_\_ for the comment of the parameters  
+See automation_notepad_py3.py for a detailed example  
 
 [代码原理简单介绍](http://www.cnblogs.com/Yinkaisheng/p/3444132.html)
 
