@@ -38,7 +38,7 @@ Understand the arguments of uiautomation, and try the following examples
   
 run notepad.exe, run uiautomation.py -t 3, swith to Notepad and wait for 5 seconds  
   
-uiautomation will print the controls of Notepad:  
+uiautomation will print the controls of Notepad and save them to @AutomationLog.txt:  
   
 ControlType: WindowControl    ClassName: Notepad  
 　　ControlType: EditControl    ClassName: Edit  
