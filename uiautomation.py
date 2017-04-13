@@ -2117,8 +2117,8 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         '''
         element: integer
-        searchFromControl: Control
-        searchDepth: integer, max search depth
+        searchFromControl: Control, if is None, search from root control
+        searchDepth: integer, max search depth from searchFromControl
         foundIndex: integer, value must be greater or equal to 1
         searchWaitTime: float, wait searchWaitTime before every search
         searchPorpertyDict: a dict that defines how to search, only the following keys are valid
@@ -2127,7 +2127,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                             AutomationId: str or unicode
                             Name: str or unicode
                             SubName: str or unicode
-                            Depth: integer, depth from searchFromControl, if set, searchDepth will be set to Depth too
+                            Depth: integer, exact depth from searchFromControl, if set, searchDepth will be set to Depth too
         '''
         self._element = element
         self._elementDirectAssign = True if element else False

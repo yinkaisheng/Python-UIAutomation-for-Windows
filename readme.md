@@ -30,49 +30,62 @@ Inspect is installed with the Windows Software Development Kit (SDK) for Windows
 
 --------------------------------------------------------------------------------
 How to use uiautomation?
-run 'automation.py -h' or 'uiautomation.py -h'
+run '**automation.py -h**' or '**uiautomation.py -h**'
+![help](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/raw/master/uiautomation-h.png)
+Understand the arguments of uiautomation, and try the following examples
+**uiautomation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)
+**uiautomation.py -t 0**, print current active window's controls
 
-run Notepad.exe, run cmd.exe and cd to uiautomation directory, run uiautomation.py in cmd and then swith to Notepad immediately
-wait for 5 seconds
-uiautomation will print the control tree of Notepad:
+run notepad.exe, run uiautomation.py -t 3, swith to Notepad and wait for 5 seconds
 
-ControlType: WindowControl    ClassName: Notepad    AutomationId:     Rect: (372, 219, 1172, 669)    Name: 无标题 - 记事本    Handle: 0x70A62(461410)    Depth: 0
-    ControlType: EditControl    ClassName: Edit    AutomationId: 15    Rect: (380, 269, 1164, 639)    Name:     Handle: 0x190A8E(1641102)    Depth: 1    Value: 
-        ControlType: ScrollBarControl    ClassName:     AutomationId: NonClientVerticalScrollBar    Rect: (1145, 271, 1162, 620)    Name: 垂直滚动条    Handle: 0x0(0)    Depth: 2    RangeValue: 0
-            ControlType: ButtonControl    ClassName:     AutomationId: UpButton    Rect: (1145, 271, 1162, 288)    Name: 上一行    Handle: 0x0(0)    Depth: 3
-            ControlType: ButtonControl    ClassName:     AutomationId: DownButton    Rect: (1145, 603, 1162, 620)    Name: 下一行    Handle: 0x0(0)    Depth: 3
-        ControlType: ScrollBarControl    ClassName:     AutomationId: NonClientHorizontalScrollBar    Rect: (382, 620, 1145, 637)    Name: 水平滚动条    Handle: 0x0(0)    Depth: 2    RangeValue: 0
-            ControlType: ButtonControl    ClassName:     AutomationId: UpButton    Rect: (382, 620, 399, 637)    Name: 左移一列    Handle: 0x0(0)    Depth: 3
-            ControlType: ButtonControl    ClassName:     AutomationId: DownButton    Rect: (1128, 620, 1145, 637)    Name: 右移一列    Handle: 0x0(0)    Depth: 3
-        ControlType: ThumbControl    ClassName:     AutomationId:     Rect: (1145, 620, 1162, 637)    Name:     Handle: 0x0(0)    Depth: 2
-    ControlType: StatusBarControl    ClassName: msctls_statusbar32    AutomationId: 1025    Rect: (380, 639, 1164, 661)    Name:     Handle: 0x150A6A(1378922)    Depth: 1
-        ControlType: TextControl    ClassName:     AutomationId:     Rect: (380, 641, 968, 661)    Name:     Handle: 0x0(0)    Depth: 2
-        ControlType: TextControl    ClassName:     AutomationId:     Rect: (970, 641, 1148, 661)    Name:    第 1 行，第 1 列    Handle: 0x0(0)    Depth: 2
-    ControlType: TitleBarControl    ClassName:     AutomationId:     Rect: (396, 222, 1164, 249)    Name:     Handle: 0x0(0)    Depth: 1
-        ControlType: MenuBarControl    ClassName:     AutomationId: MenuBar    Rect: (380, 227, 401, 248)    Name: 系统    Handle: 0x0(0)    Depth: 2
-            ControlType: MenuItemControl    ClassName:     AutomationId:     Rect: (380, 227, 401, 248)    Name: 系统    Handle: 0x0(0)    Depth: 3    CurrentExpandCollapseState: ExpandCollapseState.Collapsed
-        ControlType: ButtonControl    ClassName:     AutomationId:     Rect: (1061, 220, 1090, 240)    Name: 最小化    Handle: 0x0(0)    Depth: 2
-        ControlType: ButtonControl    ClassName:     AutomationId:     Rect: (1090, 220, 1117, 240)    Name: 最大化    Handle: 0x0(0)    Depth: 2
-        ControlType: ButtonControl    ClassName:     AutomationId:     Rect: (1117, 220, 1166, 240)    Name: 关闭    Handle: 0x0(0)    Depth: 2
-    ControlType: MenuBarControl    ClassName:     AutomationId: MenuBar    Rect: (380, 249, 1164, 268)    Name: 应用程序    Handle: 0x0(0)    Depth: 1
-        ControlType: MenuItemControl    ClassName:     AutomationId:     Rect: (380, 249, 432, 268)    Name: 文件(F)    Handle: 0x0(0)    Depth: 2    CurrentExpandCollapseState: ExpandCollapseState.Collapsed
-        ControlType: MenuItemControl    ClassName:     AutomationId:     Rect: (432, 249, 485, 268)    Name: 编辑(E)    Handle: 0x0(0)    Depth: 2    CurrentExpandCollapseState: ExpandCollapseState.Collapsed
-        ControlType: MenuItemControl    ClassName:     AutomationId:     Rect: (485, 249, 541, 268)    Name: 格式(O)    Handle: 0x0(0)    Depth: 2    CurrentExpandCollapseState: ExpandCollapseState.Collapsed
-        ControlType: MenuItemControl    ClassName:     AutomationId:     Rect: (541, 249, 595, 268)    Name: 查看(V)    Handle: 0x0(0)    Depth: 2    CurrentExpandCollapseState: ExpandCollapseState.Collapsed
-        ControlType: MenuItemControl    ClassName:     AutomationId:     Rect: (595, 249, 650, 268)    Name: 帮助(H)    Handle: 0x0(0)    Depth: 2    CurrentExpandCollapseState: ExpandCollapseState.Collapsed
-```
+uiautomation will print the controls of Notepad:
+
+ControlType: WindowControl    ClassName: Notepad
+　　ControlType: EditControl    ClassName: Edit
+　　　　ControlType: ScrollBarControl    ClassName:
+　　　　　　ControlType: ButtonControl    ClassName:
+　　　　　　ControlType: ButtonControl    ClassName:
+　　　　ControlType: ScrollBarControl    ClassName:
+　　　　　　ControlType: ButtonControl    ClassName:
+　　　　　　ControlType: ButtonControl    ClassName:
+　　　　ControlType: ThumbControl    ClassName:
+　　ControlType: StatusBarControl    ClassName:
+　　　　ControlType: TextControl    ClassName:
+　　　　ControlType: TextControl    ClassName:
+...
+
+run the following code
+```python
 import subprocess
 import uiautomation as automation
 
+print(automation.GetRootControl())
 subprocess.Popen('notepad.exe')
 notepadWindow = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad')
+print(notepadWindow.Name)
+notepadWindow.SetTopmost(True)
 edit = notepadWindow.EditControl()
 edit.SetValue('Hello')
-edit.SendKeys('{Ctrl}{End}{Enter}Hello')
+edit.SendKeys('{Ctrl}{End}{Enter}World')
+
 ```
+automation.GetRootControl() returns the root control
+automation.WindowControl(searchDepth = 1, ClassName = 'Notepad') creates a WindowControl, the parameters specify how to search the control
+the following parameters can be used
+searchFromControl = None, 
+searchDepth = 0xFFFFFFFF, 
+searchWaitTime = SEARCH_INTERVAL, 
+foundIndex = 1
+Name
+ClassName
+AutomationId
+ControlType
+Depth
 
+See Control.\_\_init\_\_ for the comment of the parameters
+See automation_notepad_py3.py for a detailed example
 
-[具体用法参考](http://www.cnblogs.com/Yinkaisheng/p/3444132.html)
+[代码原理简单介绍](http://www.cnblogs.com/Yinkaisheng/p/3444132.html)
 
 Inspect
 ![Inspect](https://i-msdn.sec.s-msft.com/dynimg/IC510569.png)
