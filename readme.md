@@ -40,19 +40,19 @@ run notepad.exe, run uiautomation.py -t 3, swith to Notepad and wait for 5 secon
   
 uiautomation will print the controls of Notepad:  
   
-ControlType: WindowControl    ClassName: Notepad
-　　ControlType: EditControl    ClassName: Edit
-　　　　ControlType: ScrollBarControl    ClassName:
-　　　　　　ControlType: ButtonControl    ClassName:
-　　　　　　ControlType: ButtonControl    ClassName:
-　　　　ControlType: ScrollBarControl    ClassName:
-　　　　　　ControlType: ButtonControl    ClassName:
-　　　　　　ControlType: ButtonControl    ClassName:
-　　　　ControlType: ThumbControl    ClassName:
-　　ControlType: StatusBarControl    ClassName:
-　　　　ControlType: TextControl    ClassName:
-　　　　ControlType: TextControl    ClassName:
-...
+ControlType: WindowControl    ClassName: Notepad  
+　　ControlType: EditControl    ClassName: Edit  
+　　　　ControlType: ScrollBarControl    ClassName:  
+　　　　　　ControlType: ButtonControl    ClassName:  
+　　　　　　ControlType: ButtonControl    ClassName:  
+　　　　ControlType: ScrollBarControl    ClassName:  
+　　　　　　ControlType: ButtonControl    ClassName:  
+　　　　　　ControlType: ButtonControl    ClassName:  
+　　　　ControlType: ThumbControl    ClassName:  
+　　ControlType: StatusBarControl    ClassName:  
+　　　　ControlType: TextControl    ClassName:  
+　　　　ControlType: TextControl    ClassName:  
+...  
 
 run the following code
 ```python
