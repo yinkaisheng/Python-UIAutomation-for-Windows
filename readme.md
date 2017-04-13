@@ -20,13 +20,7 @@ Windows Server 2008 R2, Windows Server 2008 with SP2 and Platform Update for Win
 
 If "RuntimeError: Can not get an instance of IUIAutomation" occured when running uiautomation.py,
 You need to install update [KB971513](https://support.microsoft.com/en-us/kb/971513) for your Windows.
-You can also download from here [https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation](https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation)
-
-Another UI tool inspectX86.exe or inspectX64.exe supplied by Microsoft can also be used to see the UI elements.
-
-[Inspect (Inspect.exe)](https://msdn.microsoft.com/en-us/library/windows/desktop/dd318521%28v=vs.85%29.aspx) is a Windows-based tool that enables you select any UI element and view the element's accessibility data. You can view Microsoft UI Automation properties and control patterns, as well as Microsoft Active Accessibility properties. Inspect also enables you to test the navigational structure of the automation elements in the UI Automation tree, and the accessible objects in the Microsoft Active Accessibility hierarchy.
-
-Inspect is installed with the Windows Software Development Kit (SDK) for Windows 8. (It is also available in previous versions of Windows SDK.) It is located in the \bin\<platform> folder of the SDK installation path (Inspect.exe).
+You can also download it from here [https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation](https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation)
 
 --------------------------------------------------------------------------------
 How to use uiautomation?
@@ -85,10 +79,20 @@ Depth
 See Control.\_\_init\_\_ for the comment of the parameters  
 See automation_notepad_py3.py for a detailed example  
 
-[代码原理简单介绍](http://www.cnblogs.com/Yinkaisheng/p/3444132.html)
+--------------------------------------------------------------------------------
+Another UI tool inspectX86.exe or inspectX64.exe supplied by Microsoft can also be used to see the UI elements.
+
+[Inspect (Inspect.exe)](https://msdn.microsoft.com/en-us/library/windows/desktop/dd318521%28v=vs.85%29.aspx) is a Windows-based tool that enables you select any UI element and view the element's accessibility data. You can view Microsoft UI Automation properties and control patterns, as well as Microsoft Active Accessibility properties. Inspect also enables you to test the navigational structure of the automation elements in the UI Automation tree, and the accessible objects in the Microsoft Active Accessibility hierarchy.
+
+Inspect is installed with the Windows Software Development Kit (SDK) for Windows 8. (It is also available in previous versions of Windows SDK.) It is located in the \bin\<platform> folder of the SDK installation path (Inspect.exe).
 
 Inspect
 ![Inspect](https://i-msdn.sec.s-msft.com/dynimg/IC510569.png)
+--------------------------------------------------------------------------------
+
+[代码原理简单介绍](http://www.cnblogs.com/Yinkaisheng/p/3444132.html)
+
+Some screenshots:
 
 WindowsDesktop
 ![Desktop](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_desktop.png)
