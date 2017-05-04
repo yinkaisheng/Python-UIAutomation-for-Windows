@@ -9,10 +9,10 @@ This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista an
 It supports UIAutomation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
 Run 'uiautomation.py -h' for help.
 
-uiautomation is shared under the MIT Licence.
+uiautomation is shared under the Apache Licene 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
-具体用法参考: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
+代码原理简单介绍: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
 '''
 import sys
 import os
@@ -3592,17 +3592,18 @@ class Logger():
             sys.stdout.flush()
         if not writeToFile:
             return
-        if IsPy3:
-            logFile = open(Logger.LogFile, 'a+', encoding = 'utf-8')
-        else:
-            logFile = codecs.open(Logger.LogFile, 'a+', 'utf-8')
         try:
+            logFile = None
+            if IsPy3:
+                logFile = open(Logger.LogFile, 'a+', encoding = 'utf-8')
+            else:
+                logFile = codecs.open(Logger.LogFile, 'a+', 'utf-8')
             logFile.write(log)
-            # logFile.flush() # need flush in python 3, otherwise log won't be saved
         except Exception as ex:
             sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
         finally:
-            logFile.close()
+            if logFile:
+                logFile.close()
 
     @staticmethod
     def WriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
