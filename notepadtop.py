@@ -16,6 +16,8 @@ if __name__ == '__main__':
         subprocess.Popen('notepad')
         note.Refind()
         note.SetTopmost(isTop)
+        note.Move(0, 0)
+        note.Resize(400, 300)
         edit = automation.EditControl(searchFromControl= note)
         edit.Click()
         automation.SendKeys('I\'m a topmost window!!!')

@@ -25,7 +25,7 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-VERSION = '1.0.5'
+VERSION = '1.0.6'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
@@ -3051,7 +3051,30 @@ class TransformPattern():
     def IsTransformPatternAvailable(self):
         '''Return bool'''
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId) != 0
-    #todo
+
+    def Move(self, x, y):
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId)
+        if pattern:
+            _automationClient.dll.TransformPatternMove(pattern, x, y)
+            _automationClient.dll.ReleasePattern(pattern)
+        else:
+            Logger.WriteLine('TransformPattern is not supported!', ConsoleColor.Yellow)
+
+    def Resize(self, width, height):
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId)
+        if pattern:
+            _automationClient.dll.TransformPatternResize(pattern, width, height)
+            _automationClient.dll.ReleasePattern(pattern)
+        else:
+            Logger.WriteLine('TransformPattern is not supported!', ConsoleColor.Yellow)
+
+    def Rotate(self, degrees):
+        pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId)
+        if pattern:
+            _automationClient.dll.TransformPatternRotate(pattern, degrees)
+            _automationClient.dll.ReleasePattern(pattern)
+        else:
+            Logger.WriteLine('TransformPattern is not supported!', ConsoleColor.Yellow)
 
 
 class TransformPattern2():
@@ -3189,6 +3212,9 @@ class WindowPattern():
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
+
+#see Control Pattern Mapping for UI Automation Clients
+#https://msdn.microsoft.com/zh-cn/library/dd319586(v=vs.85).aspx
 
 class AppBarControl(Control):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
