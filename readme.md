@@ -19,6 +19,7 @@ You can also download it from here [https://github.com/yinkaisheng/WindowsUpdate
 By the way, You'd better run python as administrator. Otherwise uiautomation may fail to enumerate controls under some circumstances.
 
 [Requirements](https://msdn.microsoft.com/zh-cn/library/ee671406(v=vs.85).aspx)
+
 Microsoft UIAutomation Minimum supported client:
 Windows 7, Windows Vista with SP2 and Platform Update for Windows Vista, Windows XP with SP3 and Platform Update for Windows Vista [desktop apps only]
 
