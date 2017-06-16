@@ -1339,6 +1339,25 @@ class Win32API():
         return _automationClient.dll.GetParentProcessId(processId)
 
     @staticmethod
+    def IsProcess64Bit(processId):
+        try:
+            func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  #only 64 bit OS has this function
+        except Exception as ex:
+            return False
+        try:
+            IsWow64Process = ctypes.windll.kernel32.IsWow64Process
+        except Exception as ex:
+            return False
+        hProcess = ctypes.windll.kernel32.OpenProcess(0x0400, 0, processId);  #PROCESS_QUERY_INFORMATION=0x0400
+        if hProcess:
+            is64Bit = ctypes.c_int32()
+            if IsWow64Process(hProcess, ctypes.byref(is64Bit)):
+                ctypes.windll.kernel32.CloseHandle(hProcess)
+                return False if is64Bit.value else True
+            else:
+                ctypes.windll.kernel32.CloseHandle(hProcess)
+
+    @staticmethod
     def TerminateProcess(processId):
         '''Terminate process by process id'''
         hProcess = ctypes.windll.kernel32.OpenProcess(0x0001, 0, processId);  #PROCESS_TERMINATE=0x0001
