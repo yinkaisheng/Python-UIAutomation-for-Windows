@@ -25,7 +25,7 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-VERSION = '1.0.6'
+VERSION = '1.0.7'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
@@ -40,9 +40,19 @@ class _AutomationClient():
             oldDir = os.getcwd()
             os.chdir(dir)
         if '32 bit' in sys.version:
-            self.dll = ctypes.cdll.UIAutomationClientX86
+            if sys.version[:3] >= '3.5':
+                self.dll = ctypes.cdll.UIAutomationClient_VC140_X86
+            elif sys.version[:3] >= '3.3':
+                self.dll = ctypes.cdll.UIAutomationClient_VC100_X86
+            else:
+                self.dll = ctypes.cdll.UIAutomationClient_VC90_X86
         else:
-            self.dll = ctypes.cdll.UIAutomationClientX64
+            if sys.version[:3] >= '3.5':
+                self.dll = ctypes.cdll.UIAutomationClient_VC140_X64
+            elif sys.version[:3] >= '3.3':
+                self.dll = ctypes.cdll.UIAutomationClient_VC100_X64
+            else:
+                self.dll = ctypes.cdll.UIAutomationClient_VC90_X64
         if dir:
             os.chdir(oldDir)
         if not self.dll.InitInstance():

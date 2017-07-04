@@ -6,7 +6,7 @@ It supports UIAutomatoin for the applications which implmented UIAutomation Prov
 uiautomation is shared under the Apache Licence 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
-Only 3 files(**uiautomation.py, AutomationClientX86.dll and AutomationClientX64.dll**) are needed for UIAutomation. Other scripts are all demos.
+Only uiautomation.py and the dll files are needed for UIAutomation. Other scripts are all demos.
 You can install uiautomation by "pip install uiautomation"
 
 Run 'uiautomation.py -h' for help.
