@@ -1,6 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
-# test only on windows XP, 7, 10
+# works on windows XP, 7, 8 and 10
 import time
 import subprocess
 import uiautomation as automation
@@ -32,7 +32,7 @@ def CaclOnXP():
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90')
     Calc(calcWindow, char2Button, '2*3.14159*10')
 
-def CalcOnWindows7():
+def CalcOnWindows7And8():
     char2Id = {
         '0' : '130',
         '1' : '131',
@@ -107,6 +107,6 @@ if __name__ == '__main__':
     if osVersion < 6:
         CaclOnXP()
     elif osVersion == 6:
-        CalcOnWindows7()
+        CalcOnWindows7And8()
     elif osVersion >= 10:
         CalcOnWindows10()
