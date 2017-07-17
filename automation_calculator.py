@@ -17,7 +17,7 @@ def Calc(window, btns, expression):
     automation.Logger.WriteLine(result, automation.ConsoleColor.Cyan, writeToFile = False)
     time.sleep(1)
 
-def CaclOnXP():
+def CalcOnXP():
     chars = '0123456789.+-*/=()'
     calcWindow = automation.WindowControl(searchDepth = 1, ClassName = 'SciCalc')
     if not calcWindow.Exists(0, 0):
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     import platform
     osVersion = int(platform.version().split('.')[0])
     if osVersion < 6:
-        CaclOnXP()
+        CalcOnXP()
     elif osVersion == 6:
         CalcOnWindows7And8()
     elif osVersion >= 10:
