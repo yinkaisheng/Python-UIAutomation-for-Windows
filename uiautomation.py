@@ -25,7 +25,7 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-VERSION = '1.0.7'
+VERSION = '1.0.8'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
 SEARCH_INTERVAL = 0.5 # search control interval seconds
@@ -33,6 +33,7 @@ MAX_MOVE_SECOND = 1 # simulate mouse move or drag max seconds
 TIME_OUT_SECOND = 15
 OPERATION_WAIT_TIME = 0.5
 
+MAX_PATH = 260
 class _AutomationClient():
     def __init__(self):
         dir = os.path.dirname(__file__)
@@ -53,10 +54,163 @@ class _AutomationClient():
                 self.dll = ctypes.cdll.UIAutomationClient_VC100_X64
             else:
                 self.dll = ctypes.cdll.UIAutomationClient_VC90_X64
+        self.InitFunctionType()
         if dir:
             os.chdir(oldDir)
         if not self.dll.InitInstance():
             raise RuntimeError('Can not get an instance of IUIAutomation.\nYou may need to install Windows Update KB971513.\nhttps://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation')
+
+    def InitFunctionType(self):
+        self.dll.FreeBSTR.argtypes = (ctypes.c_size_t, )
+        self.dll.GetAutomationObject.restype = ctypes.c_size_t
+        self.dll.GetRawTreeWalker.restype = ctypes.c_size_t
+        self.dll.ElementAddRef.argtypes = (ctypes.c_size_t, )
+        self.dll.CompareElements.argtypes = (ctypes.c_size_t, ctypes.c_size_t)
+        self.dll.ReleaseElement.argtypes = (ctypes.c_size_t, )
+        self.dll.ReleaseElementArray.argtypes = (ctypes.c_size_t, )
+        self.dll.GetRootElement.restype = ctypes.c_size_t
+        self.dll.GetFocusedElement.restype = ctypes.c_size_t
+        self.dll.ElementFromPoint.restype = ctypes.c_size_t
+        self.dll.ElementFromHandle.argtypes = (ctypes.c_size_t, )
+        self.dll.ElementFromHandle.restype = ctypes.c_size_t
+        self.dll.GetElementName.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementName.restype = ctypes.c_size_t
+        self.dll.GetElementControlTypeName.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementControlTypeName.restype = ctypes.c_size_t
+        self.dll.GetElementClassName.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementClassName.restype = ctypes.c_size_t
+        self.dll.GetElementAutomationId.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementAutomationId.restype = ctypes.c_size_t
+        self.dll.GetElementProcessId.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementControlType.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementLocalizedControlType.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementLocalizedControlType.restype = ctypes.c_size_t
+        self.dll.GetElementIsEnabled.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementHasKeyboardFocus.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementIsKeyboardFocusable.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementIsOffscreen.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementHandle.argtypes = (ctypes.c_size_t, )
+        self.dll.GetElementHandle.restype = ctypes.c_size_t
+        self.dll.SetElementFocus.argtypes = (ctypes.c_size_t, )
+        self.dll.GetParentElement.argtypes = (ctypes.c_size_t, )
+        self.dll.GetParentElement.restype = ctypes.c_size_t
+        self.dll.GetNextSiblingElement.argtypes = (ctypes.c_size_t, )
+        self.dll.GetNextSiblingElement.restype = ctypes.c_size_t
+        self.dll.GetPreviousSiblingElement.argtypes = (ctypes.c_size_t, )
+        self.dll.GetPreviousSiblingElement.restype = ctypes.c_size_t
+        self.dll.GetFirstChildElement.argtypes = (ctypes.c_size_t, )
+        self.dll.GetFirstChildElement.restype = ctypes.c_size_t
+        self.dll.GetLastChildElement.argtypes = (ctypes.c_size_t, )
+        self.dll.GetLastChildElement.restype = ctypes.c_size_t
+        self.dll.ElementArrayGetLength.argtypes = (ctypes.c_size_t, )
+        self.dll.ElementArrayGetElement.argtypes = (ctypes.c_size_t, ctypes.c_int)
+        self.dll.ElementArrayGetElement.restype = ctypes.c_size_t
+        self.dll.GetElementPattern.argtypes = (ctypes.c_size_t, ctypes.c_int)
+        self.dll.GetElementPattern.restype = ctypes.c_size_t
+        self.dll.ReleasePattern.argtypes = (ctypes.c_size_t, )
+        self.dll.InvokePatternInvoke.argtypes = (ctypes.c_size_t, )
+        self.dll.TogglePatternToggle.argtypes = (ctypes.c_size_t, )
+        self.dll.TogglePatternCurrentToggleState.argtypes = (ctypes.c_size_t, )
+        self.dll.ExpandCollapsePatternExpand.argtypes = (ctypes.c_size_t, )
+        self.dll.ExpandCollapsePatternCollapse.argtypes = (ctypes.c_size_t, )
+        self.dll.ExpandCollapsePatternCurrentExpandCollapseState.argtypes = (ctypes.c_size_t, )
+        self.dll.ValuePatternCurrentValue.argtypes = (ctypes.c_size_t, )
+        self.dll.ValuePatternCurrentValue.restype = ctypes.c_size_t
+        self.dll.ValuePatternSetValue.argtypes = (ctypes.c_size_t, ctypes.c_wchar_p)
+        self.dll.ValuePatternCurrentIsReadOnly.argtypes = (ctypes.c_size_t, )
+        self.dll.ScrollItemPatternScrollIntoView.argtypes = (ctypes.c_size_t, )
+        self.dll.ScrollPatternCurrentHorizontallyScrollable.argtypes = (ctypes.c_size_t, )
+        self.dll.ScrollPatternCurrentHorizontalViewSize.argtypes = (ctypes.c_size_t, )
+        self.dll.ScrollPatternCurrentHorizontalScrollPercent.argtypes = (ctypes.c_size_t, )
+        self.dll.ScrollPatternCurrentVerticallyScrollable.argtypes = (ctypes.c_size_t, )
+        self.dll.ScrollPatternCurrentVerticalViewSize.argtypes = (ctypes.c_size_t, )
+        self.dll.ScrollPatternCurrentVerticalScrollPercent.argtypes = (ctypes.c_size_t, )
+        self.dll.ScrollPatternSetScrollPercent.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
+        self.dll.SelectionPatternGetCurrentSelection.argtypes = (ctypes.c_size_t, )
+        self.dll.SelectionPatternGetCurrentSelection.restype = ctypes.c_size_t
+        self.dll.SelectionItemPatternSelect.argtypes = (ctypes.c_size_t, )
+        self.dll.SelectionItemPatternAddToSelection.argtypes = (ctypes.c_size_t, )
+        self.dll.SelectionItemPatternRemoveFromSelection.argtypes = (ctypes.c_size_t, )
+        self.dll.SelectionItemPatternCurrentIsSelected.argtypes = (ctypes.c_size_t, )
+        self.dll.RangeValuePatternCurrentValue.argtypes = (ctypes.c_size_t, )
+        self.dll.RangeValuePatternSetValue.argtypes = (ctypes.c_size_t, ctypes.c_int)
+        self.dll.RangeValuePatternCurrentMaximum.argtypes = (ctypes.c_size_t, )
+        self.dll.RangeValuePatternCurrentMinimum.argtypes = (ctypes.c_size_t, )
+        self.dll.WindowPatternCurrentWindowVisualState.argtypes = (ctypes.c_size_t, )
+        self.dll.WindowPatternSetWindowVisualState.argtypes = (ctypes.c_size_t, ctypes.c_int)
+        self.dll.WindowPatternCurrentCanMaximize.argtypes = (ctypes.c_size_t, )
+        self.dll.WindowPatternCurrentCanMinimize.argtypes = (ctypes.c_size_t, )
+        self.dll.WindowPatternCurrentIsModal.argtypes = (ctypes.c_size_t, )
+        self.dll.WindowPatternCurrentIsTopmost.argtypes = (ctypes.c_size_t, )
+        self.dll.WindowPatternClose.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternSelect.argtypes = (ctypes.c_size_t, ctypes.c_long)
+        self.dll.LegacyIAccessiblePatternDoDefaultAction.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternSetValue.argtypes = (ctypes.c_size_t, ctypes.c_wchar_p)
+        self.dll.LegacyIAccessiblePatternCurrentChildId.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternCurrentName.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternCurrentName.restype = ctypes.c_size_t
+        self.dll.LegacyIAccessiblePatternCurrentValue.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternCurrentValue.restype = ctypes.c_size_t
+        self.dll.LegacyIAccessiblePatternCurrentDescription.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternCurrentDescription.restype = ctypes.c_size_t
+        self.dll.LegacyIAccessiblePatternCurrentRole.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternCurrentState.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternCurrentHelp.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternCurrentHelp.restype = ctypes.c_size_t
+        self.dll.LegacyIAccessiblePatternCurrentKeyboardShortcut.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternCurrentKeyboardShortcut.restype = ctypes.c_size_t
+        self.dll.LegacyIAccessiblePatternGetCurrentSelection.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternGetCurrentSelection.restype = ctypes.c_size_t
+        self.dll.LegacyIAccessiblePatternCurrentDefaultAction.argtypes = (ctypes.c_size_t, )
+        self.dll.LegacyIAccessiblePatternCurrentDefaultAction.restype = ctypes.c_size_t
+        self.dll.GridPatternGetItem.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
+        self.dll.GridPatternGetItem.restype = ctypes.c_size_t
+        self.dll.GridPatternCurrentRowCount.argtypes = (ctypes.c_size_t, )
+        self.dll.GridPatternCurrentColumnCount.argtypes = (ctypes.c_size_t, )
+        self.dll.TablePatternCurrentRowHeaders.argtypes = (ctypes.c_size_t, )
+        self.dll.TablePatternCurrentRowHeaders.restype = ctypes.c_size_t
+        self.dll.TablePatternCurrentColumnHeaders.argtypes = (ctypes.c_size_t, )
+        self.dll.TablePatternCurrentColumnHeaders.restype = ctypes.c_size_t
+        self.dll.TablePatternCurrentRowOrColumnMajor.argtypes = (ctypes.c_size_t, )
+        self.dll.TableItemPatternCurrentRowHeaderItems.argtypes = (ctypes.c_size_t, )
+        self.dll.TableItemPatternCurrentRowHeaderItems.restype = ctypes.c_size_t
+        self.dll.TableItemPatternCurrentColumnHeaderItems.argtypes = (ctypes.c_size_t, )
+        self.dll.TableItemPatternCurrentColumnHeaderItems.restype = ctypes.c_size_t
+        self.dll.GridItemPatternCurrentContainingGrid.argtypes = (ctypes.c_size_t, )
+        self.dll.GridItemPatternCurrentContainingGrid.restype = ctypes.c_size_t
+        self.dll.GridItemPatternCurrentRow.argtypes = (ctypes.c_size_t, )
+        self.dll.GridItemPatternCurrentColumn.argtypes = (ctypes.c_size_t, )
+        self.dll.GridItemPatternCurrentRowSpan.argtypes = (ctypes.c_size_t, )
+        self.dll.GridItemPatternCurrentColumnSpan.argtypes = (ctypes.c_size_t, )
+        self.dll.TransformPatternMove.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
+        self.dll.TransformPatternResize.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
+        self.dll.TransformPatternRotate.argtypes = (ctypes.c_size_t, ctypes.c_int)
+        self.dll.BitmapCreate.restype = ctypes.c_size_t
+        self.dll.BitmapFromWindow.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
+        self.dll.BitmapFromWindow.restype = ctypes.c_size_t
+        self.dll.BitmapFromFile.restype = ctypes.c_size_t
+        self.dll.BitmapToFile.argtypes = (ctypes.c_size_t, ctypes.c_wchar_p, ctypes.c_wchar_p)
+        self.dll.BitmapRelease.argtypes = (ctypes.c_size_t, )
+        self.dll.BitmapGetWidthAndHeight.argtypes = (ctypes.c_size_t, )
+        self.dll.BitmapGetPixel.argtypes = (ctypes.c_size_t, ctypes.c_uint, ctypes.c_uint)
+        self.dll.BitmapSetPixel.argtypes = (ctypes.c_size_t, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint)
+
+        #Windows dll
+        ctypes.windll.kernel32.GlobalLock.argtypes = (ctypes.c_void_p, )
+        ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.GlobalUnlock.argtypes = (ctypes.c_void_p, )
+        ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.GetStdHandle.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.CloseHandle.argtypes = (ctypes.c_void_p, )
+        ctypes.windll.kernel32.TerminateProcess = (ctypes.c_void_p, )
+        ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
+        ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
+        ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
+        ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
+        ctypes.windll.user32.SwitchDesktop = (ctypes.c_void_p, )
+        ctypes.windll.user32.CloseDesktop = (ctypes.c_void_p, )
 
     def __del__(self):
         self.dll.ReleaseInstance()
@@ -64,21 +218,6 @@ class _AutomationClient():
 
 _automationClient = _AutomationClient()
 _rootControl = None
-
-'''
-class WString():
-    def __init__(self):
-        self.wcharArray = 0
-        self.cwcharp = 0
-    def __del__(self):
-        if self.wcharArray:
-            _automationClient.dll.DeleteWCharArray(self.wcharArray)
-    @property
-    def value(self):
-        if self.cwcharp:
-            return self.cwcharp.value
-'''
-
 
 class ControlType():
     '''This class defines the values of control type'''
@@ -994,13 +1133,11 @@ class Win32API():
         if ctypes.windll.user32.OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(13): # CF_TEXT=1, CF_UNICODETEXT=13
                 hClipboardData = ctypes.windll.user32.GetClipboardData(13)
-                ctext = ctypes.windll.kernel32.GlobalLock(hClipboardData);
-                text = ctypes.c_wchar_p(ctext).value[:]
+                hText = ctypes.windll.kernel32.GlobalLock(hClipboardData);
+                text = ctypes.c_wchar_p(hText).value[:]
                 ctypes.windll.kernel32.GlobalUnlock(hClipboardData);
                 ctypes.windll.user32.CloseClipboard()
                 return text
-            else:
-                ctypes.windll.user32.CloseClipboard()
         return ''
 
     @staticmethod
@@ -1009,11 +1146,10 @@ class Win32API():
             ctypes.windll.user32.EmptyClipboard()
             textLen = (len(text) + 1) * 2
             hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0, textLen)  # GMEM_FIXED=0
-            destText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
-            srcText = ctypes.c_wchar_p(text)
-            _automationClient.dll.WcsCpy(destText, textLen, srcText)
+            hDestText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
+            _automationClient.dll.WcsCpy(ctypes.c_wchar_p(hDestText), textLen, ctypes.c_wchar_p(text))
             ctypes.windll.kernel32.GlobalUnlock(hClipboardData)
-            ctypes.windll.user32.SetClipboardData(13, hClipboardData) # CF_TEXT=1, CF_UNICODETEXT=13
+            ctypes.windll.user32.SetClipboardData(13, ctypes.c_void_p(hClipboardData)) # CF_TEXT=1, CF_UNICODETEXT=13
             ctypes.windll.user32.CloseClipboard()
 
     @staticmethod
@@ -1223,9 +1359,7 @@ class Win32API():
     @staticmethod
     def MessageBox(content, title, flags = MB.OK):
         '''Call API MessageBox from user32.dll'''
-        c_content = ctypes.c_wchar_p(content)
-        c_title = ctypes.c_wchar_p(title)
-        return ctypes.windll.user32.MessageBoxW(0, c_content, c_title, flags)
+        return ctypes.windll.user32.MessageBoxW(0, ctypes.c_wchar_p(content), ctypes.c_wchar_p(title), flags)
 
     @staticmethod
     def SetForegroundWindow(hWnd):
@@ -1263,51 +1397,36 @@ class Win32API():
     @staticmethod
     def GetWindowText(hWnd):
         '''Get window text'''
-        MAX_PATH = 260
-        wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
-        if wcharArray:
-            ctypes.windll.user32.GetWindowTextW(hWnd, wcharArray, MAX_PATH)
-            text = ctypes.c_wchar_p(wcharArray).value[:]
-            _automationClient.dll.DeleteWCharArray(wcharArray)
-            return text
+        wArray = ctypes.c_wchar * MAX_PATH
+        values = wArray()
+        ctypes.windll.user32.GetWindowTextW(hWnd, values, MAX_PATH)
+        return values.value
 
     @staticmethod
     def SetWindowText(hWnd, text):
         '''Set window text'''
-        c_text = ctypes.c_wchar_p(text)
-        return ctypes.windll.user32.SetWindowTextW(hWnd, c_text)
+        return ctypes.windll.user32.SetWindowTextW(hWnd, ctypes.c_wchar_p(text))
 
     @staticmethod
     def GetConsoleOriginalTitle():
         '''GetConsoleOriginalTitle'''
-        MAX_PATH = 260
-        wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
-        if wcharArray:
-            ctypes.windll.kernel32.GetConsoleOriginalTitleW(wcharArray, MAX_PATH)
-            text = ctypes.c_wchar_p(wcharArray).value[:]
-            _automationClient.dll.DeleteWCharArray(wcharArray)
-            return text
+        wArray = ctypes.c_wchar * MAX_PATH
+        values = wArray()
+        ctypes.windll.kernel32.GetConsoleOriginalTitleW(values, MAX_PATH)
+        return values.value
 
     @staticmethod
     def GetConsoleTitle():
         '''GetConsoleTitle'''
-        MAX_PATH = 260
-        wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
-        if wcharArray:
-            #in python interactive mode, ctypes.windll.kernel32.GetConsoleTitleW raise ctypes.ArgumentError: argument 1: <class 'TypeError'>: wrong type
-            #but if not in interactive mode, running a py that calls GetConsoleTitle doesn't raise any exception
-            #GetConsoleOriginalTitle doesn't have this issue
-            #why? todo
-            _automationClient.dll.GetConsoleWindowTitle(wcharArray, MAX_PATH)  #fixed for ctypes.windll.kernel32.GetConsoleTitleW
-            text = ctypes.c_wchar_p(wcharArray).value[:]
-            _automationClient.dll.DeleteWCharArray(wcharArray)
-            return text
+        wArray = ctypes.c_wchar * MAX_PATH
+        values = wArray()
+        ctypes.windll.kernel32.GetConsoleTitleW(values, MAX_PATH)
+        return values.value
 
     @staticmethod
     def SetConsoleTitle(text):
         '''SetConsoleTitle'''
-        c_text = ctypes.c_wchar_p(text)
-        return ctypes.windll.kernel32.SetConsoleTitleW(c_text)
+        return ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(text))
 
     @staticmethod
     def GetForegroundWindow():
@@ -1331,18 +1450,15 @@ class Win32API():
         flag = SND_NODEFAULT
         if isAsync:
             flag |= SND_ASYNC
-        c_text = ctypes.c_wchar_p(filePath)
-        ctypes.windll.winmm.sndPlaySoundW(c_text, flag)
+        ctypes.windll.winmm.sndPlaySoundW(ctypes.c_wchar_p(filePath), flag)
 
     @staticmethod
     def GetProcessCommandLine(processId):
-        wstr = _automationClient.dll.GetProcessCommandLine(processId)
-        if wstr:
-            cmdLine = ctypes.c_wchar_p(wstr).value[:]
-            _automationClient.dll.DeleteWCharArray(wstr)
-            return cmdLine
-        else:
-            return ''
+        '''may not work'''
+        wArray = ctypes.c_wchar * MAX_PATH
+        values = wArray()
+        _automationClient.dll.GetProcessCommandLine(processId, values, MAX_PATH)
+        return values.value
 
     @staticmethod
     def GetParentProcessId(processId = -1):
@@ -1350,6 +1466,9 @@ class Win32API():
 
     @staticmethod
     def IsProcess64Bit(processId):
+        '''return True if process is 64 bit
+            return False if process is 32 bit
+            return None if unknown, maybe caused by having no acess right to the process'''
         try:
             func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  #only 64 bit OS has this function
         except Exception as ex:
@@ -1392,12 +1511,12 @@ class Win32API():
         processClass = collections.namedtuple('processInfo', 'pid name')
         processEntry32.dwSize = ctypes.sizeof(processEntry32)
         processList = []
-        continueFind = ctypes.windll.kernel32.Process32FirstW(hSnapshot, ctypes.byref(processEntry32))
+        continueFind = ctypes.windll.kernel32.Process32FirstW(ctypes.c_void_p(hSnapshot), ctypes.byref(processEntry32))
         while continueFind:
             pid = processEntry32.th32ProcessID
             name = (processEntry32.szExeFile)
             processList.append(processClass(pid, name))
-            continueFind = ctypes.windll.kernel32.Process32NextW(hSnapshot, ctypes.byref(processEntry32))
+            continueFind = ctypes.windll.kernel32.Process32NextW(ctypes.c_void_p(hSnapshot), ctypes.byref(processEntry32))
         ctypes.windll.kernel32.CloseHandle(hSnapshot)
         return processList
 
@@ -1641,8 +1760,7 @@ class Win32API():
             Logger.Write('\n', writeToFile = False)
         for i, key in enumerate(keys):
             if key[1] == 'UnicodeChar':
-                wchar = ctypes.c_wchar_p(key[0])
-                _automationClient.dll.SendUnicodeChar(wchar)
+                _automationClient.dll.SendUnicodeChar(ctypes.c_wchar_p(key[0]))
                 time.sleep(interval)
                 #Win32API.PostMessage(GetFocusedControl().Handle, 0x102, -key[0], 0)#UnicodeChar = 0x102
             else:
@@ -1793,14 +1911,14 @@ class Bitmap():
         '''get list of argb form x,y horizontally'''
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*(0 for n in range(count)))
-        _automationClient.dll.BitmapGetPixelsHorizontally(self._bitmap, x, y, values, count)
+        _automationClient.dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
     def GetPixelColorsVertically(self, x, y, count):
         '''get list of argb form x,y vertically'''
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*(0 for n in range(count)))
-        _automationClient.dll.BitmapGetPixelsVertically(self._bitmap, x, y, values, count)
+        _automationClient.dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
     def GetPixelColorsOfRow(self, y):
@@ -1843,14 +1961,14 @@ class Bitmap():
         count = len(colors)
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*colors)
-        return _automationClient.dll.BitmapSetPixelsHorizontally(self._bitmap, x, y, values, count)
+        return _automationClient.dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
 
     def SetPixelColorsVertically(self, x, y, colors):
         '''set colors form x,y vertically'''
         count = len(colors)
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*colors)
-        return _automationClient.dll.BitmapSetPixelsVertically(self._bitmap, x, y, values, count)
+        return _automationClient.dll.BitmapSetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
 
 
 class LegacyIAccessiblePattern():
@@ -1880,8 +1998,7 @@ class LegacyIAccessiblePattern():
         '''call IUIAutomationLegacyIAccessiblePattern SetValue, value: str'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
-            c_value = ctypes.c_wchar_p(value)
-            _automationClient.dll.LegacyIAccessiblePatternSetValue(pattern, c_value)
+            _automationClient.dll.LegacyIAccessiblePatternSetValue(pattern, ctypes.c_wchar_p(value))
             _automationClient.dll.ReleasePattern(pattern)
         else:
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
@@ -2275,10 +2392,10 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     @property
     def Name(self):
         '''Return unicode Name'''
-        bstrName = _automationClient.dll.GetElementName(self.Element)
-        if bstrName:
-            name = ctypes.c_wchar_p(bstrName).value[:]
-            _automationClient.dll.FreeBSTR(bstrName)
+        bstrValue = _automationClient.dll.GetElementName(self.Element)
+        if bstrValue:
+            name = ctypes.c_wchar_p(bstrValue).value[:]
+            _automationClient.dll.FreeBSTR(bstrValue)
             return name
         return ''
 
@@ -2295,30 +2412,30 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     @property
     def LocalizedControlType(self):
         '''Return unicode LocalizedControlType name'''
-        bstrName = _automationClient.dll.GetElementLocalizedControlType(self.Element)
-        if bstrName:
-            name = ctypes.c_wchar_p(bstrName).value[:]
-            _automationClient.dll.FreeBSTR(bstrName)
+        bstrValue = _automationClient.dll.GetElementLocalizedControlType(self.Element)
+        if bstrValue:
+            name = ctypes.c_wchar_p(bstrValue).value[:]
+            _automationClient.dll.FreeBSTR(bstrValue)
             return name
         return ''
 
     @property
     def ClassName(self):
         '''Return unicode ClassName'''
-        bstrClassName = _automationClient.dll.GetElementClassName(self.Element)
-        if bstrClassName:
-            name = ctypes.c_wchar_p(bstrClassName).value[:]
-            _automationClient.dll.FreeBSTR(bstrClassName)
+        bstrValue = _automationClient.dll.GetElementClassName(self.Element)
+        if bstrValue:
+            name = ctypes.c_wchar_p(bstrValue).value[:]
+            _automationClient.dll.FreeBSTR(bstrValue)
             return name
         return ''
 
     @property
     def AutomationId(self):
         '''Return unicode AutomationId'''
-        bstrAutomationId = _automationClient.dll.GetElementAutomationId(self.Element)
-        if bstrAutomationId:
-            name = ctypes.c_wchar_p(bstrAutomationId).value[:]
-            _automationClient.dll.FreeBSTR(bstrAutomationId)
+        bstrValue = _automationClient.dll.GetElementAutomationId(self.Element)
+        if bstrValue:
+            name = ctypes.c_wchar_p(bstrValue).value[:]
+            _automationClient.dll.FreeBSTR(bstrValue)
             return name
         return ''
 
@@ -2351,7 +2468,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def BoundingRectangle(self):
         '''Return tuple (left, top, right, bottom)'''
         rect = Rect()
-        _automationClient.dll.GetElementBoundingRectangle(self.Element, ctypes.byref(rect))
+        _automationClient.dll.GetElementBoundingRectangle(ctypes.c_size_t(self.Element), ctypes.byref(rect))
         return (rect.left, rect.top, rect.right, rect.bottom)
 
     @property
@@ -3135,8 +3252,7 @@ class ValuePattern():
         '''Set unicode string to control's value'''
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
-            c_value = ctypes.c_wchar_p(value)
-            value = _automationClient.dll.ValuePatternSetValue(pattern, c_value)
+            value = _automationClient.dll.ValuePatternSetValue(pattern, ctypes.c_wchar_p(value))
             _automationClient.dll.ReleasePattern(pattern)
             if waitTime > 0:
                 time.sleep(waitTime)
@@ -3846,19 +3962,6 @@ def GetConsoleWindow():
     consoleWindow = WindowControl(searchDepth= 1, Name = title)
     if consoleWindow.Exists(0, 0):
         return consoleWindow
-    #another implement
-    #MAX_PATH = 260
-    #wcharArray = _automationClient.dll.NewWCharArray(MAX_PATH)
-    #if wcharArray:
-        ##in python Interactive Mode, ctypes.windll.kernel32.GetConsoleTitleW raise ctypes.ArgumentError: argument 1: <class 'TypeError'>: wrong type
-        ##but in cmd, running a py that calls GetConsoleTitle doesn't raise any exception
-        ##GetConsoleOriginalTitle doesn't have this issue
-        ##why? todo
-        #ctypes.windll.kernel32.GetConsoleTitleW(wcharArray, MAX_PATH)
-        #consoleHandle = ctypes.windll.user32.FindWindowW(0, wcharArray);
-        #_automationClient.dll.DeleteWCharArray(wcharArray)
-        #if consoleHandle:
-            #return ControlFromHandle(consoleHandle)
 
 def ControlFromPoint(x, y):
     '''use IUIAutomation ElementFromPoint x,y, may return 0 if mouse is over cmd's title bar icon'''
@@ -3934,30 +4037,15 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     Logger.Write('    Name: ')
     Logger.Write(name, ConsoleColor.DarkGreen)
     Logger.Write('    Handle: ')
-    handle = control.Handle
-    Logger.Write('0x{0:X}({0})'.format(handle), ConsoleColor.DarkGreen)
+    Logger.Write('0x{0:X}({0})'.format(control.Handle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
     Logger.Write(str(depth), ConsoleColor.DarkGreen)
     if ((isinstance(control, ValuePattern) and control.IsValuePatternAvailable())):
         Logger.Write('    Value: ')
-        value = control.CurrentValue()
-        if IsPy3:
-            if not isinstance(value, str):
-                value = str(value)
-        else:
-            if not isinstance(value, unicode):
-                value = unicode(value)
-        Logger.Write(value, ConsoleColor.DarkGreen)
+        Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen)
     if ((isinstance(control, RangeValuePattern) and control.IsRangeValuePatternAvailable())):
         Logger.Write('    RangeValue: ')
-        value = control.RangeValuePatternCurrentValue()
-        if IsPy3:
-            if not isinstance(value, str):
-                value = str(value)
-        else:
-            if not isinstance(value, unicode):
-                value = unicode(value)
-        Logger.Write(value, ConsoleColor.DarkGreen)
+        Logger.Write(str(control.RangeValuePatternCurrentValue()), ConsoleColor.DarkGreen)
     if isinstance(control, TogglePattern) and control.IsTogglePatternAvailable():
         Logger.Write('    CurrentToggleState: ')
         Logger.Write('ToggleState.' + getKeyName(ToggleState.__dict__, control.CurrentToggleState()), ConsoleColor.DarkGreen)
