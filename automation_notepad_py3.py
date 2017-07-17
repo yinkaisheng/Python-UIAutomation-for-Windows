@@ -31,6 +31,10 @@ def testNotepadCN():
     window = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad', SubName = '无标题 - 记事本')
     #可以判断window是否存在，如果不判断，找不到window的话会抛出异常
     #if window.Exists(maxSearchSeconds = 3):
+    if automation.WaitForExist(window, 3):
+        automation.Logger.WriteLine("Notepad exists now")
+    else:
+        automation.Logger.WriteLine("Notepad does not exist after 3 seconds", automation.ConsoleColor.Yellow)
     screenWidth, screenHeight = automation.Win32API.GetScreenSize()
     window.MoveWindow(screenWidth // 4, screenHeight // 4, screenWidth // 2, screenHeight // 2)
     window.SetActive()
@@ -56,6 +60,10 @@ def testNotepadCN():
     windowFont.ComboBoxControl(AutomationId = '1140').Select('中文 GB2312')
     windowFont.ButtonControl(Name = '确定').Click()
     window.Close()
+    if automation.WaitForDisappear(window, 3):
+        automation.Logger.WriteLine("Notepad closed")
+    else:
+        automation.Logger.WriteLine("Notepad still exists after 3 seconds", automation.ConsoleColor.Yellow)
 
     # buttonNotSave = ButtonControl(searchFromControl = window, SubName = '不保存')
     # buttonNotSave.Click()
@@ -82,7 +90,10 @@ def testNotepadEN():
     #searchDepth = 1 makes searching faster, only searches RootControl's children, not children's children
     window = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad', SubName = 'Untitled - Notepad')
     #if window.Exists(maxSearchSeconds = 3): #check before using it
-        #pass
+    if automation.WaitForExist(window, 3):
+        automation.Logger.WriteLine("Notepad exists now")
+    else:
+        automation.Logger.WriteLine("Notepad does not exist after 3 seconds", automation.ConsoleColor.Yellow)
     screenWidth, screenHeight = automation.Win32API.GetScreenSize()
     window.MoveWindow(screenWidth // 4, screenHeight // 4, screenWidth // 2, screenHeight // 2)
     window.SetActive()
@@ -105,7 +116,10 @@ def testNotepadEN():
     windowFont.ComboBoxControl(AutomationId = '1140').Select('Western')
     windowFont.ButtonControl(Name = 'OK').Click()
     window.Close()
-
+    if automation.WaitForDisappear(window, 3):
+        automation.Logger.WriteLine("Notepad closed")
+    else:
+        automation.Logger.WriteLine("Notepad still exists after 3 seconds", automation.ConsoleColor.Yellow)
     # buttonNotSave = ButtonControl(searchFromControl = window, Name = 'Don\'t Save')
     # buttonNotSave.Click()
     # or send alt+n to not save and quit

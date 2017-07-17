@@ -27,13 +27,14 @@ if not IsPy3:
 
 VERSION = '1.0.8'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
-METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # todo Windows 10 changed
+METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
 SEARCH_INTERVAL = 0.5 # search control interval seconds
 MAX_MOVE_SECOND = 1 # simulate mouse move or drag max seconds
 TIME_OUT_SECOND = 15
 OPERATION_WAIT_TIME = 0.5
-
 MAX_PATH = 260
+
+
 class _AutomationClient():
     def __init__(self):
         dir = os.path.dirname(__file__)
@@ -218,6 +219,7 @@ class _AutomationClient():
 
 _automationClient = _AutomationClient()
 _rootControl = None
+
 
 class ControlType():
     '''This class defines the values of control type'''
@@ -2358,6 +2360,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         start = time.clock()
         while True:
             control = FindControl(self.searchFromControl, self._CompareFunction, self.searchDepth, False, self.foundIndex)
+            current = time.clock()
             if control:
                 self._element = control.Element
                 control._element = 0 # control will be destroyed, but the element needs to be stroed in self._element
@@ -2365,9 +2368,12 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                 #Logger.Log('Found time: {:.3f}s, {}'.format(elapsedTime, self))
                 return True
             else:
-                if time.clock() - start > maxSearchSeconds:
+                if current - start >= maxSearchSeconds:
                     return False
-            time.sleep(searchIntervalSeconds)
+            if current + searchIntervalSeconds > start + maxSearchSeconds:
+                time.sleep(start + maxSearchSeconds - current)
+            else:
+                time.sleep(searchIntervalSeconds)
 
     def Refind(self, maxSearchSeconds = TIME_OUT_SECOND, searchIntervalSeconds = SEARCH_INTERVAL, raiseException = True):
         '''Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds, raise an LookupError if timed out'''
@@ -3873,6 +3879,17 @@ def SendKeys(keys, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
     SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
     '''
     Win32API.SendKeys(keys, interval, waitTime, debug)
+
+def WaitForExist(control, timeout):
+    return control.Exists(timeout, 1)
+
+def WaitForDisappear(control, timeout):
+    start = time.clock()
+    while time.clock() - start < timeout:
+        if not control.Exists(0, 0):
+            return True
+        time.sleep(1)
+    return False
 
 def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):
     '''
