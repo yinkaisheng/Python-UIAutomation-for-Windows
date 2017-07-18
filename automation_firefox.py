@@ -39,6 +39,11 @@ def main():
         time.sleep(1)
         starButton.Click()
         time.sleep(2)
+    else:
+        unstarButton = firefoxWindow.ButtonControl(Name = 'Unstar this repository')
+        if unstarButton.Exists(0, 0):
+            automation.GetConsoleWindow().SetActive()
+            automation.Logger.WriteLine('Thank you. You have starred.', automation.ConsoleColor.Yellow)
 
 if __name__ == '__main__':
     main()

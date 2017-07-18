@@ -1297,10 +1297,14 @@ class Win32API():
         if waitTime > 0:
             time.sleep(waitTime)
 
+    #@staticmethod
+    #def MouseDragTo(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
+    #use MouseDragDrop instead
+
     @staticmethod
-    def MouseDragTo(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
+    def MouseDragDrop(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
         '''
-        Simulate mouse drag from point x1, y1 to point x2, y2
+        Simulate mouse drag from point x1, y1 drop to point x2, y2
         x1, y1, x2, y2, must be integer
         moveSpeed: double, 1 normal speed, < 1 move slower, > 1 move faster
         '''
@@ -3850,6 +3854,31 @@ class Logger():
 def SetGlobalSearchTimeOut(seconds):
     global TIME_OUT_SECOND
     TIME_OUT_SECOND = seconds
+
+def Click(x, y, waitTime = OPERATION_WAIT_TIME):
+    Win32API.MouseClick(x, y, waitTime)
+
+def RightClick(x, y, waitTime = OPERATION_WAIT_TIME):
+    Win32API.MouseRightClick(x, y, waitTime)
+
+def MiddleClick(x, y, waitTime = OPERATION_WAIT_TIME):
+    Win32API.MouseMiddleClick(x, y, waitTime)
+
+def MoveTo(x, y, waitTime = OPERATION_WAIT_TIME):
+    Win32API.MouseMoveTo(x, y, waitTime)
+
+def DragDrop(x1, y1, x2, y2, waitTime = OPERATION_WAIT_TIME):
+    Win32API.MouseDragDrop(x1, y1, x2, y2, 1, waitTime)
+
+def KeyDown(key, waitTime = OPERATION_WAIT_TIME):
+    '''key: a value in class Keys'''
+    Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
+    time.sleep(waitTime)
+
+def KeyUp(key, waitTime = OPERATION_WAIT_TIME):
+    '''key: a value in class Keys'''
+    Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
+    time.sleep(waitTime)
 
 def SendKey(key, waitTime = OPERATION_WAIT_TIME):
     '''
