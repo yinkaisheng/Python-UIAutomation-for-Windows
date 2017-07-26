@@ -3855,6 +3855,12 @@ def SetGlobalSearchTimeOut(seconds):
     global TIME_OUT_SECOND
     TIME_OUT_SECOND = seconds
 
+def GetClipboardText():
+    return Win32API.GetClipboardText()
+
+def SetClipboardText(text):
+    Win32API.SetClipboardText(text)
+
 def Click(x, y, waitTime = OPERATION_WAIT_TIME):
     Win32API.MouseClick(x, y, waitTime)
 
