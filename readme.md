@@ -115,3 +115,6 @@ QQ
 
 Batch rename pdf bookmark
 ![bookmark](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/rename_pdf_bookmark.gif)
+
+Pretty print dir
+![PrettyPrint](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/pretty_print_dir.png)
