@@ -36,3 +36,4 @@ if __name__ == '__main__':
         main(adir)
     else:
         main(sys.argv[1])
+    input('press Enter to exit')
