@@ -12,7 +12,7 @@ def GetPersonDetail():
     detailWindow = automation.WindowControl(searchDepth= 1, ClassName = 'TXGuiFoundation', SubName = '的资料')
     detailPane = detailWindow.PaneControl(Name = '资料')
     details = ''
-    for control, depth in automation.WalkTree(detailPane, lambda c: c.GetChildren()):
+    for control, depth, remainCount in automation.WalkTree(detailPane, lambda c: c.GetChildren()):
         if control.ControlType == automation.ControlType.TextControl:
             details += control.Name
         elif control.ControlType == automation.ControlType.EditControl:

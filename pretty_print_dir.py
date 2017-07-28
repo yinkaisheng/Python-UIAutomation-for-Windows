@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import time
 import uiautomation as automation
 
 def GetDirChildren(directory):
@@ -18,22 +17,22 @@ def GetDirChildren(directory):
         return subdirs + files
 
 def main(directory):
-    abs_dir = os.path.abspath(directory)
-    for it, depth in automation.WalkTree(abs_dir, getChildrenFunc= GetDirChildren, includeTop= True):
-        if depth == 0:
-            automation.Logger.WriteLine(it[it.rfind('\\')+1:], automation.ConsoleColor.Cyan)
-        else:
-            if os.path.isdir(it):
-                automation.Logger.ColorfulWriteLine('|     ' * (depth - 1) + '|---- <Color=Cyan>' + it[it.rfind('\\')+1:] + '</Color>')
-            else:
-                automation.Logger.WriteLine('|     ' * (depth - 1) + '|---- ' + it[it.rfind('\\')+1:])
+    remain = {}
+    text = ''
+    absdir = os.path.abspath(directory)
+    for it, depth, remainCount in automation.WalkTree(absdir, getChildrenFunc= GetDirChildren, includeTop= True):
+        remain[depth] = remainCount
+        prefix = ''.join(['|     ' if remain[i+1] else '      ' for i in range(depth - 1)]) + ('|---- ' if depth > 0 else '')
+        file = it[it.rfind('\\')+1:]
+        text += prefix + file + '\n'
+        automation.Logger.Write(prefix)
+        automation.Logger.WriteLine(file, automation.ConsoleColor.Cyan if os.path.isdir(it) else -1)
+    automation.SetClipboardText(text)
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         adir = input('input a dir: ')
-        if not adir:
-            adir = '.'
         main(adir)
     else:
         main(sys.argv[1])
-    input('press Enter to exit')
+    input('\nThe pretty dir tree has been copied to clipboard, just paste it\nPress Enter to exit')

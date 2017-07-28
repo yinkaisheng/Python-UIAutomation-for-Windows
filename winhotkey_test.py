@@ -5,7 +5,15 @@ import time
 import subprocess
 import uiautomation as automation
 
+def ReleaseAllKey():
+    for key, value in automation.Keys.__dict__.items():
+        if isinstance(value, int) and key.startswith('VK'):
+            if automation.Win32API.IsKeyPressed(value):
+                automation.Logger.WriteLine('{:<30} is pressed, release it'.format(key))
+                automation.Win32API.ReleaseKey(value)
+
 def test1(stopEvent):
+    c = automation.GetRootControl()
     n = 0
     while True:
         if stopEvent.is_set():
@@ -33,6 +41,7 @@ def test2(stopEvent):
                 automation.Win32API.TerminateProcess(pid)
             break
         stopEvent.wait(1)
+    ReleaseAllKey()
     automation.Logger.WriteLine('test2 exits', automation.ConsoleColor.DarkGreen)
 
 def main():

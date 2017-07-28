@@ -3930,28 +3930,29 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
     '''
     walking a tree not using recursive algorithm
     if getChildrenFunc is valid, ignore getFirstChildFunc and getNextSiblingFunc
+        yield 3 items tuple: (item, depth, remain children count in current depth)
     if getChildrenFunc is not valid, using getFirstChildFunc and getNextSiblingFunc
-    yield item, current depth
+        yield 2 items tuple: (item, depth)
     example:
     def GetDirChildren(dir):
         if os.path.isdir(dir):
             return [os.path.join(dir, it) for it in os.listdir(dir)]
 
-    for it, depth in WalkTree('D:\\', getChildrenFunc= GetDirChildren):
-        print(it, depth)
+    for it, depth, count in WalkTree('D:\\', getChildrenFunc= GetDirChildren):
+        print(it, depth, count)
     '''
-    if includeTop:
-        yield top, 0
     if maxDepth <= 0:
         return
     depth = 0
     if getChildrenFunc:
+        if includeTop:
+            yield top, 0, 0
         children = getChildrenFunc(top)
         childList = [children]
         while depth >= 0:   #or while childList:
             lastItems = childList[-1]
             if lastItems:
-                yield lastItems[0], depth + 1
+                yield lastItems[0], depth + 1, len(lastItems) - 1
                 if depth + 1 < maxDepth:
                     children = getChildrenFunc(lastItems[0])
                     if children:
@@ -3962,6 +3963,8 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
                 del childList[depth]
                 depth -= 1
     elif getFirstChildFunc and getNextSiblingFunc:
+        if includeTop:
+            yield top, 0
         child = getFirstChildFunc(top)
         childList = [child]
         while depth >= 0:  #or while childList:

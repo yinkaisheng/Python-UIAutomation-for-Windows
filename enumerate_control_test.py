@@ -16,7 +16,7 @@ def WalkDir():
                     files.append(absPath)
             return subdirs + files
 
-    for it, depth in automation.WalkTree(r'c:\Program Files\Internet Explorer', getChildrenFunc= GetDirChildren, includeTop= True):
+    for it, depth, remainCount in automation.WalkTree(r'c:\Program Files\Internet Explorer', getChildrenFunc= GetDirChildren, includeTop= True):
         print(' ' * depth * 4 + it)
 
 def WalkDesktop():

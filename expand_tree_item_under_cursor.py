@@ -23,7 +23,7 @@ def GetTreeItemChildren(item):
         return item.GetChildren()
 
 def ExpandTreeItem(treeItem):
-    for item, depth in automation.WalkTree(treeItem, getChildrenFunc = GetTreeItemChildren, includeTop = True, maxDepth = MaxExpandDepth):
+    for item, depth, remainCount in automation.WalkTree(treeItem, getChildrenFunc = GetTreeItemChildren, includeTop = True, maxDepth = MaxExpandDepth):
         if isinstance(item, automation.TreeItemControl):  #or item.ControlType == automation.ControlType.TreeItemControl
             if PrintTree:
                 automation.Logger.WriteLine(' ' * (depth * 4) + item.Name)
