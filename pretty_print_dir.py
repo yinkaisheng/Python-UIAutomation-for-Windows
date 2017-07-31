@@ -22,7 +22,12 @@ def main(directory, maxDepth = 0xFFFFFFFF):
     absdir = os.path.abspath(directory)
     for it, depth, remainCount in automation.WalkTree(absdir, getChildrenFunc= GetDirChildren, includeTop= True, maxDepth= maxDepth):
         remain[depth] = remainCount
-        prefix = ''.join(['|     ' if remain[i+1] else '      ' for i in range(depth - 1)]) + ('|---- ' if depth > 0 else '')
+        prefix = ''.join(['│    ' if remain[i+1] else '     ' for i in range(depth - 1)])
+        if depth > 0:
+            if remain[depth] > 0:
+                prefix += '├--- '
+            else:
+                prefix += '└--- '
         file = it[it.rfind('\\')+1:]
         text.append(prefix)
         text.append(file)
