@@ -18,16 +18,19 @@ def GetDirChildren(directory):
 
 def main(directory, maxDepth = 0xFFFFFFFF):
     remain = {}
-    text = ''
+    text = []
     absdir = os.path.abspath(directory)
     for it, depth, remainCount in automation.WalkTree(absdir, getChildrenFunc= GetDirChildren, includeTop= True, maxDepth= maxDepth):
         remain[depth] = remainCount
         prefix = ''.join(['|     ' if remain[i+1] else '      ' for i in range(depth - 1)]) + ('|---- ' if depth > 0 else '')
         file = it[it.rfind('\\')+1:]
+        text.append(prefix)
+        text.append(file)
+        text.append('\n')
         text += prefix + file + '\n'
         automation.Logger.Write(prefix)
         automation.Logger.WriteLine(file, automation.ConsoleColor.Cyan if os.path.isdir(it) else -1)
-    automation.SetClipboardText(text)
+    automation.SetClipboardText(''.join(text))
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
