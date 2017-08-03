@@ -37,7 +37,7 @@ def DemoCN():
     optionWindow.ButtonControl(AutomationId = '1').Click()
     cmdWindow.SetActive()
     l, t, r, b = cmdWindow.BoundingRectangle
-    automation.Win32API.MouseDragTo(l + 50, t + 10, 50, 10)
+    automation.DragDrop(l + 50, t + 10, 50, 10)
 
     thisWindow.SetActive()
     automation.Logger.ColorfulWrite('我将运行<Color=Cyan>记事本</Color>并输入<Color=Cyan>Hello!!!</Color>\n\n')
@@ -115,7 +115,7 @@ def DemoEN():
     automation.SendKeys('cmd{Enter}')
     cmdWindow = automation.WindowControl(SubName = 'cmd.exe')
     l, t, r, b = cmdWindow.BoundingRectangle
-    automation.Win32API.MouseDragTo(l + 50, t + 10, 50, 10)
+    automation.DragDrop(l + 50, t + 10, 50, 10)
 
     thisWindow.SetActive()
     automation.Logger.ColorfulWrite('I will run <Color=Cyan>Notepad</Color> and type <Color=Cyan>Hello!!!</Color>\n\n')

@@ -3664,7 +3664,7 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
         if window.Exists(0, 0):
             screenWidth, screenHeight = Win32API.GetScreenSize()
             Win32API.MouseMoveTo(screenWidth//2, 0, waitTime = 0)
-            Win32API.MouseDragTo(screenWidth//2, 0, screenWidth//2, screenHeight, waitTime = waitTime)
+            Win32API.MouseDragDrop(screenWidth//2, 0, screenWidth//2, screenHeight, waitTime = waitTime)
         else:
             Logger.WriteLine('Window is not Metro!', ConsoleColor.Yellow)
 
