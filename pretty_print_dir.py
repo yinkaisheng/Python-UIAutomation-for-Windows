@@ -31,7 +31,7 @@ def main(directory, maxDepth = 0xFFFFFFFF):
         file = it[it.rfind('\\')+1:]
         text.append(prefix)
         text.append(file)
-        text.append('\n')
+        text.append('\r\n')
         automation.Logger.Write(prefix)
         automation.Logger.WriteLine(file, automation.ConsoleColor.Cyan if os.path.isdir(it) else -1)
     automation.SetClipboardText(''.join(text))
