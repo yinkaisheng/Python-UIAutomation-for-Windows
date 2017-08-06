@@ -4,10 +4,13 @@ import os
 import time
 import subprocess
 import ctypes
-import uiautomation as automation
+
+os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+from uiautomation import uiautomation as automation
+
 
 def DemoCN():
-    '''for Chinese language'''
+    """for Chinese language"""
     thisWindow = automation.GetConsoleWindow()
     automation.Logger.ColorfulWrite('我将运行<Color=Cyan>cmd</Color>并设置它的<Color=Cyan>屏幕缓冲区</Color>使<Color=Cyan>cmd</Color>一行能容纳很多字符\n\n')
     time.sleep(3)
@@ -103,8 +106,9 @@ def DemoCN():
     automation.Logger.WriteLine('演示结束，按Enter退出', automation.ConsoleColor.Green)
     input()
 
+
 def DemoEN():
-    '''for other language'''
+    """for other language"""
     thisWindow = automation.GetConsoleWindow()
     automation.Logger.ColorfulWrite('I will run <Color=Cyan>cmd</Color>\n\n')
     time.sleep(3)

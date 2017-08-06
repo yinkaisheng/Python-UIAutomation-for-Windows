@@ -1,9 +1,12 @@
 #!python3
 # -*- coding:utf-8 -*-
 import os
-import time
 import subprocess
-import uiautomation as automation
+
+
+os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+from uiautomation import uiautomation as automation
+
 
 def ReleaseAllKey():
     for key, value in automation.Keys.__dict__.items():
@@ -11,6 +14,7 @@ def ReleaseAllKey():
             if automation.Win32API.IsKeyPressed(value):
                 automation.Logger.WriteLine('{:<30} is pressed, release it'.format(key))
                 automation.Win32API.ReleaseKey(value)
+
 
 def test1(stopEvent):
     c = automation.GetRootControl()
@@ -22,6 +26,7 @@ def test1(stopEvent):
         n += 1
         stopEvent.wait(1)
     print('test1 exits')
+
 
 def test2(stopEvent):
     p = subprocess.Popen('python.exe automation_notepad_py3.py')
@@ -44,12 +49,11 @@ def test2(stopEvent):
     ReleaseAllKey()
     automation.Logger.WriteLine('test2 exits', automation.ConsoleColor.DarkGreen)
 
+
 def main():
-    automation.RunWithHotKey({
-                                   (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1) : test1
-                                   , (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_2) : test2
-                               }
-                               , (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_4))
+    automation.RunWithHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1): test1,
+                              (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_2): test2},
+                             (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_4))
 
 if __name__ == '__main__':
     main()

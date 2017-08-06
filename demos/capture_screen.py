@@ -3,7 +3,10 @@
 import os
 import time
 import subprocess
-import uiautomation as automation
+
+os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+from uiautomation import uiautomation as automation
+
 
 def CaptureControl(c, path, up = False):
     if c.CaptureToImage(path):

@@ -1,7 +1,10 @@
 #!python3
 # -*- coding: utf-8 -*-
 import os
-import uiautomation as automation
+
+os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+from uiautomation import uiautomation as automation
+
 
 def WalkDir():
     def GetDirChildren(dir):
@@ -16,8 +19,9 @@ def WalkDir():
                     files.append(absPath)
             return subdirs + files
 
-    for it, depth, remainCount in automation.WalkTree(r'c:\Program Files\Internet Explorer', getChildrenFunc= GetDirChildren, includeTop= True):
+    for it, depth, remainCount in automation.WalkTree(r'c:\Program Files\Internet Explorer', getChildrenFunc=GetDirChildren, includeTop=True):
         print(' ' * depth * 4 + it)
+
 
 def WalkDesktop():
     def GetFirstChild(control):
@@ -27,13 +31,15 @@ def WalkDesktop():
         return control.GetNextSiblingControl()
 
     desktop = automation.GetRootControl()
-    for control, depth in automation.WalkTree(desktop, getFirstChildFunc= GetFirstChild, getNextSiblingFunc= GetNextSibling, includeTop= True, maxDepth= 1):
+    for control, depth in automation.WalkTree(desktop, getFirstChildFunc=GetFirstChild, getNextSiblingFunc=GetNextSibling, includeTop=True, maxDepth= 1):
         print(' ' * depth * 4 + str(control))
+
 
 def WalkCurrentWindow():
     window = automation.GetForegroundControl().GetTopWindow()
     for control, depth in automation.WalkControl(window, True):
         print(' ' * depth * 4 + str(control))
+
 
 def main():
     WalkDir()
