@@ -1,7 +1,11 @@
 #!python3
 # -*- coding:utf-8 -*-
+import os
 import time
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
 import uiautomation as automation
+
 
 def main():
     consoleWindow = automation.GetConsoleWindow()

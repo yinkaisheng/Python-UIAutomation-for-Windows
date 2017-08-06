@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 #author: yinkaisheng@foxmail.com
-'''
+"""
 How to use:
 Wireshark version must >= 2.0
 run Wireshark and start capture
@@ -11,18 +11,20 @@ such as:
     rtp && !h264
     h264 && rtp.marker==1 && udp.dstport==10016
 run this script
-'''
+"""
 
-import sys
+import os
 import time
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
 import uiautomation as automation
 
 
 class PacketInfo():
-    '''Class Packet Info'''
+    """Class Packet Info"""
 
     def __init__(self):
-        '''Constructor'''
+        """Constructor"""
         self.No = 0
         self.Time = 0.0
         self.Source = ''
@@ -34,7 +36,7 @@ class PacketInfo():
         self.Seq = 0
 
 
-def Analyze(sampleRate = 90000, beginNo = 0, maxPackets = 0xFFFFFFFF, calculateLost = False):
+def Analyze(sampleRate=90000, beginNo=0, maxPackets=0xFFFFFFFF, calculateLost=False):
     wireSharkWindow = automation.WindowControl(searchDepth= 1, ClassName = 'Qt5QWindowIcon')
     if wireSharkWindow.Exists(0, 0):
         wireSharkWindow.SetActive()
@@ -139,14 +141,14 @@ def Analyze(sampleRate = 90000, beginNo = 0, maxPackets = 0xFFFFFFFF, calculateL
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--sample', type = int, dest = 'sampleRate', default = 0,
-                      help = 'sample rate')
-    parser.add_argument('-b', '--begin', type = int, dest = 'beginNo', default = 0,
-                      help = 'begin no')
-    parser.add_argument('-n', '--num', type = int, dest = 'maxPacket', default = 0xFFFFFFFF,
-                      help = 'read packets count')
-    parser.add_argument('-l', '--lost', type = bool, dest = 'calculateLost', default = False,
-                          help = 'calculate lost packets')
+    parser.add_argument('-s', '--sample', type=int, dest='sampleRate', default=0,
+                        help='sample rate')
+    parser.add_argument('-b', '--begin', type=int, dest='beginNo', default=0,
+                        help='begin no')
+    parser.add_argument('-n', '--num', type=int, dest='maxPacket', default=0xFFFFFFFF,
+                        help='read packets count')
+    parser.add_argument('-l', '--lost', type=bool, dest='calculateLost', default=False,
+                        help ='calculate lost packets')
     args = parser.parse_args()
     cmdWindow = automation.GetConsoleWindow()
     cmdWindow.SetTopmost()

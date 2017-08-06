@@ -4,9 +4,11 @@ import os
 import time
 import subprocess
 import ctypes
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
 import uiautomation as automation
 
-text = '''The uiautomation module
+text = """The uiautomation module
 
 This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
 It supports UIAutomation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
@@ -17,7 +19,8 @@ uiautomation is shared under the Apache Licene 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
 具体用法参考: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
-'''
+"""
+
 
 def testNotepadCN():
     consoleWindow = automation.GetConsoleWindow()
@@ -78,6 +81,7 @@ def testNotepadCN():
     consoleWindow.SetActive()
     automation.Logger.WriteLine('script exits', automation.ConsoleColor.Cyan)
     time.sleep(2)
+
 
 def testNotepadEN():
     consoleWindow = automation.GetConsoleWindow()

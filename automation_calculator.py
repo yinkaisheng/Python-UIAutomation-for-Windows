@@ -3,7 +3,11 @@
 # works on windows XP, 7, 8 and 10
 import time
 import subprocess
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
 import uiautomation as automation
+
 
 def Calc(window, btns, expression):
     expression = ''.join(expression.split())
@@ -16,6 +20,7 @@ def Calc(window, btns, expression):
     result = automation.Win32API.GetClipboardText()
     automation.Logger.WriteLine(result, automation.ConsoleColor.Cyan, writeToFile = False)
     time.sleep(1)
+
 
 def CalcOnXP():
     chars = '0123456789.+-*/=()'
@@ -31,6 +36,7 @@ def CalcOnXP():
         char2Button[key] = calcWindow.ButtonControl(Name = key)
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90')
     Calc(calcWindow, char2Button, '2*3.14159*10')
+
 
 def CalcOnWindows7And8():
     char2Id = {
@@ -66,6 +72,7 @@ def CalcOnWindows7And8():
         char2Button[key] = calcWindow.ButtonControl(AutomationId = char2Id[key])
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90')
     Calc(calcWindow, char2Button, '2*3.14159*10')
+
 
 def CalcOnWindows10():
     char2Id = {

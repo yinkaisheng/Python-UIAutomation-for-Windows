@@ -3,9 +3,12 @@
 #rename pdf bookmarks with FoxitReader 7.2.4, 参考: http://www.cnblogs.com/Yinkaisheng/p/4820954.html
 import sys
 import time
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
 import uiautomation as automation
 
-TreeDepth = 1 #书签树需要命名的层数
+TreeDepth = 1  #书签树需要命名的层数
 TreeSkipDepthList = []
 RenameFunction = None
 LowerWords = ['a', 'an', 'and', 'at', 'for', 'in', 'of', 'on', 'the', 'to', 'with', 'from']
@@ -58,6 +61,7 @@ class BookMark():
         self.newName = newName
         self.children = []
 
+
 def BatchRename():
     foxitWindow = automation.WindowControl(searchDepth= 1, ClassName= 'classFoxitReader')
     foxitWindow.ShowWindow(automation.ShowWindow.ShowMaximized)
@@ -101,10 +105,12 @@ def BatchRename():
         while '*' in foxitWindow.Name:
             time.sleep(0.5)
 
+
 def DumpBookMark(fout, bookMark, depth):
     fout.write(' ' * (depth - 1) * 4 + bookMark.newName + '\n')
     for child in bookMark.children:
         DumpBookMark(fout, child, depth + 1)
+
 
 def RenameTreeItem(tree, treeItem, bookMarks, depth, removeChapter = True):
     treeItem.ScrollIntoView()
@@ -175,6 +181,7 @@ def RenameTreeItem(tree, treeItem, bookMarks, depth, removeChapter = True):
         for child in childItems:
             RenameTreeItem(tree, child, bookMark.children, depth + 1, removeChapter)
 
+
 def Rename1(name, removeChapter = True):
     alert = False
     newName = name.strip().replace('‘', '\'').replace('’', '\'').replace('“', '"').replace('”', '"')
@@ -199,6 +206,7 @@ def Rename1(name, removeChapter = True):
         i += 1
     newName = ' '.join(words)
     return newName, alert
+
 
 def Rename2(name, removeChapter = True):
     alert = False
@@ -243,11 +251,12 @@ def Rename2(name, removeChapter = True):
     return newName, alert
 
 def usage():
-    sys.stdout.write('''usage
+    sys.stdout.write("""usage
 -h      show command help
 -r      rename function, 1 or 2
 -d      bookmark tree depth
-''')
+""")
+
 
 def main():
     BatchRename()

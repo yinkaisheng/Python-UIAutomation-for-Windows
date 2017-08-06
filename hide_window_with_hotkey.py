@@ -4,12 +4,13 @@
 # run notepad.exe first and then press the hotkey for test
 import os
 import sys
-import time
-import ctypes
 import subprocess
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
 import uiautomation as automation
 
 WindowsWantToHide = ('Warcraft III', 'Valve001', 'Counter-Strike', 'Notepad')
+
 
 def hide():
     root = automation.GetRootControl()
@@ -20,6 +21,7 @@ def hide():
             fin = open('hide_windows.txt', 'wt')
             fin.write(str(window.Handle) + '\n')
             fin.close()
+
 
 def show():
     fout = open('hide_windows.txt')

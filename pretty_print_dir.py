@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
 import uiautomation as automation
+
 
 def GetDirChildren(directory):
     if os.path.isdir(directory):
@@ -16,11 +19,12 @@ def GetDirChildren(directory):
                 files.append(absPath)
         return subdirs + files
 
+
 def main(directory, maxDepth = 0xFFFFFFFF):
     remain = {}
     text = []
     absdir = os.path.abspath(directory)
-    for it, depth, remainCount in automation.WalkTree(absdir, getChildrenFunc= GetDirChildren, includeTop= True, maxDepth= maxDepth):
+    for it, depth, remainCount in automation.WalkTree(absdir, getChildrenFunc=GetDirChildren, includeTop=True, maxDepth=maxDepth):
         remain[depth] = remainCount
         prefix = ''.join(['│   ' if remain[i+1] else '    ' for i in range(depth - 1)])
         if depth > 0:
@@ -38,8 +42,8 @@ def main(directory, maxDepth = 0xFFFFFFFF):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        adir = input('input a dir: ')
-        main(adir)
+        dir_ = input('input a dir: ')
+        main(dir_)
     elif len(sys.argv) == 2:
         main(sys.argv[1])
     else:
