@@ -1,12 +1,16 @@
 #!python3
 # -*- coding: utf-8 -*-
-'''
+"""
 本脚本可以获取QQ2016群所有成员详细资料，请根据提示做对应的操作
 作者：yinkaisheng@foxmail.com
 2016-01-06
-'''
+"""
+import os
 import time
-import uiautomation as automation
+
+os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+from uiautomation import uiautomation as automation
+
 
 def GetPersonDetail():
     detailWindow = automation.WindowControl(searchDepth= 1, ClassName = 'TXGuiFoundation', SubName = '的资料')
@@ -20,6 +24,7 @@ def GetPersonDetail():
     details += '\n' * 2
     detailWindow.Click(0.95, 0.02)
     return details
+
 
 def main():
     automation.Logger.WriteLine('请把鼠标放在QQ群聊天窗口中的一个成员上面，3秒后获取\n')

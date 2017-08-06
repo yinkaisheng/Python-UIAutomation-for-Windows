@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import time
 import subprocess
-import uiautomation as automation
+
+os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+from uiautomation import uiautomation as automation
+
 
 def CollapseTreeItem(treeItem):
     if not isinstance(treeItem, automation.TreeItemControl):
@@ -17,9 +19,11 @@ def CollapseTreeItem(treeItem):
         return True
     return False
 
+
 def main():
     treeItem = automation.ControlFromCursor()
     CollapseTreeItem(treeItem)
+
 
 def HotKeyFunc(stopEvent):
     scriptName = os.path.basename(__file__)
@@ -49,5 +53,6 @@ if __name__ == '__main__':
         main()
     else:
         automation.Logger.WriteLine('move mouse to a tree control and press Ctrl+3', automation.ConsoleColor.Green)
-        automation.RunWithHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_3) : HotKeyFunc}, (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_4))
+        automation.RunWithHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_3) : HotKeyFunc},
+                                 (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_4))
 
