@@ -1,6 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
-'''
+"""
 Author: yinkaisheng(Nanjing, China)
 Mail: yinkaisheng@foxmail.com
 Source: https://github.com/yinkaisheng/Python-UIAutomation-for-Windows
@@ -13,7 +13,7 @@ uiautomation is shared under the Apache Licene 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
 代码原理简单介绍: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
-'''
+"""
 import sys
 import os
 import time
@@ -28,36 +28,35 @@ if not IsPy3:
 VERSION = '1.0.9'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
-SEARCH_INTERVAL = 0.5 # search control interval seconds
-MAX_MOVE_SECOND = 1 # simulate mouse move or drag max seconds
+SEARCH_INTERVAL = 0.5  # search control interval seconds
+MAX_MOVE_SECOND = 1  # simulate mouse move or drag max seconds
 TIME_OUT_SECOND = 15
 OPERATION_WAIT_TIME = 0.5
 MAX_PATH = 260
 
 
-class _AutomationClient():
+class _AutomationClient:
     def __init__(self):
-        dir = os.path.dirname(__file__)
-        if dir:
-            oldDir = os.getcwd()
-            os.chdir(dir)
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        os.environ["PATH"] = os.path.join(base_path, "bin") + os.pathsep + os.environ["PATH"]
+
         if '32 bit' in sys.version:
-            if sys.version[:3] >= '3.5':
+            if sys.version_info[:2] >= (3, 5):
                 self.dll = ctypes.cdll.UIAutomationClient_VC140_X86
-            elif sys.version[:3] >= '3.3':
+            elif sys.version_info[:2] >= (3, 3):
                 self.dll = ctypes.cdll.UIAutomationClient_VC100_X86
             else:
                 self.dll = ctypes.cdll.UIAutomationClient_VC90_X86
         else:
-            if sys.version[:3] >= '3.5':
+            if sys.version_info[:2] >= (3, 5):
                 self.dll = ctypes.cdll.UIAutomationClient_VC140_X64
-            elif sys.version[:3] >= '3.3':
+            elif sys.version_info[:2] >= (3, 3):
                 self.dll = ctypes.cdll.UIAutomationClient_VC100_X64
             else:
                 self.dll = ctypes.cdll.UIAutomationClient_VC90_X64
+
         self.InitFunctionType()
-        if dir:
-            os.chdir(oldDir)
+
         if not self.dll.InitInstance():
             raise RuntimeError('Can not get an instance of IUIAutomation.\nYou may need to install Windows Update KB971513.\nhttps://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation')
 
@@ -222,7 +221,7 @@ _rootControl = None
 
 
 class ControlType():
-    '''This class defines the values of control type'''
+    """This class defines the values of control type"""
     AppBarControl = 0xc378
     ButtonControl = 0xc350
     CalendarControl = 0xc351
@@ -312,7 +311,7 @@ ControlTypeNameDict = {
 
 
 class PatternId():
-    '''This class defines the values of pattern id'''
+    """This class defines the values of pattern id"""
     UIA_AnnotationPatternId = 0x2727
     UIA_DockPatternId = 0x271b
     UIA_DragPatternId = 0x272e
@@ -372,8 +371,8 @@ PatternDict = {
     PatternId.UIA_WindowPatternId : 'WindowPattern'}
 
 
-class AccessibleRole():
-    '''This class defines the values of Accessible Role'''
+class AccessibleRole:
+    """This class defines the values of Accessible Role"""
     SystemTitleBar = 0x1
     SystemMenuBar = 0x2
     SystemScrollBar = 0x3
@@ -477,7 +476,7 @@ class AccessibleState():
     SystemHasPopup = 0x40000000
 
 
-class AccessibleSelectFlag():
+class AccessibleSelectFlag:
     FlagNone = 0
     FlagTakeFocus = 0x1
     FlagTakeSelection = 0x2
@@ -487,10 +486,11 @@ class AccessibleSelectFlag():
     FlagValid = 0x1f
 
 
-class RowOrColumnMajor():
+class RowOrColumnMajor:
     RowMajor = 0
     ColumnMajor = 1
     Indeterminate = 2
+
 
 class Point(ctypes.Structure):
     _fields_ = [("x", ctypes.c_ulong), ("y", ctypes.c_ulong)]
@@ -517,39 +517,43 @@ class Rect(ctypes.Structure):
 
 
 class ConsoleScreenBufferInfo(ctypes.Structure):
-    _fields_ = [('dwSize', Coord),
-               ('dwCursorPosition', Coord),
-               ('wAttributes', ctypes.c_uint),
-               ('srWindow', SmallRect),
-               ('dwMaximumWindowSize', Coord),
-              ]
+    _fields_ = [
+        ('dwSize', Coord),
+        ('dwCursorPosition', Coord),
+        ('wAttributes', ctypes.c_uint),
+        ('srWindow', SmallRect),
+        ('dwMaximumWindowSize', Coord),
+    ]
 
 
 class tagPROCESSENTRY32(ctypes.Structure):
-    _fields_ = [('dwSize',              ctypes.wintypes.DWORD),
-                ('cntUsage',            ctypes.wintypes.DWORD),
-                ('th32ProcessID',       ctypes.wintypes.DWORD),
-                ('th32DefaultHeapID',   ctypes.POINTER(ctypes.wintypes.ULONG)),
-                ('th32ModuleID',        ctypes.wintypes.DWORD),
-                ('cntThreads',          ctypes.wintypes.DWORD),
-                ('th32ParentProcessID', ctypes.wintypes.DWORD),
-                ('pcPriClassBase',      ctypes.wintypes.LONG),
-                ('dwFlags',             ctypes.wintypes.DWORD),
-                ('szExeFile',           ctypes.c_wchar * 260)
-               ]
+    _fields_ = [
+        ('dwSize',              ctypes.wintypes.DWORD),
+        ('cntUsage',            ctypes.wintypes.DWORD),
+        ('th32ProcessID',       ctypes.wintypes.DWORD),
+        ('th32DefaultHeapID',   ctypes.POINTER(ctypes.wintypes.ULONG)),
+        ('th32ModuleID',        ctypes.wintypes.DWORD),
+        ('cntThreads',          ctypes.wintypes.DWORD),
+        ('th32ParentProcessID', ctypes.wintypes.DWORD),
+        ('pcPriClassBase',      ctypes.wintypes.LONG),
+        ('dwFlags',             ctypes.wintypes.DWORD),
+        ('szExeFile',           ctypes.c_wchar * 260)
+    ]
 
 
 class MSG(ctypes.Structure):
-    _fields_=[("hwnd",      ctypes.c_uint),
-              ("message",   ctypes.c_uint),
-              ("wParam",    ctypes.c_uint),
-              ("lParam",    ctypes.c_uint),
-              ("time",      ctypes.c_uint),
-              ("pt",        ctypes.c_ulonglong)]
+    _fields_ = [
+        ("hwnd",      ctypes.c_uint),
+        ("message",   ctypes.c_uint),
+        ("wParam",    ctypes.c_uint),
+        ("lParam",    ctypes.c_uint),
+        ("time",      ctypes.c_uint),
+        ("pt",        ctypes.c_ulonglong)
+    ]
 
 
 class MouseEventFlags():
-    '''This class defines the MouseEventFlags from Win32'''
+    """This class defines the MouseEventFlags from Win32"""
     Absolute = 0x8000
     LeftDown = 0x0002
     LeftUp = 0x0004
@@ -561,14 +565,14 @@ class MouseEventFlags():
     Wheel = 0x0800
 
 
-class KeyboardEventFlags():
-    '''This class defines the KeyboardEventFlags from Win32'''
+class KeyboardEventFlags:
+    """This class defines the KeyboardEventFlags from Win32"""
     KeyDown = 0x0000
     ExtendedKey = 0x0001
     KeyUp = 0x0002
 
 
-class ModifierKey():
+class ModifierKey:
     MOD_ALT = 0x0001
     MOD_CONTROL = 0x0002
     MOD_SHIFT = 0x0004
@@ -576,8 +580,8 @@ class ModifierKey():
     MOD_NOREPEAT = 0x4000
 
 
-class Keys():
-    '''This class defines the Key Code from Win32'''
+class Keys:
+    """This class defines the Key Code from Win32"""
     VK_LBUTTON = 0x01                       #Left mouse button
     VK_RBUTTON = 0x02                       #Right mouse button
     VK_CANCEL = 0x03                        #Control-break processing
@@ -754,7 +758,7 @@ class Keys():
 
 
 class ConsoleColor():
-    '''This class defines the values of color for printing on console window'''
+    """This class defines the values of color for printing on console window"""
     Black = 0
     DarkBlue = 1
     DarkGreen = 2
@@ -773,26 +777,26 @@ class ConsoleColor():
     White = 15
 
 
-class ExpandCollapseState():
+class ExpandCollapseState:
     Collapsed = 0
     Expanded = 1
     PartiallyExpanded = 2
     LeafNode = 3
 
 
-class ToggleState():
+class ToggleState:
     Off = 0
     On = 1
     Indeterminate = 2
 
 
-class WindowVisualState():
+class WindowVisualState:
     Normal = 0
     Maximized = 1
     Minimized = 2
 
 
-class ShowWindow():
+class ShowWindow:
     Hide = 0
     ShowNormal = 1
     Normal = 1
@@ -810,7 +814,7 @@ class ShowWindow():
     Max = 11
 
 
-class SWP():
+class SWP:
     HWND_TOP = 0
     HWND_BOTTOM = 1
     HWND_TOPMOST = -1
@@ -832,7 +836,7 @@ class SWP():
     SWP_ASYNCWINDOWPOS = 0x4000
 
 
-class MB():
+class MB:
     OK = 0x00000000
     OKCANCEL = 0x00000001
     ABORTRETRYIGNORE = 0x00000002
@@ -887,8 +891,8 @@ class MB():
     IDTIMEOUT = 32000
 
 
-class Win32API():
-    '''Some native methods for python calling'''
+class Win32API:
+    """Some native methods for python calling"""
     StdOutputHandle = -11
     ConsoleOutputHandle = None
     DefaultColor = None
@@ -1156,7 +1160,7 @@ class Win32API():
 
     @staticmethod
     def SetConsoleColor(color):
-        '''Change the text color on console window'''
+        """Change the text color on console window"""
         if not Win32API.DefaultColor:
             if not Win32API.ConsoleOutputHandle:
                 Win32API.ConsoleOutputHandle = ctypes.windll.kernel32.GetStdHandle(Win32API.StdOutputHandle)
@@ -1169,14 +1173,14 @@ class Win32API():
 
     @staticmethod
     def ResetConsoleColor():
-        '''Reset the default text color on console window'''
+        """Reset the default text color on console window"""
         if IsPy3:
             sys.stdout.flush() # need flush stdout in python 3
         ctypes.windll.kernel32.SetConsoleTextAttribute(Win32API.ConsoleOutputHandle, Win32API.DefaultColor)
 
     @staticmethod
     def WindowFromPoint(x, y):
-        '''Return hwnd'''
+        """Return hwnd"""
         point = Point()
         point.x = x
         point.y = y
@@ -1184,47 +1188,47 @@ class Win32API():
 
     @staticmethod
     def GetCursorPos():
-        '''Return tuple (x, y)'''
+        """Return tuple (x, y)"""
         point = Point()
         ctypes.windll.user32.GetCursorPos(ctypes.byref(point))
         return int(point.x), int(point.y)
 
     @staticmethod
     def SetCursorPos(x, y):
-        '''Set cursor to point x, y'''
+        """Set cursor to point x, y"""
         ctypes.windll.user32.SetCursorPos(x, y)
 
     @staticmethod
     def GetDoubleClickTime():
-        '''Get the double click time of mouse'''
+        """Get the double click time of mouse"""
         return ctypes.windll.user32.GetDoubleClickTime()
 
     @staticmethod
     def mouse_event(dwFlags, dx, dy, dwData, dwExtraInfo):
-        '''Call API mouse_event from user32.dll'''
+        """Call API mouse_event from user32.dll"""
         ctypes.windll.user32.mouse_event(dwFlags, dx, dy, dwData, dwExtraInfo)
 
     @staticmethod
     def keybd_event(bVk, bScan, dwFlags, dwExtraInfo):
-        '''Call API keybd_event from user32.dll'''
+        """Call API keybd_event from user32.dll"""
         ctypes.windll.user32.keybd_event(bVk, bScan, dwFlags, dwExtraInfo)
 
     @staticmethod
     def PostMessage(handle, msg, wparam, lparam):
-        '''Call API PostMessageW from user32.dll'''
+        """Call API PostMessageW from user32.dll"""
         return ctypes.windll.user32.PostMessageW(handle, msg, wparam, lparam)
 
     @staticmethod
     def SendMessage(handle, msg, wparam, lparam):
-        '''Call API SendMessageW from user32.dll'''
+        """Call API SendMessageW from user32.dll"""
         return ctypes.windll.user32.SendMessageW(handle, msg, wparam, lparam)
 
     @staticmethod
     def MouseClick(x, y, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Simulate mouse click at point x, y
         x and y must be integer
-        '''
+        """
         Win32API.SetCursorPos(x, y)
         Win32API.mouse_event(MouseEventFlags.LeftDown | MouseEventFlags.Absolute, x, y, 0, 0)
         time.sleep(0.05)
@@ -1234,10 +1238,10 @@ class Win32API():
 
     @staticmethod
     def MouseMiddleClick(x, y, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Simulate mouse middle click at point x, y
         x and y must be integer
-        '''
+        """
         Win32API.SetCursorPos(x, y)
         Win32API.mouse_event(MouseEventFlags.MiddleDown | MouseEventFlags.Absolute, x, y, 0, 0)
         time.sleep(0.05)
@@ -1247,10 +1251,10 @@ class Win32API():
 
     @staticmethod
     def MouseRightClick(x, y, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Simulate mouse right click at point x, y
         x and y must be integer
-        '''
+        """
         Win32API.SetCursorPos(x, y)
         Win32API.mouse_event(MouseEventFlags.RightDown | MouseEventFlags.Absolute, x, y, 0, 0)
         time.sleep(0.05)
@@ -1260,11 +1264,11 @@ class Win32API():
 
     @staticmethod
     def MouseMoveTo(x, y, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Simulate mouse move to point x, y from current cursor
         x and y must be integer
         moveSpeed: double, 1 normal speed, < 1 move slower, > 1 move faster
-        '''
+        """
         if moveSpeed <= 0:
             moveTime = 0
         else:
@@ -1303,11 +1307,11 @@ class Win32API():
 
     @staticmethod
     def MouseDragDrop(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Simulate mouse drag from point x1, y1 drop to point x2, y2
         x1, y1, x2, y2, must be integer
         moveSpeed: double, 1 normal speed, < 1 move slower, > 1 move faster
-        '''
+        """
         if moveSpeed <= 0:
             moveTime = 0
         else:
@@ -1340,7 +1344,7 @@ class Win32API():
 
     @staticmethod
     def GetScreenSize():
-        '''Return tuple (width, height)'''
+        """Return tuple (width, height)"""
         SM_CXSCREEN = 0
         SM_CYSCREEN = 1
         w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN)
@@ -1349,14 +1353,14 @@ class Win32API():
 
     @staticmethod
     def GetPixelColor(x, y, handle = 0):
-        '''
+        """
         If handle is 0, get pixel from desktop, return bgr
         r = bgr & 0x0000FF
         g = (bgr & 0x00FF00) >> 8
         b = (bgr & 0xFF0000) >> 16
 
         Not all devices support GetPixel. An application should call GetDeviceCaps to determine whether a specified device supports this function. Console window doesn't support.
-        '''
+        """
         hdc = ctypes.windll.user32.GetWindowDC(handle)
         bgr = ctypes.windll.gdi32.GetPixel(hdc, x, y)
         ctypes.windll.user32.ReleaseDC(handle, hdc)
@@ -1364,45 +1368,45 @@ class Win32API():
 
     @staticmethod
     def MessageBox(content, title, flags = MB.OK):
-        '''Call API MessageBox from user32.dll'''
+        """Call API MessageBox from user32.dll"""
         return ctypes.windll.user32.MessageBoxW(0, ctypes.c_wchar_p(content), ctypes.c_wchar_p(title), flags)
 
     @staticmethod
     def SetForegroundWindow(hWnd):
-        '''
+        """
         Set a window to foreground
         hWnd: integer, handle of a Win32 window
-        '''
+        """
         return ctypes.windll.user32.SetForegroundWindow(hWnd)
 
     @staticmethod
     def SetWindowTopmost(hWnd, isTopmost):
-        '''
+        """
         Set a window to Topmost
         hWnd: integer, handle of a Win32 window
         isTopmost: bool, be topmost or not
-        '''
+        """
         topValue = SWP.HWND_TOPMOST if isTopmost else SWP.HWND_NOTOPMOST
         return Win32API.SetWindowPos(hWnd, topValue, 0, 0, 0, 0, SWP.SWP_NOSIZE|SWP.SWP_NOMOVE)
 
     @staticmethod
     def ShowWindow(hWnd, cmdShow):
-        '''ShowWindow(hWnd, ShowWindow.Show), see values in class ShowWindow'''
+        """ShowWindow(hWnd, ShowWindow.Show), see values in class ShowWindow"""
         return ctypes.windll.user32.ShowWindow(hWnd, cmdShow)
 
     @staticmethod
     def MoveWindow(hWnd, x, y, width, height, repaint = 1):
-        '''Call API MoveWindow from user32.dll'''
+        """Call API MoveWindow from user32.dll"""
         return ctypes.windll.user32.MoveWindow(hWnd, x, y, width, height, repaint)
 
     @staticmethod
     def SetWindowPos(hWnd, hWndInsertAfter, x, y, width, height, flags):
-        '''Call API SetWindowPos from user32.dll, flags see class SWP'''
+        """Call API SetWindowPos from user32.dll, flags see class SWP"""
         return ctypes.windll.user32.SetWindowPos(hWnd, hWndInsertAfter, x, y, width, height, flags)
 
     @staticmethod
     def GetWindowText(hWnd):
-        '''Get window text'''
+        """Get window text"""
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
         ctypes.windll.user32.GetWindowTextW(hWnd, values, MAX_PATH)
@@ -1410,12 +1414,12 @@ class Win32API():
 
     @staticmethod
     def SetWindowText(hWnd, text):
-        '''Set window text'''
+        """Set window text"""
         return ctypes.windll.user32.SetWindowTextW(hWnd, ctypes.c_wchar_p(text))
 
     @staticmethod
     def GetConsoleOriginalTitle():
-        '''GetConsoleOriginalTitle'''
+        """GetConsoleOriginalTitle"""
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
         ctypes.windll.kernel32.GetConsoleOriginalTitleW(values, MAX_PATH)
@@ -1423,7 +1427,7 @@ class Win32API():
 
     @staticmethod
     def GetConsoleTitle():
-        '''GetConsoleTitle'''
+        """GetConsoleTitle"""
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
         ctypes.windll.kernel32.GetConsoleTitleW(values, MAX_PATH)
@@ -1431,7 +1435,7 @@ class Win32API():
 
     @staticmethod
     def SetConsoleTitle(text):
-        '''SetConsoleTitle'''
+        """SetConsoleTitle"""
         return ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(text))
 
     @staticmethod
@@ -1440,7 +1444,7 @@ class Win32API():
 
     @staticmethod
     def IsDesktopLocked():
-        '''desktop is locked if press Win+L, Ctrl+Alt+Del or in remote desktop mode'''
+        """desktop is locked if press Win+L, Ctrl+Alt+Del or in remote desktop mode"""
         isLocked = False
         desk = ctypes.windll.user32.OpenDesktopW(ctypes.c_wchar_p('Default'), 0, 0, 0x0100)  #DESKTOP_SWITCHDESKTOP = 0x0100
         if desk:
@@ -1450,7 +1454,7 @@ class Win32API():
 
     @staticmethod
     def PlayWaveFile(filePath, isAsync = True):
-        '''play wave file'''
+        """play wave file"""
         SND_ASYNC = 0x0001
         SND_NODEFAULT = 0x0002
         flag = SND_NODEFAULT
@@ -1460,7 +1464,7 @@ class Win32API():
 
     @staticmethod
     def GetProcessCommandLine(processId):
-        '''may not work'''
+        """may not work"""
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
         _automationClient.dll.GetProcessCommandLine(processId, values, MAX_PATH)
@@ -1472,9 +1476,9 @@ class Win32API():
 
     @staticmethod
     def IsProcess64Bit(processId):
-        '''return True if process is 64 bit
+        """return True if process is 64 bit
             return False if process is 32 bit
-            return None if unknown, maybe caused by having no acess right to the process'''
+            return None if unknown, maybe caused by having no acess right to the process"""
         try:
             func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  #only 64 bit OS has this function
         except Exception as ex:
@@ -1494,7 +1498,7 @@ class Win32API():
 
     @staticmethod
     def TerminateProcess(processId):
-        '''Terminate process by process id'''
+        """Terminate process by process id"""
         hProcess = ctypes.windll.kernel32.OpenProcess(0x0001, 0, processId);  #PROCESS_TERMINATE=0x0001
         if hProcess:
             ret = ctypes.windll.kernel32.TerminateProcess(hProcess, -1)
@@ -1503,14 +1507,14 @@ class Win32API():
 
     @staticmethod
     def TerminateProcessByName(processName):
-        '''Terminate process by process name, example: TerminateProcessByName('notepad.exe')'''
+        """Terminate process by process name, example: TerminateProcessByName('notepad.exe')"""
         for pid, name in Win32API.EnumProcess():
             if name.lower() == processName.lower():
                 Win32API.TerminateProcess(pid)
 
     @staticmethod
     def EnumProcess():
-        '''Return a list of namedtuple (pid, name), see TerminateProcessByName'''
+        """Return a list of namedtuple (pid, name), see TerminateProcessByName"""
         import collections
         hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(15, 0)  #TH32CS_SNAPALL is 15
         processEntry32 = tagPROCESSENTRY32()
@@ -1528,10 +1532,10 @@ class Win32API():
 
     @staticmethod
     def SendKey(key, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Simulate typing a key
         key: a value in class Keys
-        '''
+        """
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
         if waitTime > 0:
@@ -1539,39 +1543,39 @@ class Win32API():
 
     #@staticmethod
     #def SendWait(keys):
-        #'''this method needs .Net and PythonForNet, will call System.Windows.Forms.SendKeys.SendWait'''
+        #"""this method needs .Net and PythonForNet, will call System.Windows.Forms.SendKeys.SendWait"""
         #import clr
         #import System.Windows.Forms
         #System.Windows.Forms.SendKeys.SendWait(keys)
 
     @staticmethod
     def PressKey(key):
-        '''
+        """
         Simulate a key down for key
         key: a value in class Keys
-        '''
+        """
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
 
     @staticmethod
     def ReleaseKey(key):
-        '''
+        """
         Simulate a key up for key
         key: a value in class Keys
-        '''
+        """
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
 
     @staticmethod
     def IsKeyPressed(key):
-        '''
+        """
         Check key is pressed or not
         key: a value in class Keys
-        '''
+        """
         state = ctypes.windll.user32.GetAsyncKeyState(key)
         return True if state & 0x8000 else False
 
     @staticmethod
     def VKtoSC(key):
-        '''key: a value in class Keys'''
+        """key: a value in class Keys"""
         SCDict = {
             Keys.VK_LSHIFT : 0x02A,
             Keys.VK_RSHIFT : 0x136,
@@ -1610,7 +1614,7 @@ class Win32API():
 
     @staticmethod
     def SendKeys(text, interval = 0.01, waitTime = OPERATION_WAIT_TIME, debug = False):
-        '''
+        """
         Simulate typing keys on keyboard
         text: str, keys to type
         interval: double, seconds between keys
@@ -1627,7 +1631,7 @@ class Win32API():
         SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
         SendKeys('`~!@#$%^&*()-_=+{Enter}')
         SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
-        '''
+        """
         holdKeys = ('WIN', 'LWIN', 'RWIN', 'SHIFT', 'LSHIFT', 'RSHIFT', 'CTRL', 'CONTROL', 'LCTRL', 'RCTRL', 'LCONTROL', 'LCONTROL', 'ALT', 'LALT', 'RALT')
         keys = []
         printKeys = []
@@ -1802,7 +1806,8 @@ class Win32API():
         if waitTime > 0:
             time.sleep(waitTime)
 
-class Bitmap():
+
+class Bitmap:
     def __init__(self, width = 0, height = 0):
         self._width = width
         self._height = height
@@ -1834,21 +1839,21 @@ class Bitmap():
         return self._height
 
     def FromHandle(self, hwnd, left = 0, top = 0, right = 0, bottom = 0):
-        '''
+        """
         capture Win32 Window to image by its handle
         left, top, right, bottom: control's internal postion(from 0,0)
-        '''
+        """
         self.Release()
         self._bitmap = _automationClient.dll.BitmapFromWindow(hwnd, left, top, right, bottom)
         self._getsize()
         return self._bitmap > 0
 
     def FromControl(self, control, x = 0, y = 0, width = 0, height = 0):
-        '''
+        """
         capture control to Bitmap
         x, y: the point in control's internal position(from 0,0)
         width, height: image's width and height, use 0 for control's entire area
-        '''
+        """
         left, top, right, bottom = control.BoundingRectangle
         while (right - left) == 0 or (bottom - top) == 0:
             #some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
@@ -1880,14 +1885,14 @@ class Bitmap():
         return self.FromHandle(hWnd, left, top, right, bottom)
 
     def FromFile(self, filePath):
-        '''load image from file'''
+        """load image from file"""
         self.Release()
         self._bitmap = _automationClient.dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
         self._getsize()
         return self._bitmap > 0
 
     def ToFile(self, savePath):
-        '''savePath should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff'''
+        """savePath should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff"""
         name, ext = os.path.splitext(savePath);
         extMap = {'.bmp': 'image/bmp'
                   , '.jpg': 'image/jpeg'
@@ -1901,42 +1906,42 @@ class Bitmap():
         return _automationClient.dll.BitmapToFile(self._bitmap, ctypes.c_wchar_p(savePath), ctypes.c_wchar_p(gdiplusImageFormat))
 
     def GetPixelColor(self, x, y):
-        '''
+        """
         return argb
         b = argb & 0x0000FF
         g = (argb & 0x00FF00) >> 8
         r = (argb & 0xFF0000) >> 16
         a = (argb & 0xFF0000) >> 24
-        '''
+        """
         return _automationClient.dll.BitmapGetPixel(self._bitmap, x, y)
 
     def SetPixelColor(self, x, y, argb):
         return _automationClient.dll.BitmapSetPixel(self._bitmap, x, y, argb)
 
     def GetPixelColorsHorizontally(self, x, y, count):
-        '''get list of argb form x,y horizontally'''
+        """get list of argb form x,y horizontally"""
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*(0 for n in range(count)))
         _automationClient.dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
     def GetPixelColorsVertically(self, x, y, count):
-        '''get list of argb form x,y vertically'''
+        """get list of argb form x,y vertically"""
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*(0 for n in range(count)))
         _automationClient.dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
     def GetPixelColorsOfRow(self, y):
-        '''return list of argb of y row'''
+        """return list of argb of y row"""
         return self.GetPixelColorsHorizontally(0, y, self.Width)
 
     def GetPixelColorsOfColumn(self, x):
-        '''return list of argb of x column'''
+        """return list of argb of x column"""
         return self.GetPixelColorsVertically(x, 0, self.Height)
 
     def GetPixelColorsOfRect(self, x, y, width, height):
-        '''return list of argb of rect'''
+        """return list of argb of rect"""
         allColors = self.GetAllPixelColors()
         colors = []
         for row in range(height):
@@ -1944,10 +1949,10 @@ class Bitmap():
         return colors
 
     def GetPixelColorsOfRects(self, rects):
-        '''
+        """
         return list of argb of rects
         rects example: [[x1, y1, width, height], [x2, y2, width, height]], return [rect1colors, rect2colors]
-        '''
+        """
         allColors = self.GetAllPixelColors()
         colorsOfRects = []
         for rect in rects:
@@ -1959,18 +1964,18 @@ class Bitmap():
         return colorsOfRects
 
     def GetAllPixelColors(self):
-        '''return all argb of all pixels horizontally from 0,0'''
+        """return all argb of all pixels horizontally from 0,0"""
         return self.GetPixelColorsHorizontally(0, 0, self.Width * self.Height)
 
     def SetPixelColorsHorizontally(self, x, y, colors):
-        '''set colors form x,y horizontally'''
+        """set colors form x,y horizontally"""
         count = len(colors)
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*colors)
         return _automationClient.dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
 
     def SetPixelColorsVertically(self, x, y, colors):
-        '''set colors form x,y vertically'''
+        """set colors form x,y vertically"""
         count = len(colors)
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*colors)
@@ -1979,11 +1984,11 @@ class Bitmap():
 
 class LegacyIAccessiblePattern():
     def IsLegacyIAccessiblePatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId) != 0
 
     def AccessibleSelect(self, flag):
-        '''call IUIAutomationLegacyIAccessiblePattern Select, flag: a value in AccessibleSelectFlag'''
+        """call IUIAutomationLegacyIAccessiblePattern Select, flag: a value in AccessibleSelectFlag"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             _automationClient.dll.LegacyIAccessiblePatternSelect(pattern, flag)
@@ -1992,7 +1997,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleDoDefaultAction(self):
-        '''call IUIAutomationLegacyIAccessiblePattern DoDefaultAction'''
+        """call IUIAutomationLegacyIAccessiblePattern DoDefaultAction"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             _automationClient.dll.LegacyIAccessiblePatternDoDefaultAction(pattern)
@@ -2001,7 +2006,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleSetValue(self, value):
-        '''call IUIAutomationLegacyIAccessiblePattern SetValue, value: str'''
+        """call IUIAutomationLegacyIAccessiblePattern SetValue, value: str"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             _automationClient.dll.LegacyIAccessiblePatternSetValue(pattern, ctypes.c_wchar_p(value))
@@ -2010,7 +2015,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentChildId(self):
-        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentChildId, return int. If the element is not a child element, CHILDID_SELF (0) is returned'''
+        """call IUIAutomationLegacyIAccessiblePattern get_CurrentChildId, return int. If the element is not a child element, CHILDID_SELF (0) is returned"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             value = _automationClient.dll.LegacyIAccessiblePatternCurrentChildId(pattern)
@@ -2020,7 +2025,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentName(self):
-        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentName, return str'''
+        """call IUIAutomationLegacyIAccessiblePattern get_CurrentName, return str"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentName(pattern)
@@ -2034,7 +2039,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentValue(self):
-        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentValue, return str'''
+        """call IUIAutomationLegacyIAccessiblePattern get_CurrentValue, return str"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentValue(pattern)
@@ -2048,7 +2053,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentDescription(self):
-        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentDescription, return str'''
+        """call IUIAutomationLegacyIAccessiblePattern get_CurrentDescription, return str"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentDescription(pattern)
@@ -2062,7 +2067,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentRole(self):
-        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentRole, return int, a value in AccessibleRole'''
+        """call IUIAutomationLegacyIAccessiblePattern get_CurrentRole, return int, a value in AccessibleRole"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             value = _automationClient.dll.LegacyIAccessiblePatternCurrentRole(pattern)
@@ -2072,7 +2077,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentState(self):
-        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentState, return int, a combine value in AccessibleState'''
+        """call IUIAutomationLegacyIAccessiblePattern get_CurrentState, return int, a combine value in AccessibleState"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             value = _automationClient.dll.LegacyIAccessiblePatternCurrentState(pattern)
@@ -2082,7 +2087,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentHelp(self):
-        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentHelp, return str'''
+        """call IUIAutomationLegacyIAccessiblePattern get_CurrentHelp, return str"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentHelp(pattern)
@@ -2096,7 +2101,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentKeyboardShortcut(self):
-        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentKeyboardShortcut, return str'''
+        """call IUIAutomationLegacyIAccessiblePattern get_CurrentKeyboardShortcut, return str"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentKeyboardShortcut(pattern)
@@ -2110,7 +2115,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleGetCurrentSelection(self):
-        '''call IUIAutomationLegacyIAccessiblePattern GetCurrentSelection, return list of Control'''
+        """call IUIAutomationLegacyIAccessiblePattern GetCurrentSelection, return list of Control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             lists = []
@@ -2126,7 +2131,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentDefaultAction(self):
-        '''call IUIAutomationLegacyIAccessiblePattern get_CurrentDefaultAction, return str'''
+        """call IUIAutomationLegacyIAccessiblePattern get_CurrentDefaultAction, return str"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _automationClient.dll.LegacyIAccessiblePatternCurrentDefaultAction(pattern)
@@ -2140,11 +2145,11 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
 class QTPLikeSyntaxSupport():
-    '''
+    """
     Add syntax support like QTP, with that, user can locate object like following example:
     WindowControl(Name="SomeWindowTitle").ButtonControl(AutomationId="OneOfButton").Click()
     This class inherited by Control class
-    '''
+    """
     def ButtonControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         return ButtonControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self, **searchPorpertyDict)
 
@@ -2267,7 +2272,7 @@ class QTPLikeSyntaxSupport():
 
 class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
-        '''
+        """
         element: integer
         searchFromControl: Control, if is None, search from root control
         searchDepth: integer, max search depth from searchFromControl
@@ -2280,7 +2285,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                             Name: str or unicode
                             SubName: str or unicode
                             Depth: integer, exact depth from searchFromControl, if set, searchDepth will be set to Depth too
-        '''
+        """
         self._element = element
         self._elementDirectAssign = True if element else False
         self.searchFromControl = searchFromControl
@@ -2290,25 +2295,25 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         self.searchPorpertyDict = searchPorpertyDict
 
     def __del__(self):
-        '''
+        """
         Warning: when script exits, module ctypes may be None,
         ctypes sometimes is None before all controls are destoryed
         but __del__ needs method in dll(which needs ctypes) to release resources
-        '''
+        """
         if self._element:
             _automationClient.dll.ReleaseElement(self._element)
             self._element = 0
 
     def SetSearchFromControl(self, searchFromControl):
-        '''searchFromControl: control'''
+        """searchFromControl: control"""
         self.searchFromControl = searchFromControl
 
     def SetSearchDepth(self, searchDepth):
-        '''searchDepth: integer'''
+        """searchDepth: integer"""
         self.searchDepth = searchDepth
 
     def AddSearchProperty(self, **searchPorpertyDict):
-        '''searchPorpertyDict: dict'''
+        """searchPorpertyDict: dict"""
         self.searchPorpertyDict.update(searchPorpertyDict)
 
     def RemoveSearchProperty(self, **searchPorpertyDict):
@@ -2316,7 +2321,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             del self.searchPorpertyDict[key]
 
     def _CompareFunction(self, control, depth):
-        '''This function defines how to search, return True if found'''
+        """This function defines how to search, return True if found"""
         for key, value in self.searchPorpertyDict.items():
             if 'ControlType' == key:
                 if value != control.ControlType:
@@ -2339,7 +2344,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         return True
 
     def Exists(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
-        '''Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds, if found, return True else False'''
+        """Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds, if found, return True else False"""
         if self._element and self._elementDirectAssign:
             #if element is directly assigned, not by searching, just check whether self._element is valid
             #but I can't find an API in UIAutomation that can directly check
@@ -2380,7 +2385,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                 time.sleep(searchIntervalSeconds)
 
     def Refind(self, maxSearchSeconds = TIME_OUT_SECOND, searchIntervalSeconds = SEARCH_INTERVAL, raiseException = True):
-        '''Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds, raise an LookupError if timed out'''
+        """Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds, raise an LookupError if timed out"""
         if not self.Exists(maxSearchSeconds, searchIntervalSeconds):
             if raiseException:
                 info = 'Find Control Time Out: {'
@@ -2394,14 +2399,14 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     @property
     def Element(self):
-        '''Return value of control's IUIAutomationElement'''
+        """Return value of control's IUIAutomationElement"""
         if not self._element:
             self.Refind(maxSearchSeconds = TIME_OUT_SECOND, searchIntervalSeconds = self.searchWaitTime)
         return self._element
 
     @property
     def Name(self):
-        '''Return unicode Name'''
+        """Return unicode Name"""
         bstrValue = _automationClient.dll.GetElementName(self.Element)
         if bstrValue:
             name = ctypes.c_wchar_p(bstrValue).value[:]
@@ -2411,17 +2416,17 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     @property
     def ControlType(self):
-        '''Return an integer in class ControlType'''
+        """Return an integer in class ControlType"""
         return _automationClient.dll.GetElementControlType(self.Element)
 
     @property
     def ControlTypeName(self):
-        '''Return str ControlTypeName'''
+        """Return str ControlTypeName"""
         return ControlTypeNameDict[self.ControlType]
 
     @property
     def LocalizedControlType(self):
-        '''Return unicode LocalizedControlType name'''
+        """Return unicode LocalizedControlType name"""
         bstrValue = _automationClient.dll.GetElementLocalizedControlType(self.Element)
         if bstrValue:
             name = ctypes.c_wchar_p(bstrValue).value[:]
@@ -2431,7 +2436,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     @property
     def ClassName(self):
-        '''Return unicode ClassName'''
+        """Return unicode ClassName"""
         bstrValue = _automationClient.dll.GetElementClassName(self.Element)
         if bstrValue:
             name = ctypes.c_wchar_p(bstrValue).value[:]
@@ -2441,7 +2446,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     @property
     def AutomationId(self):
-        '''Return unicode AutomationId'''
+        """Return unicode AutomationId"""
         bstrValue = _automationClient.dll.GetElementAutomationId(self.Element)
         if bstrValue:
             name = ctypes.c_wchar_p(bstrValue).value[:]
@@ -2451,47 +2456,47 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     @property
     def ProcessId(self):
-        '''Return process id'''
+        """Return process id"""
         return _automationClient.dll.GetElementProcessId(self.Element)
 
     @property
     def IsEnabled(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementIsEnabled(self.Element)
 
     @property
     def HasKeyboardFocus(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementHasKeyboardFocus(self.Element)
 
     @property
     def IsKeyboardFocusable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementIsKeyboardFocusable(self.Element)
 
     @property
     def IsOffScreen(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementIsOffscreen(self.Element)
 
     @property
     def BoundingRectangle(self):
-        '''Return tuple (left, top, right, bottom)'''
+        """Return tuple (left, top, right, bottom)"""
         rect = Rect()
         _automationClient.dll.GetElementBoundingRectangle(ctypes.c_size_t(self.Element), ctypes.byref(rect))
         return (rect.left, rect.top, rect.right, rect.bottom)
 
     @property
     def Handle(self):
-        '''Return control's handle'''
+        """Return control's handle"""
         return _automationClient.dll.GetElementHandle(self.Element)
 
     def SetFocus(self):
-        '''Make the control have focus'''
+        """Make the control have focus"""
         _automationClient.dll.SetElementFocus(self.Element)
 
     def MoveCursor(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
-        '''Move cursor to control's rect, default to center'''
+        """Move cursor to control's rect, default to center"""
         left, top, right, bottom = self.BoundingRectangle
         if type(ratioX) is float:
             x = left + int((right - left) * ratioX)
@@ -2508,59 +2513,59 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         return x, y
 
     def MoveCursorToMyCenter(self, simulateMove = True):
-        '''Move cursor to control's center'''
+        """Move cursor to control's center"""
         return self.MoveCursor(simulateMove = simulateMove)
 
     def Click(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Click(0.5, 0.5): click center
         Click(10, 10): click left+10, top+10
         Click(-10, -10): click right-10, bottom-10
         simulateMove：bool, if True, first move cursor to control smoothly
-        '''
+        """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseClick(x, y, waitTime)
 
     def MiddleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Click(0.5, 0.5): click center
         Click(10, 10): click left+10, top+10
         Click(-10, -10): click right-10, bottom-10
         simulateMove：bool, if True, first move cursor to control smoothly
-        '''
+        """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseMiddleClick(x, y, waitTime)
 
     def RightClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         RightClick(0.5, 0.5): right click center
         RightClick(10, 10): right click left+10, top+10
         RightClick(-10, -10): click right-10, bottom-10
         simulateMove：bool, if True, first move cursor to control smoothly
-        '''
+        """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseRightClick(x, y, waitTime)
 
     def DoubleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         DoubleClick(0.5, 0.5): double click center
         DoubleClick(10, 10): double click left+10, top+10
         DoubleClick(-10, -10): click right-10, bottom-10
         simulateMove：bool, if True, first move cursor to control smoothly
-        '''
+        """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseClick(x, y, 0)
         time.sleep(Win32API.GetDoubleClickTime() * 1.0 / 2000)
         Win32API.MouseClick(x, y, waitTime)
 
     def GetParentControl(self):
-        '''Return Control'''
+        """Return Control"""
         comEle = _automationClient.dll.GetParentElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
     def GetTopWindow(self):
-        '''Return control's top window'''
+        """Return control's top window"""
         control = self
         parents = []
         while control:
@@ -2574,31 +2579,31 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             return parents[0]
 
     def GetFirstChildControl(self):
-        '''Return Control'''
+        """Return Control"""
         comEle = _automationClient.dll.GetFirstChildElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
     def GetLastChildControl(self):
-        '''Return Control'''
+        """Return Control"""
         comEle = _automationClient.dll.GetLastChildElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
     def GetNextSiblingControl(self):
-        '''Return Control'''
+        """Return Control"""
         comEle = _automationClient.dll.GetNextSiblingElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
     def GetPreviousSiblingControl(self):
-        '''Return Control'''
+        """Return Control"""
         comEle = _automationClient.dll.GetPreviousSiblingElement(self.Element)
         if comEle:
             return Control.CreateControlFromElement(comEle)
 
     def GetChildren(self):
-        '''Return a list of control's children'''
+        """Return a list of control's children"""
         children = []
         child = self.GetFirstChildControl()
         while child:
@@ -2607,105 +2612,105 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         return children
 
     def ShowWindow(self, cmdShow):
-        '''
+        """
         ShowWindow(ShowWindow.Show), only works if Handle is valid
         cmdShow: see values in class ShowWindow
-        '''
+        """
         hWnd = self.Handle
         if hWnd:
             return Win32API.ShowWindow(hWnd, cmdShow)
 
     def Show(self):
-        '''call ShowWindow(ShowWindow.Show), only works if Handle is valid'''
+        """call ShowWindow(ShowWindow.Show), only works if Handle is valid"""
         return self.ShowWindow(ShowWindow.Show)
 
     def Hide(self):
-        '''call ShowWindow(ShowWindow.Hide), only works if Handle is valid'''
+        """call ShowWindow(ShowWindow.Hide), only works if Handle is valid"""
         return self.ShowWindow(ShowWindow.Hide)
 
     def MoveWindow(self, x, y, width, height, repaint = 1):
-        '''only works if Handle is valid'''
+        """only works if Handle is valid"""
         hWnd = self.Handle
         if hWnd:
             return Win32API.MoveWindow(hWnd, x, y, width, height, repaint)
 
     def GetWindowText(self):
-        '''only works if Handle is valid'''
+        """only works if Handle is valid"""
         hWnd = self.Handle
         if hWnd:
             return Win32API.GetWindowText(hWnd)
 
     def SetWindowText(self, text):
-        '''only works if Handle is valid'''
+        """only works if Handle is valid"""
         hWnd = self.Handle
         if hWnd:
             return Win32API.SetWindowText(hWnd, text)
 
     def SendKey(self, key, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Simulate typing a key
         key: a value in class Keys
-        '''
+        """
         self.SetFocus()
         Win32API.SendKey(key, waitTime)
 
     def SendKeys(self, keys, interval = 0.01, waitTime = OPERATION_WAIT_TIME):
-        '''
+        """
         Simulate typing keys
         keys: str, keys to type, see docstring of Win32API.SendKeys
         interval: double, seconds between keys
-        '''
+        """
         self.SetFocus()
         Win32API.SendKeys(keys, interval, waitTime)
 
     def GetPixelColor(self, x, y):
-        '''return r, g, b, int, 0xhexstring, #hexstring, only works if Handle is valid'''
+        """return r, g, b, int, 0xhexstring, #hexstring, only works if Handle is valid"""
         hWnd = self.Handle
         if hWnd:
             return Win32API.GetPixelColor(x, y, hWnd)
 
     def ToBitmap(self, x = 0, y = 0, width = 0, height = 0):
-        '''
+        """
         capture control to Bitmap object
         x, y: the point in control's internal position(from 0,0)
         width, height: image's width and height, use 0 for entire area
-        '''
+        """
         bitmap = Bitmap()
         bitmap.FromControl(self, x, y, width, height)
         return bitmap
 
     def CaptureToImage(self, savePath, x = 0, y = 0, width = 0, height = 0):
-        '''
+        """
         capture control to image file
         savePath, savePath shoud end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff
         x, y: the point in control's internal position(from 0,0)
         width, height: image's width and height, use 0 for entire area
-        '''
+        """
         bitmap = Bitmap()
         if bitmap.FromControl(self, x, y, width, height):
             return bitmap.ToFile(savePath)
 
     def Convert(self):
-        '''
+        """
         Convert Control to a specific Control
         for example: if self's ControlType is EditControl, return an EditControl
-        '''
+        """
         return Control.CreateControlFromControl(self)
 
     @staticmethod
     def CreateControlFromElement(element):
-        '''element: value of IUIAutomationElement'''
+        """element: value of IUIAutomationElement"""
         if element:
             controlType = _automationClient.dll.GetElementControlType(element)
             return ControlDict[controlType](element)
 
     @staticmethod
     def CreateControlFromControl(control):
-        '''
+        """
         control: Control, will add ref for control's element
         return a specific Control
         for example: if control's ControlType is EditControl, return an EditControl
-        '''
+        """
         newControl = Control.CreateControlFromElement(control.Element)
         _automationClient.dll.ElementAddRef(control.Element)
         return newControl
@@ -2732,20 +2737,20 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
 #Patterns -----
 
-class DockPattern():
+class DockPattern:
     def IsDockPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_DockPatternId) != 0
     #todo
 
 
-class ExpandCollapsePattern():
+class ExpandCollapsePattern:
     def IsExpandCollapsePatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId) != 0
 
     def Expand(self, waitTime = OPERATION_WAIT_TIME):
-        '''Expand the control'''
+        """Expand the control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
             _automationClient.dll.ExpandCollapsePatternExpand(pattern)
@@ -2756,7 +2761,7 @@ class ExpandCollapsePattern():
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
     def Collapse(self, waitTime = OPERATION_WAIT_TIME):
-        '''Collapse the control'''
+        """Collapse the control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
             _automationClient.dll.ExpandCollapsePatternCollapse(pattern)
@@ -2767,7 +2772,7 @@ class ExpandCollapsePattern():
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentExpandCollapseState(self):
-        '''Return an integer of class ExpandCollapseState '''
+        """Return an integer of class ExpandCollapseState """
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
             state = _automationClient.dll.ExpandCollapsePatternCurrentExpandCollapseState(pattern)
@@ -2777,13 +2782,13 @@ class ExpandCollapsePattern():
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
 
-class GridItemPattern():
+class GridItemPattern:
     def IsGridItemPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId) != 0
 
     def CurrentContainingGrid(self):
-        '''return Control'''
+        """return Control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             element = _automationClient.dll.GridItemPatternCurrentContainingGrid(pattern)
@@ -2794,7 +2799,7 @@ class GridItemPattern():
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentRow(self):
-        '''return int'''
+        """return int"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             value = _automationClient.dll.GridItemPatternCurrentRow(pattern)
@@ -2804,7 +2809,7 @@ class GridItemPattern():
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumn(self):
-        '''return int'''
+        """return int"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             value = _automationClient.dll.GridItemPatternCurrentColumn(pattern)
@@ -2814,7 +2819,7 @@ class GridItemPattern():
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentRowSpan(self):
-        '''return int'''
+        """return int"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             value = _automationClient.dll.GridItemPatternCurrentRowSpan(pattern)
@@ -2824,7 +2829,7 @@ class GridItemPattern():
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumnSpan(self):
-        '''return int'''
+        """return int"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             value = _automationClient.dll.GridItemPatternCurrentColumnSpan(pattern)
@@ -2834,13 +2839,13 @@ class GridItemPattern():
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
 
-class GridPattern():
+class GridPattern:
     def IsGridPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId) != 0
 
     def GetItem(self, row, column):
-        '''return Control'''
+        """return Control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
         if pattern:
             element = _automationClient.dll.GridPatternGetItem(pattern, row, column)
@@ -2851,7 +2856,7 @@ class GridPattern():
             Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentRowCount(self):
-        '''return int'''
+        """return int"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
         if pattern:
             value = _automationClient.dll.GridPatternCurrentRowCount(pattern)
@@ -2861,7 +2866,7 @@ class GridPattern():
             Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumnCount(self):
-        '''return int'''
+        """return int"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
         if pattern:
             value = _automationClient.dll.GridPatternCurrentColumnCount(pattern)
@@ -2871,13 +2876,13 @@ class GridPattern():
             Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
 
 
-class InvokePattern():
+class InvokePattern:
     def IsInvokePatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId) != 0
 
     def Invoke(self, waitTime = OPERATION_WAIT_TIME):
-        '''invoke'''
+        """invoke"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId)
         if pattern:
             _automationClient.dll.InvokePatternInvoke(pattern)
@@ -2888,20 +2893,20 @@ class InvokePattern():
             Logger.WriteLine('InvokePattern is not supported!', ConsoleColor.Yellow)
 
 
-class MultipleViewPattern():
+class MultipleViewPattern:
     def IsMultipleViewPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_MultipleViewPatternId) != 0
     #todo
 
 
-class ScrollItemPattern():
+class ScrollItemPattern:
     def IsScrollItemPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId) != 0
 
     def ScrollIntoView(self):
-        '''Scroll the control into view, so it can be seen'''
+        """Scroll the control into view, so it can be seen"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId)
         if pattern:
             _automationClient.dll.ScrollItemPatternScrollIntoView(pattern)
@@ -2910,13 +2915,13 @@ class ScrollItemPattern():
             Logger.WriteLine('ScrollItemPattern is not supported!', ConsoleColor.Yellow)
 
 
-class ScrollPattern():
+class ScrollPattern:
     def IsScrollPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId) != 0
 
     def CurrentHorizontallyScrollable(self):
-        '''Return bool'''
+        """Return bool"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             scroll = _automationClient.dll.ScrollPatternCurrentHorizontallyScrollable(pattern)
@@ -2926,7 +2931,7 @@ class ScrollPattern():
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentHorizontalViewSize(self):
-        '''Return integer'''
+        """Return integer"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             size = _automationClient.dll.ScrollPatternCurrentHorizontalViewSize(pattern)
@@ -2936,7 +2941,7 @@ class ScrollPattern():
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentHorizontalScrollPercent(self):
-        '''Return integer'''
+        """Return integer"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             percent = _automationClient.dll.ScrollPatternCurrentHorizontalScrollPercent(pattern)
@@ -2946,7 +2951,7 @@ class ScrollPattern():
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentVerticallyScrollable(self):
-        '''Return bool'''
+        """Return bool"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             scroll = _automationClient.dll.ScrollPatternCurrentVerticallyScrollable(pattern)
@@ -2956,7 +2961,7 @@ class ScrollPattern():
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentVerticalViewSize(self):
-        '''Return integer'''
+        """Return integer"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             size = _automationClient.dll.ScrollPatternCurrentVerticalViewSize(pattern)
@@ -2966,7 +2971,7 @@ class ScrollPattern():
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentVerticalScrollPercent(self):
-        '''Return integer'''
+        """Return integer"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             percent = _automationClient.dll.ScrollPatternCurrentVerticalScrollPercent(pattern)
@@ -2977,7 +2982,7 @@ class ScrollPattern():
 
 
     def SetScrollPercent(self, horizontalPercent, verticalPercent):
-        '''Need two integers as parameters'''
+        """Need two integers as parameters"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             _automationClient.dll.ScrollPatternSetScrollPercent(pattern, horizontalPercent, verticalPercent)
@@ -2986,9 +2991,9 @@ class ScrollPattern():
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
 
-class SelectionItemPattern():
+class SelectionItemPattern:
     def IsSelectionItemPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId) != 0
 
     def Select(self):
@@ -3016,7 +3021,7 @@ class SelectionItemPattern():
             Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentIsSelected(self):
-        '''Return bool'''
+        """Return bool"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
         if pattern:
             isSelect = _automationClient.dll.SelectionItemPatternCurrentIsSelected(pattern)
@@ -3026,13 +3031,13 @@ class SelectionItemPattern():
             Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
 
 
-class SelectionPattern():
+class SelectionPattern:
     def IsSelectionPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId) != 0
 
     def GetCurrentSelection(self):
-        '''Return an IUIAutomationElementArray'''
+        """Return an IUIAutomationElementArray"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId)
         if pattern:
             pElementArray = _automationClient.dll.SelectionPatternGetCurrentSelection(pattern)
@@ -3042,9 +3047,9 @@ class SelectionPattern():
             Logger.WriteLine('SelectionPattern is not supported!', ConsoleColor.Yellow)
 
 
-class RangeValuePattern():
+class RangeValuePattern:
     def IsRangeValuePatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId) != 0
 
     def RangeValuePatternCurrentValue(self):
@@ -3083,13 +3088,13 @@ class RangeValuePattern():
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
 
 
-class TableItemPattern():
+class TableItemPattern:
     def IsTableItemPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId) != 0
 
     def CurrentRowHeaderItems(self):
-        '''return list of Control'''
+        """return list of Control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId)
         if pattern:
             lists = []
@@ -3105,7 +3110,7 @@ class TableItemPattern():
             Logger.WriteLine('TableItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumnHeaderItems(self):
-        '''return list of Control'''
+        """return list of Control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId)
         if pattern:
             lists = []
@@ -3121,13 +3126,13 @@ class TableItemPattern():
             Logger.WriteLine('TableItemPattern is not supported!', ConsoleColor.Yellow)
 
 
-class TablePattern():
+class TablePattern:
     def IsTablePatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId) != 0
 
     def CurrentRowHeaders(self):
-        '''return list of Control'''
+        """return list of Control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
         if pattern:
             lists = []
@@ -3143,7 +3148,7 @@ class TablePattern():
             Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumnHeaders(self):
-        '''return list of Control'''
+        """return list of Control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
         if pattern:
             lists = []
@@ -3159,7 +3164,7 @@ class TablePattern():
             Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentRowOrColumnMajor(self):
-        '''return int, a value in RowOrColumnMajor'''
+        """return int, a value in RowOrColumnMajor"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
         if pattern:
             value = _automationClient.dll.TablePatternCurrentRowOrColumnMajor(pattern)
@@ -3169,20 +3174,20 @@ class TablePattern():
             Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
 
 
-class TextPattern():
+class TextPattern:
     def IsTextPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TextPatternId) != 0
     #todo
 
 
-class TogglePattern():
+class TogglePattern:
     def IsTogglePatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId) != 0
 
     def Toggle(self, waitTime = OPERATION_WAIT_TIME):
-        '''Toggle or UnToggle the control'''
+        """Toggle or UnToggle the control"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
         if pattern:
             _automationClient.dll.TogglePatternToggle(pattern)
@@ -3193,7 +3198,7 @@ class TogglePattern():
             Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentToggleState(self):
-        '''Return an integer of class ToggleState'''
+        """Return an integer of class ToggleState"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
         if pattern:
             state = _automationClient.dll.TogglePatternCurrentToggleState(pattern)
@@ -3203,9 +3208,9 @@ class TogglePattern():
             Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
 
 
-class TransformPattern():
+class TransformPattern:
     def IsTransformPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId) != 0
 
     def Move(self, x, y):
@@ -3233,19 +3238,19 @@ class TransformPattern():
             Logger.WriteLine('TransformPattern is not supported!', ConsoleColor.Yellow)
 
 
-class TransformPattern2():
+class TransformPattern2:
     def IsTransformPattern2Available(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_TransformPattern2Id) != 0
 
 
-class ValuePattern():
+class ValuePattern:
     def IsValuePatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId) != 0
 
     def CurrentValue(self):
-        '''Return unicode string'''
+        """Return unicode string"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
             bstrValue = _automationClient.dll.ValuePatternCurrentValue(pattern)
@@ -3259,7 +3264,7 @@ class ValuePattern():
         return ''
 
     def SetValue(self, value, waitTime = OPERATION_WAIT_TIME):
-        '''Set unicode string to control's value'''
+        """Set unicode string to control's value"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
             value = _automationClient.dll.ValuePatternSetValue(pattern, ctypes.c_wchar_p(value))
@@ -3270,7 +3275,7 @@ class ValuePattern():
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentIsReadOnly(self):
-        '''Return bool'''
+        """Return bool"""
         pattern = _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
             isReadOnly = _automationClient.dll.ValuePatternCurrentIsReadOnly(pattern)
@@ -3280,9 +3285,9 @@ class ValuePattern():
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
 
 
-class WindowPattern():
+class WindowPattern:
     def IsWindowPatternAvailable(self):
-        '''Return bool'''
+        """Return bool"""
         return _automationClient.dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId) != 0
 
     def CurrentWindowVisualState(self):
@@ -3401,7 +3406,7 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
         self.AddSearchProperty(ControlType = ControlType.ComboBoxControl)
 
     def Select(self, name, waitTime = OPERATION_WAIT_TIME):
-        '''not support Qt's ComboBoxControl'''
+        """not support Qt's ComboBoxControl"""
         supportExpandCollapse = self.IsExpandCollapsePatternAvailable()
         if supportExpandCollapse:
             self.Expand()
@@ -3486,7 +3491,7 @@ class ListControl(Control, GridPattern, MultipleViewPattern, ScrollPattern, Sele
         self.AddSearchProperty(ControlType = ControlType.ListControl)
 
     def GetSelectedItems(self):
-        '''Return a list of children which are selected'''
+        """Return a list of children which are selected"""
         lists = []
         iUIAutomationElementArray = self.GetCurrentSelection()
         if iUIAutomationElementArray:
@@ -3659,7 +3664,7 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
         return Win32API.SetWindowPos(self.Handle, SWP.HWND_TOP, x, y, 0, 0, SWP.SWP_NOSIZE)
 
     def MetroClose(self, waitTime = OPERATION_WAIT_TIME):
-        '''only works in Windows 8/8.1, if current window is Metro UI'''
+        """only works in Windows 8/8.1, if current window is Metro UI"""
         window = WindowControl(searchDepth = 1, ClassName = METRO_WINDOW_CLASS_NAME)
         if window.Exists(0, 0):
             screenWidth, screenHeight = Win32API.GetScreenSize()
@@ -3724,7 +3729,7 @@ ControlDict = {
         }
 
 
-class Logger():
+class Logger:
     LogFile = '@AutomationLog.txt'
     LineSep = '\n'
     ColorName2Value = {
@@ -3752,10 +3757,10 @@ class Logger():
 
     @staticmethod
     def Write(log, consoleColor = -1, writeToFile = True, printToStdout = True):
-        '''
+        """
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
-        '''
+        """
         if printToStdout:
             isValidColor = (consoleColor >= ConsoleColor.Black and consoleColor <= ConsoleColor.White)
             if isValidColor:
@@ -3788,15 +3793,15 @@ class Logger():
 
     @staticmethod
     def WriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
-        '''
+        """
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
-        '''
+        """
         Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout)
 
     @staticmethod
     def ColorfulWrite(log, consoleColor = -1, writeToFile = True, printToStdout = True):
-        '''ColorfulWrite('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value'''
+        """ColorfulWrite('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value"""
         text = []
         start = 0
         while True:
@@ -3818,15 +3823,15 @@ class Logger():
 
     @staticmethod
     def ColorfulWriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
-        '''ColorfulWriteLine('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value'''
+        """ColorfulWriteLine('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value"""
         Logger.ColorfulWrite(log + Logger.LineSep, consoleColor, writeToFile, printToStdout)
 
     @staticmethod
     def Log(log = '', consoleColor = -1, writeToFile = True, printToStdout = True):
-        '''
+        """
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
-        '''
+        """
         t = datetime.datetime.now()
         frame = sys._getframe(1)
         log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}{}'.format(t.year, t.month, t.day,
@@ -3835,10 +3840,10 @@ class Logger():
 
     @staticmethod
     def ColorfulLog(log = '', consoleColor = -1, writeToFile = True, printToStdout = True):
-        '''
+        """
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
-        '''
+        """
         t = datetime.datetime.now()
         frame = sys._getframe(1)
         log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}{}'.format(t.year, t.month, t.day,
@@ -3855,47 +3860,58 @@ def SetGlobalSearchTimeOut(seconds):
     global TIME_OUT_SECOND
     TIME_OUT_SECOND = seconds
 
+
 def GetClipboardText():
     return Win32API.GetClipboardText()
+
 
 def SetClipboardText(text):
     Win32API.SetClipboardText(text)
 
+
 def Click(x, y, waitTime = OPERATION_WAIT_TIME):
     Win32API.MouseClick(x, y, waitTime)
+
 
 def RightClick(x, y, waitTime = OPERATION_WAIT_TIME):
     Win32API.MouseRightClick(x, y, waitTime)
 
+
 def MiddleClick(x, y, waitTime = OPERATION_WAIT_TIME):
     Win32API.MouseMiddleClick(x, y, waitTime)
+
 
 def MoveTo(x, y, waitTime = OPERATION_WAIT_TIME):
     Win32API.MouseMoveTo(x, y, waitTime)
 
+
 def DragDrop(x1, y1, x2, y2, waitTime = OPERATION_WAIT_TIME):
     Win32API.MouseDragDrop(x1, y1, x2, y2, 1, waitTime)
 
+
 def KeyDown(key, waitTime = OPERATION_WAIT_TIME):
-    '''key: a value in class Keys'''
+    """key: a value in class Keys"""
     Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
     time.sleep(waitTime)
 
+
 def KeyUp(key, waitTime = OPERATION_WAIT_TIME):
-    '''key: a value in class Keys'''
+    """key: a value in class Keys"""
     Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
     time.sleep(waitTime)
 
+
 def SendKey(key, waitTime = OPERATION_WAIT_TIME):
-    '''
+    """
     Simulate typing a key
     key: a value in class Keys
     example: SendKey(automation.Keys.VK_F)
-    '''
+    """
     Win32API.SendKey(key, waitTime)
 
+
 def SendKeys(keys, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
-    '''
+    """
     Simulate typing keys on keyboard
     keys: str, keys to type
     interval: double, seconds between keys
@@ -3912,11 +3928,13 @@ def SendKeys(keys, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
     SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
     SendKeys('`~!@#$%^&*()-_=+{Enter}')
     SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
-    '''
+    """
     Win32API.SendKeys(keys, interval, waitTime, debug)
+
 
 def WaitForExist(control, timeout):
     return control.Exists(timeout, 1)
+
 
 def WaitForDisappear(control, timeout):
     start = time.clock()
@@ -3926,8 +3944,9 @@ def WaitForDisappear(control, timeout):
         time.sleep(1)
     return False
 
+
 def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):
-    '''
+    """
     walking a tree not using recursive algorithm
     if getChildrenFunc is valid, ignore getFirstChildFunc and getNextSiblingFunc
         yield 3 items tuple: (item, depth, remain children count in current depth)
@@ -3940,7 +3959,7 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
 
     for it, depth, count in WalkTree('D:\\', getChildrenFunc= GetDirChildren):
         print(it, depth, count)
-    '''
+    """
     if maxDepth <= 0:
         return
     depth = 0
@@ -3982,9 +4001,11 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
                 del childList[depth]
                 depth -= 1
 
+
 def ControlsAreSame(control1, control2):
-    '''return 1 if control1 and control2 are the same control, otherwise return 0'''
+    """return 1 if control1 and control2 are the same control, otherwise return 0"""
     return _automationClient.dll.CompareElements(control1.Element, control2.Element)
+
 
 def GetRootControl():
     global _rootControl
@@ -3992,11 +4013,13 @@ def GetRootControl():
         _rootControl = Control.CreateControlFromElement(_automationClient.dll.GetRootElement())
     return _rootControl
 
+
 def GetFocusedControl():
     return Control.CreateControlFromElement(_automationClient.dll.GetFocusedElement())
 
+
 def GetForegroundControl():
-    '''return Foreground Window'''
+    """return Foreground Window"""
     return ControlFromHandle(Win32API.GetForegroundWindow())
     #another implement
     #focusedControl = GetFocusedControl()
@@ -4011,38 +4034,45 @@ def GetForegroundControl():
         #parentControl = controlList[1]
     #return parentControl
 
+
 def GetConsoleWindow():
-    '''return console window that runs python'''
+    """return console window that runs python"""
     title = Win32API.GetConsoleTitle()
     consoleWindow = WindowControl(searchDepth= 1, Name = title)
     if consoleWindow.Exists(0, 0):
         return consoleWindow
 
+
 def ControlFromPoint(x, y):
-    '''use IUIAutomation ElementFromPoint x,y, may return 0 if mouse is over cmd's title bar icon'''
+    """use IUIAutomation ElementFromPoint x,y, may return 0 if mouse is over cmd's title bar icon"""
     element = _automationClient.dll.ElementFromPoint(x, y)
     return Control.CreateControlFromElement(element)
 
+
 def ControlFromPoint2(x, y):
-    '''use Win32API.WindowFromPoint x,y'''
+    """use Win32API.WindowFromPoint x,y"""
     return Control.CreateControlFromElement(_automationClient.dll.ElementFromHandle(Win32API.WindowFromPoint(x, y)))
+
 
 def ControlFromCursor():
     x, y = Win32API.GetCursorPos()
     return ControlFromPoint(x, y)
 
+
 def ControlFromCursor2():
     x, y = Win32API.GetCursorPos()
     return ControlFromPoint2(x, y)
 
+
 def ControlFromHandle(handle):
     return Control.CreateControlFromElement(_automationClient.dll.ElementFromHandle(handle))
 
+
 def WalkControl(control, includeTop = False, maxDepth = 0xFFFFFFFF):
-    '''
+    """
     control: Control
     maxDepth: integer
-    '''
+    """
     if includeTop:
         yield control, 0
     if maxDepth <= 0:
@@ -4065,13 +4095,14 @@ def WalkControl(control, includeTop = False, maxDepth = 0xFFFFFFFF):
             del controlList[depth]
             depth -= 1
 
+
 def LogControl(control, depth = 0, showAllName = True, showMore = False):
-    '''
+    """
     control: Control
     depth: integer
     showAllName: bool
     showMore: bool
-    '''
+    """
     def getKeyName(theDict, theValue):
         for key in theDict:
             if theValue == theDict[key]:
@@ -4138,6 +4169,7 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
                 Logger.Write(' ' + PatternDict[key], ConsoleColor.DarkGreen)
     Logger.Write(Logger.LineSep)
 
+
 def EnumAndLogControlAncestors(control, showAllName = True, showMore = False):
     lists = []
     while control:
@@ -4146,24 +4178,26 @@ def EnumAndLogControlAncestors(control, showAllName = True, showMore = False):
     for (i, control) in enumerate(lists):
         LogControl(control, i, showAllName, showMore)
 
+
 def EnumAndLogControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMore = False):
-    '''
+    """
     control: Control
     maxDepth: integer
     showAllName: bool
     showMore: bool
-    '''
+    """
     for c, d in WalkControl(control, True, maxDepth):
         LogControl(c, d, showAllName, showMore)
 
+
 def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = False, foundIndex = 1):
-    '''
+    """
     control: Control
     compareFunc: compare function, should return True or False
     maxDepth: integer
     findFromSelf: bool
     foundIndex: integer, value must be greater or equal to 1
-    '''
+    """
     foundCount = 0
     if not control:
         control = GetRootControl()
@@ -4173,8 +4207,9 @@ def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = Fals
             if foundCount == foundIndex:
                 return child
 
+
 def ShowDesktop():
-    '''show the desktop by win + d'''
+    """show the desktop by win + d"""
     SendKeys('{Win}d')
     time.sleep(1)
     #another implement
@@ -4186,8 +4221,9 @@ def ShowDesktop():
         #Win32API.PostMessage(paneTray.Handle, WM_COMMAND, MIN_ALL, 0)
         #time.sleep(1)
 
+
 def RunWithHotKey(keyFunctionDict, stopHotKey = None):
-    '''
+    """
     keyFunctionDict: hotkey, function dict, like {(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1) : func}
     bind function with hotkey, the function will be run or stopped in another thread when the hotkey was pressed
     automation doesn't support multi thread, so you can't use UI Control in the function
@@ -4206,7 +4242,7 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
 
     automation.RunHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1) : main}
                         , (automation.ModifierKey.MOD_CONTROL | automation.ModifierKey.MOD_SHIFT, automation.Keys.VK_2))
-    '''
+    """
     stopHotKeyId = 1
     exitHotKeyId = 2
     hotKeyId = 3
@@ -4291,130 +4327,3 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
                 if msg.lParam&0x0000FFFF == ModifierKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
                     Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow, False)
                     break
-
-def usage():
-    Logger.ColorfulWrite('''usage
-<Color=Cyan>-h</Color>      show command <Color=Cyan>help</Color>
-<Color=Cyan>-t</Color>      delay <Color=Cyan>time</Color>, default 3 seconds, begin to enumerate after Value seconds, this must be an integer
-        you can delay a few seconds and make a window active so automation can enumerate the active window
-<Color=Cyan>-d</Color>      enumerate tree <Color=Cyan>depth</Color>, this must be an integer, if it is null, enumerate the whole tree
-<Color=Cyan>-r</Color>      enumerate from <Color=Cyan>root</Color>:desktop window, if it is null, enumerate from foreground window
-<Color=Cyan>-f</Color>      enumerate from <Color=Cyan>focused</Color> control, if it is null, enumerate from foreground window
-<Color=Cyan>-c</Color>      enumerate the control under <Color=Cyan>cursor</Color>, if depth is < 0, enumerate from its ancestor up to depth
-<Color=Cyan>-a</Color>      show <Color=Cyan>ancestors</Color> of the control under cursor
-<Color=Cyan>-n</Color>      show control full <Color=Cyan>name</Color>
-<Color=Cyan>-m</Color>      show <Color=Cyan>more</Color> properties
-
-if <Color=Red>UnicodeError</Color> or <Color=Red>LookupError</Color> occurred when printing,
-try to change the active code page of console window by using <Color=Cyan>chcp</Color> or see the log file <Color=Cyan>@AutomationLog.txt</Color>
-chcp, get current active code page
-chcp 936, set active code page to gbk
-chcp 65001, set active code page to utf-8
-
-examples:
-uiautomation.py -t3
-uiautomation.py -t3 -r -d1 -m -n
-uiautomation.py -c -t3
-
-''', writeToFile = False)
-
-def main():
-    #if not IsPy3 and sys.getdefaultencoding() == 'ascii':
-        #reload(sys)
-        #sys.setdefaultencoding('utf-8')
-    import getopt
-    Logger.Write('Python {}.{}.{}, {}\n'.format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro, sys.argv))
-    options, args = getopt.getopt(sys.argv[1:], 'hrfcamnd:t:',
-                                  ['help', 'root', 'focus', 'cursor', 'ancestor', 'showMore', 'showAllName', 'depth=', 'time='])
-    root = False
-    focus = False
-    cursor = False
-    ancestor = False
-    showAllName = False
-    showMore = False
-    depth = 0xFFFFFFFF
-    seconds = 3
-    for (o, v) in options:
-        if o in ('-h', '-help'):
-            usage()
-            exit(0)
-        elif o in ('-r', '-root'):
-            root = True
-        elif o in ('-f', '-focus'):
-            focus = True
-        elif o in ('-c', '-cursor'):
-            cursor = True
-        elif o in ('-a', '-ancestor'):
-            ancestor = True
-        elif o in ('-n', '-showAllName'):
-            showAllName = True
-        elif o in ('-m', '-showMore'):
-            showMore = True
-        elif o in ('-d', '-depth'):
-            depth = int(v)
-        elif o in ('-t', '-time'):
-            seconds = int(v)
-    if seconds > 0:
-        Logger.Write('please wait for {0} seconds\n\n'.format(seconds), writeToFile = False)
-        time.sleep(seconds)
-    Logger.Log('Starts, Current Cursor Position: {}'.format(Win32API.GetCursorPos()))
-    control = None
-    if root:
-        control = GetRootControl()
-    if focus:
-        control = GetFocusedControl()
-    if cursor:
-        control = ControlFromCursor()
-        if depth < 0:
-            while depth < 0:
-                control = control.GetParentControl()
-                depth += 1
-            depth = 0xFFFFFFFF
-    if ancestor:
-        control = ControlFromCursor()
-        if control:
-            EnumAndLogControlAncestors(control, showAllName, showMore)
-        else:
-            Logger.Write('IUIAutomation return null element under cursor\n', ConsoleColor.Yellow)
-    else:
-        if not control:
-            control = GetFocusedControl()
-            controlList = []
-            while control:
-                controlList.insert(0, control)
-                control = control.GetParentControl()
-            if len(controlList) == 1:
-                control = controlList[0]
-            else:
-                control = controlList[1]
-        EnumAndLogControl(control, depth, showAllName, showMore)
-    Logger.Log('Ends\n')
-
-if __name__ == '__main__':
-    main()
-    # control = GetForegroundControl()
-    # del control
-    # If use control object in global area, must del the control when not use it, otherwise it may throw an exception.
-    # The exception is ctypes was None when control's __del__ was called!
-    # It seems that the module ctypes was deleted before control's __del__ was called.
-    # _automationClient and control are all global objects, _automationClient may be deleted before control,
-    # but control's __del__ uses _automationClient's member.
-    # You'd better not use control object in global area.
-
-    # https://docs.python.org/3/reference/datamodel.html
-
-    # Warning
-
-    # Due to the precarious circumstances under which __del__() methods are invoked,
-    # exceptions that occur during their execution are ignored,
-    # and a warning is printed to sys.stderr instead.
-    # Also, when __del__() is invoked in response to a module being deleted(e.g., when execution of the program is done),
-    # other globals referenced by the __del__() method may already have been deleted
-    # or in the process of being torn down (e.g. the import machinery shutting down).
-    # For this reason, __del__() methods should do the absolute minimum needed to maintain external invariants.
-    # Starting with version 1.5, Python guarantees that globals whose name begins
-    # with a single underscore are deleted from their module before other globals are deleted;
-    # if no other references to such globals exist,
-    # this may help in assuring that imported modules are
-    # still available at the time when the __del__() method is called.
-

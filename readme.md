@@ -6,10 +6,10 @@ It supports UIAutomatoin for the applications which implmented UIAutomation Prov
 uiautomation is shared under the Apache Licence 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
-Only uiautomation.py and the dll files are needed for UIAutomation. Other scripts are all demos.
 You can install uiautomation by "pip install uiautomation"
 
-Run 'uiautomation.py -h' for help.
+Run 'C:\Python36\Scripts\automation.py -h' for help.
+Run 'C:\Python36\Scripts\automation.py -h' for help.
 Run automate_notepad_py3.py to see a simple demo.
 
 If "RuntimeError: Can not get an instance of IUIAutomation" occured when running uiautomation.py,
@@ -29,7 +29,7 @@ Windows Server 2008 R2, Windows Server 2008 with SP2 and Platform Update for Win
 --------------------------------------------------------------------------------
 How to use uiautomation?
 run '**automation.py -h**' or '**uiautomation.py -h**'
-![help](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/raw/master/uiautomation-h.png)
+![help](images/uiautomation-h.png)
 Understand the arguments of uiautomation, and try the following examples  
 **uiautomation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
 **uiautomation.py -t 0**, print current active window's controls  
@@ -55,7 +55,7 @@ ControlType: WindowControl    ClassName: Notepad
 run the following code
 ```python
 import subprocess
-import uiautomation as automation
+from uiautomation import uiautomation as automation
 
 print(automation.GetRootControl())
 subprocess.Popen('notepad.exe')
@@ -99,22 +99,22 @@ Inspect
 Some screenshots:
 
 WindowsDesktop
-![Desktop](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_desktop.png)
+![Desktop](images/automation_desktop.png)
 
 Qt5
-![Qt5](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_Qt.png)
+![Qt5](images/automation_Qt.png)
 
 Firefox
-![Firefox](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_firefox.png)
+![Firefox](images/automation_firefox.png)
 
 Wireshark(version must >= 2.0)
-![Wireshark](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/raw/master/wireshark_rtp_analyzer.png)
+![Wireshark](images/wireshark_rtp_analyzer.png)
 
 QQ
-![QQ](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/automation_qq.png)
+![QQ](images/automation_qq.png)
 
 Batch rename pdf bookmark
-![bookmark](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/rename_pdf_bookmark.gif)
+![bookmark](images/rename_pdf_bookmark.gif)
 
 Pretty print dir
-![PrettyPrint](https://raw.githubusercontent.com/yinkaisheng/Python-UIAutomation-for-Windows/master/pretty_print_dir.png)
+![PrettyPrint](images/pretty_print_dir.png)

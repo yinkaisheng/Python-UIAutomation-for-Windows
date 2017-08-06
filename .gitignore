@@ -1,3 +1,4 @@
 *.pyc
 @AutomationLog.txt
 __pycache__
+*.egginfo
