@@ -5,8 +5,8 @@ import sys
 import time
 import os
 
-os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
-from uiautomation import uiautomation as automation
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
+import uiautomation as automation
 
 TreeDepth = 1  #书签树需要命名的层数
 TreeSkipDepthList = []

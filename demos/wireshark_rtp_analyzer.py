@@ -16,8 +16,8 @@ run this script
 import os
 import time
 
-os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
-from uiautomation import uiautomation as automation
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
+import uiautomation as automation
 
 
 class PacketInfo():
