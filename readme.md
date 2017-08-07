@@ -6,10 +6,9 @@ It supports UIAutomatoin for the applications which implmented UIAutomation Prov
 uiautomation is shared under the Apache Licence 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
-You can install uiautomation by "pip install uiautomation"
+You can install uiautomation by "pip install uiautomation". After installation, automation.py will be in 'C:\PythonXX\Scripts\'
 
-Run 'C:\Python36\Scripts\automation.py -h' for help.
-Run 'C:\Python36\Scripts\automation.py -h' for help.
+Run 'C:\PythonXX\Scripts\automation.py -h' for help.
 Run automate_notepad_py3.py to see a simple demo.
 
 If "RuntimeError: Can not get an instance of IUIAutomation" occured when running uiautomation.py,
@@ -28,15 +27,15 @@ Windows Server 2008 R2, Windows Server 2008 with SP2 and Platform Update for Win
 
 --------------------------------------------------------------------------------
 How to use uiautomation?
-run '**automation.py -h**' or '**uiautomation.py -h**'
+run '**automation.py -h**'
 ![help](images/uiautomation-h.png)
 Understand the arguments of uiautomation, and try the following examples  
-**uiautomation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
-**uiautomation.py -t 0**, print current active window's controls  
+**automation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
+**automation.py -t 0**, print current active window's controls  
   
-run notepad.exe, run uiautomation.py -t 3, swith to Notepad and wait for 5 seconds  
+run notepad.exe, run automation.py -t 3, swith to Notepad and wait for 5 seconds  
   
-uiautomation will print the controls of Notepad and save them to @AutomationLog.txt:  
+automation.py will print the controls of Notepad and save them to @AutomationLog.txt:  
   
 ControlType: WindowControl    ClassName: Notepad  
 　　ControlType: EditControl    ClassName: Edit  
