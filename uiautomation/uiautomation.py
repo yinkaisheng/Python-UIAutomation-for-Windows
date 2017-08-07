@@ -7,7 +7,7 @@ Source: https://github.com/yinkaisheng/Python-UIAutomation-for-Windows
 
 This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
 It supports UIAutomation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
-Run 'uiautomation.py -h' for help.
+Run 'automation.py -h' for help.
 
 uiautomation is shared under the Apache Licene 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.

@@ -1,9 +1,10 @@
 #!python3
 # -*- coding: utf-8 -*-
 import os
+import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
-import uiautomation as automation
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
+from uiautomation import uiautomation as automation
 
 
 def WalkDir():

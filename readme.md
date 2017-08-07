@@ -1,16 +1,15 @@
 # The uiautomation module
 
-This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10).
-It supports UIAutomation for the applications which implmented UIAutomation Provider, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
+This module is for UIAutomatoin on Windows(Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10).
+It supports UIAutomatoin for the applications which implmented UIAutomation Provider, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
 
 uiautomation is shared under the Apache Licence 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
-You can install uiautomation with:
+You can install uiautomation by "pip install uiautomation". After installation, automation.py will be in 'C:\PythonXX\Scripts\'
 
-    pip install uiautomation
-
-Run `demos\notepadtop.py` to see a simple demo.
+Run 'C:\PythonXX\Scripts\automation.py -h' for help.
+Run automate_notepad_py3.py to see a simple demo.
 
 If "RuntimeError: Can not get an instance of IUIAutomation" occured when running uiautomation.py,
 You need to install update [KB971513](https://support.microsoft.com/en-us/kb/971513) for your Windows.
@@ -28,44 +27,34 @@ Windows Server 2008 R2, Windows Server 2008 with SP2 and Platform Update for Win
 
 --------------------------------------------------------------------------------
 How to use uiautomation?
-
-    C:\PythonXX\Scripts\automation.py -h
-    
-Where XX is your python version, such as 27 or 33 or 36. If you add Scripts/ to your PATH,
-then just `automation.py` will run the script.
-
+run '**automation.py -h**'
 ![help](images/uiautomation-h.png)
-Understand the arguments of uiautomation, and try the following examples
-
-print desktop(the root of control tree) and it's children(top level windows):
-
-    C:\PythonXX\Scripts\automation.py -r -d 1 -t 0
-    
-print current active window's controls:
-
-    C:\PythonXX\Scripts\automation.py -t 0   
+Understand the arguments of uiautomation, and try the following examples  
+**automation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
+**automation.py -t 0**, print current active window's controls  
   
-run `notepad.exe`, run `C:\PythonXX\Scripts\automation.py -t 3`, switch to Notepad and wait for 5 seconds  
+run notepad.exe, run automation.py -t 3, swith to Notepad and wait for 5 seconds  
   
-uiautomation will print the controls of Notepad and save them to @AutomationLog.txt:  
+automation.py will print the controls of Notepad and save them to @AutomationLog.txt:  
   
-    ControlType: WindowControl    ClassName: Notepad  
-    　　ControlType: EditControl    ClassName: Edit  
-    　　　　ControlType: ScrollBarControl    ClassName:  
-    　　　　　　ControlType: ButtonControl    ClassName:  
-    　　　　　　ControlType: ButtonControl    ClassName:  
-    　　　　ControlType: ScrollBarControl    ClassName:  
-    　　　　　　ControlType: ButtonControl    ClassName:  
-    　　　　　　ControlType: ButtonControl    ClassName:  
-    　　　　ControlType: ThumbControl    ClassName:  
-    　　ControlType: StatusBarControl    ClassName:  
-    　　　　ControlType: TextControl    ClassName:  
-    　　　　ControlType: TextControl    ClassName:   
+ControlType: WindowControl    ClassName: Notepad  
+　　ControlType: EditControl    ClassName: Edit  
+　　　　ControlType: ScrollBarControl    ClassName:  
+　　　　　　ControlType: ButtonControl    ClassName:  
+　　　　　　ControlType: ButtonControl    ClassName:  
+　　　　ControlType: ScrollBarControl    ClassName:  
+　　　　　　ControlType: ButtonControl    ClassName:  
+　　　　　　ControlType: ButtonControl    ClassName:  
+　　　　ControlType: ThumbControl    ClassName:  
+　　ControlType: StatusBarControl    ClassName:  
+　　　　ControlType: TextControl    ClassName:  
+　　　　ControlType: TextControl    ClassName:  
+...  
 
 run the following code
 ```python
 import subprocess
-import uiautomation as automation
+from uiautomation import uiautomation as automation
 
 print(automation.GetRootControl())
 subprocess.Popen('notepad.exe')
@@ -75,23 +64,23 @@ notepadWindow.SetTopmost(True)
 edit = notepadWindow.EditControl()
 edit.SetValue('Hello')
 edit.SendKeys('{Ctrl}{End}{Enter}World')
-```
 
+```
 automation.GetRootControl() returns the root control  
 automation.WindowControl(searchDepth = 1, ClassName = 'Notepad') creates a WindowControl, the parameters specify how to search the control  
 the following parameters can be used  
-* searchFromControl = None,   
-* searchDepth = 0xFFFFFFFF,   
-* searchWaitTime = SEARCH_INTERVAL,   
-* foundIndex = 1  
-* Name  
-* ClassName  
-* AutomationId  
-* ControlType  
-* Depth  
+searchFromControl = None,   
+searchDepth = 0xFFFFFFFF,   
+searchWaitTime = SEARCH_INTERVAL,   
+foundIndex = 1  
+Name  
+ClassName  
+AutomationId  
+ControlType  
+Depth  
 
-See `Control.__init__()` for the comment of the parameters  
-See `demos\automation_notepad_py3.py` for a detailed example  
+See Control.\_\_init\_\_ for the comment of the parameters  
+See automation_notepad_py3.py for a detailed example  
 
 --------------------------------------------------------------------------------
 Another UI tool inspectX86.exe or inspectX64.exe supplied by Microsoft can also be used to see the UI elements.
@@ -128,19 +117,3 @@ Batch rename pdf bookmark
 
 Pretty print dir
 ![PrettyPrint](images/pretty_print_dir.png)
-
-
-Building as package
--------------------
-
-* Update VERSION in uiautomation/version.py
-
-* Install build requirements (wheel):
-
-    pip install -r requirements-dev.txt
-    
-* Build wheel:
-
-    python setup.py bdist_wheel
-    
-.whl file will be in the dist directory.

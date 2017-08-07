@@ -14,10 +14,11 @@ run this script
 """
 
 import os
+import sys
 import time
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Only required for demo!
-import uiautomation as automation
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
+from uiautomation import uiautomation as automation
 
 
 class PacketInfo():
@@ -139,6 +140,8 @@ def Analyze(sampleRate=90000, beginNo=0, maxPackets=0xFFFFFFFF, calculateLost=Fa
 
 
 if __name__ == '__main__':
+    if not automation.IsPy3:
+        input = raw_input
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sample', type=int, dest='sampleRate', default=0,

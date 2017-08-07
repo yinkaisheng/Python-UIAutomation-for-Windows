@@ -1,6 +1,5 @@
 #!python3
 # -*- coding:utf-8 -*-
-
 import sys
 import time
 
@@ -41,9 +40,7 @@ def main():
     # reload(sys)
     # sys.setdefaultencoding('utf-8')
     import getopt
-    Logger.Write('UIAutomation {} (Python {}.{}.{}, {} bit)\n'.format(VERSION, sys.version_info.major,
-                                                                      sys.version_info.minor, sys.version_info.micro,
-                                                                      64 if sys.maxsize > 0xFFFFFFFF else 32))
+    Logger.Write('UIAutomation {} (Python {}.{}.{}, {} bit)\n'.format(VERSION, sys.version_info.major, sys.version_info.minor, sys.version_info.micro, 64 if sys.maxsize > 0xFFFFFFFF else 32))
     options, args = getopt.getopt(sys.argv[1:], 'hrfcamnd:t:',
                                   ['help', 'root', 'focus', 'cursor', 'ancestor', 'showMore', 'showAllName', 'depth=',
                                    'time='])
@@ -113,29 +110,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # control = GetForegroundControl()
-    # del control
-    # If use control object in global area, must del the control when not use it, otherwise it may throw an exception.
-    # The exception is ctypes was None when control's __del__ was called!
-    # It seems that the module ctypes was deleted before control's __del__ was called.
-    # _automationClient and control are all global objects, _automationClient may be deleted before control,
-    # but control's __del__ uses _automationClient's member.
-    # You'd better not use control object in global area.
-
-    # https://docs.python.org/3/reference/datamodel.html
-
-    # Warning
-
-    # Due to the precarious circumstances under which __del__() methods are invoked,
-    # exceptions that occur during their execution are ignored,
-    # and a warning is printed to sys.stderr instead.
-    # Also, when __del__() is invoked in response to a module being deleted(e.g., when execution of the program is done),
-    # other globals referenced by the __del__() method may already have been deleted
-    # or in the process of being torn down (e.g. the import machinery shutting down).
-    # For this reason, __del__() methods should do the absolute minimum needed to maintain external invariants.
-    # Starting with version 1.5, Python guarantees that globals whose name begins
-    # with a single underscore are deleted from their module before other globals are deleted;
-    # if no other references to such globals exist,
-    # this may help in assuring that imported modules are
-    # still available at the time when the __del__() method is called.
-
