@@ -1,0 +1,4 @@
+include LICENSE
+include readme.md
+include uiautomation/*.py
+include uiautomation/bin/*.dll
