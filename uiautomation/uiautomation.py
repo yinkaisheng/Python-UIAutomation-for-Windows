@@ -25,7 +25,6 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-VERSION = '1.0.9'
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
 SEARCH_INTERVAL = 0.5  # search control interval seconds
@@ -47,7 +46,7 @@ class _AutomationClient:
         return cls._instance
             
     def __init__(self):
-        bin_path = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+        bin_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
         os.environ["PATH"] = bin_path + os.pathsep + os.environ["PATH"]
 
         if '32 bit' in sys.version:

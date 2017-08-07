@@ -1,11 +1,4 @@
 include LICENSE
 include readme.md
-include uiautomation/__init__.py
-include uiautomation/uiautomation.py
-include uiautomation/version.py
-include uiautomation/UIAutomationClient_VC90_X64.dll
-include uiautomation/UIAutomationClient_VC90_X86.dll
-include uiautomation/UIAutomationClient_VC100_X64.dll
-include uiautomation/UIAutomationClient_VC100_X86.dll
-include uiautomation/UIAutomationClient_VC140_X64.dll
-include uiautomation/UIAutomationClient_VC140_X86.dll
+include uiautomation/*.py
+include uiautomation/bin/*.dll
