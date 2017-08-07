@@ -3,7 +3,7 @@
 import os
 import sys
 
-os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 from uiautomation import uiautomation as automation
 
 
@@ -26,12 +26,13 @@ def main(directory, maxDepth = 0xFFFFFFFF):
     absdir = os.path.abspath(directory)
     for it, depth, remainCount in automation.WalkTree(absdir, getChildrenFunc=GetDirChildren, includeTop=True, maxDepth=maxDepth):
         remain[depth] = remainCount
+        isDir = os.path.isdir(it)
         prefix = ''.join(['│   ' if remain[i+1] else '    ' for i in range(depth - 1)])
         if depth > 0:
             if remain[depth] > 0:
-                prefix += '├── '
+                prefix += '├─→ ' if isDir else '├── '   #'□─→ '
             else:
-                prefix += '└── '
+                prefix += '└─→ ' if isDir else '└── '   #'□─→ '
         file = it[it.rfind('\\')+1:]
         text.append(prefix)
         text.append(file)
@@ -41,6 +42,8 @@ def main(directory, maxDepth = 0xFFFFFFFF):
     automation.SetClipboardText(''.join(text))
 
 if __name__ == '__main__':
+    if not automation.IsPy3:
+        input = raw_input
     if len(sys.argv) == 1:
         dir_ = input('input a dir: ')
         main(dir_)

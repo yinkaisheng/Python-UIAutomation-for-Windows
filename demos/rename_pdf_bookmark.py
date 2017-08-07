@@ -1,11 +1,11 @@
 #!python3
 # -*- coding: utf-8 -*-
 #rename pdf bookmarks with FoxitReader 7.2.4, 参考: http://www.cnblogs.com/Yinkaisheng/p/4820954.html
+import os
 import sys
 import time
-import os
 
-os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 from uiautomation import uiautomation as automation
 
 TreeDepth = 1  #书签树需要命名的层数

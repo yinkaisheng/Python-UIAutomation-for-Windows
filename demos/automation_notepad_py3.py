@@ -1,11 +1,12 @@
 #!python3
 # -*- coding: utf-8 -*-
 import os
+import sys
 import time
 import subprocess
 import ctypes
 
-os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 from uiautomation import uiautomation as automation
 
 text = """The uiautomation module
@@ -13,7 +14,7 @@ text = """The uiautomation module
 This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
 It supports UIAutomation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
 
-Run 'uiautomation.py -h' for help.
+Run 'automation.py -h' for help.
 
 uiautomation is shared under the Apache Licene 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.

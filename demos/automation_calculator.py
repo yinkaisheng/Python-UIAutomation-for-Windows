@@ -1,11 +1,12 @@
 #!python3
 # -*- coding: utf-8 -*-
 # works on windows XP, 7, 8 and 10
+import os
+import sys
 import time
 import subprocess
-import os
 
-os.environ["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Only required for demo!
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 from uiautomation import uiautomation as automation
 
 
