@@ -56,7 +56,7 @@ ControlType: WindowControl    ClassName: Notepad
 run the following code
 ```python
 import subprocess
-from uiautomation import uiautomation as automation
+import uiautomation as automation
 
 print(automation.GetRootControl())
 subprocess.Popen('notepad.exe')
