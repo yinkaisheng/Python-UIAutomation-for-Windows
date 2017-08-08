@@ -5,7 +5,7 @@ import sys
 import subprocess
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-from uiautomation import uiautomation as automation
+import uiautomation as automation
 
 
 def ReleaseAllKey():
@@ -51,6 +51,7 @@ def test2(stopEvent):
 
 
 def main():
+    automation.Logger.WriteLine('Press Ctrl+1 to start, press ctrl+4 to stop')
     automation.RunWithHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1): test1,
                               (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_2): test2},
                              (automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_4))

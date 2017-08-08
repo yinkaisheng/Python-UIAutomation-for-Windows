@@ -12,7 +12,7 @@ Run 'C:\PythonXX\Scripts\automation.py -h' for help.
 Run automate_notepad_py3.py to see a simple demo.
 
 If "RuntimeError: Can not get an instance of IUIAutomation" occured when running uiautomation.py,
-You need to install update [KB971513](https://support.microsoft.com/en-us/kb/971513) for your Windows.
+You need to install update [KB971513](https://support.microsoft.com/en-us/kb/971513) for your Windows(Mostly Windows XP).
 You can also download it from here [https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation](https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation)
 
 By the way, You'd better run python as administrator. Otherwise uiautomation may fail to enumerate controls under some circumstances.
@@ -25,6 +25,7 @@ Windows 7, Windows Vista with SP2 and Platform Update for Windows Vista, Windows
 Microsoft UIAutomation Minimum supported server:
 Windows Server 2008 R2, Windows Server 2008 with SP2 and Platform Update for Windows Server 2008, Windows Server 2003 with SP2 and Platform Update for Windows Server 2008 [desktop apps only]
 
+C++ dll source code: [UIAutomationClient](https://github.com/yinkaisheng/UIAutomationClient)
 --------------------------------------------------------------------------------
 How to use uiautomation?
 run '**automation.py -h**'

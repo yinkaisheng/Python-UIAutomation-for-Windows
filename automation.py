@@ -3,9 +3,9 @@
 import sys
 import time
 
-from uiautomation.uiautomation import (Win32API, Logger, ControlFromCursor, GetRootControl, GetFocusedControl,
+from uiautomation import (Win32API, Logger, ControlFromCursor, GetRootControl, GetFocusedControl,
                                        EnumAndLogControlAncestors, EnumAndLogControl, ConsoleColor)
-from uiautomation.version import VERSION
+from uiautomation import VERSION
 
 
 def usage():

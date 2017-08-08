@@ -7,7 +7,7 @@ import time
 import subprocess
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-from uiautomation import uiautomation as automation
+import uiautomation as automation
 
 
 def Calc(window, btns, expression):
@@ -18,7 +18,7 @@ def Calc(window, btns, expression):
         automation.Logger.Write(char, writeToFile = False)
         btns[char].Click(waitTime = 0.05)
     window.SendKeys('{Ctrl}c', waitTime = 0)
-    result = automation.Win32API.GetClipboardText()
+    result = automation.GetClipboardText()
     automation.Logger.WriteLine(result, automation.ConsoleColor.Cyan, writeToFile = False)
     time.sleep(1)
 

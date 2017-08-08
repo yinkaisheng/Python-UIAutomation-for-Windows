@@ -4,7 +4,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-from uiautomation import uiautomation as automation
+import uiautomation as automation
 
 
 def GetDirChildren(directory):
@@ -27,12 +27,12 @@ def main(directory, maxDepth = 0xFFFFFFFF):
     for it, depth, remainCount in automation.WalkTree(absdir, getChildrenFunc=GetDirChildren, includeTop=True, maxDepth=maxDepth):
         remain[depth] = remainCount
         isDir = os.path.isdir(it)
-        prefix = ''.join(['│   ' if remain[i+1] else '    ' for i in range(depth - 1)])
+        prefix = ''.join(['│   ' if remain[i+1] else '    ' for i in range(depth - 1)]) # u'│   ' for python 2
         if depth > 0:
             if remain[depth] > 0:
-                prefix += '├─→ ' if isDir else '├── '   #'□─→ '
+                prefix += '├─→ ' if isDir else '├── '   #'□─→ ' # u'├─→ ' for python 2
             else:
-                prefix += '└─→ ' if isDir else '└── '   #'□─→ '
+                prefix += '└─→ ' if isDir else '└── '   #'□─→ ' # u'└─→ ' for python 2
         file = it[it.rfind('\\')+1:]
         text.append(prefix)
         text.append(file)
