@@ -42,27 +42,27 @@ class _AutomationClient:
         """Singleton instance (this prevents creation on import)."""
         if cls._instance is None:
             cls._instance = cls()
-            
+
         return cls._instance
-            
+
     def __init__(self):
         bin_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
         os.environ["PATH"] = bin_path + os.pathsep + os.environ["PATH"]
 
-        if '32 bit' in sys.version:
-            if sys.version_info[:2] >= (3, 5):
-                self.dll = ctypes.cdll.UIAutomationClient_VC140_X86
-            elif sys.version_info[:2] >= (3, 3):
-                self.dll = ctypes.cdll.UIAutomationClient_VC100_X86
-            else:
-                self.dll = ctypes.cdll.UIAutomationClient_VC90_X86
-        else:
+        if sys.maxsize > 0xFFFFFFFF:
             if sys.version_info[:2] >= (3, 5):
                 self.dll = ctypes.cdll.UIAutomationClient_VC140_X64
             elif sys.version_info[:2] >= (3, 3):
                 self.dll = ctypes.cdll.UIAutomationClient_VC100_X64
             else:
                 self.dll = ctypes.cdll.UIAutomationClient_VC90_X64
+        else:
+            if sys.version_info[:2] >= (3, 5):
+                self.dll = ctypes.cdll.UIAutomationClient_VC140_X86
+            elif sys.version_info[:2] >= (3, 3):
+                self.dll = ctypes.cdll.UIAutomationClient_VC100_X86
+            else:
+                self.dll = ctypes.cdll.UIAutomationClient_VC90_X86
 
         self.InitFunctionType()
 
@@ -3682,8 +3682,11 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
             Logger.WriteLine('Window is not Metro!', ConsoleColor.Yellow)
 
     def SetActive(self, waitTime = OPERATION_WAIT_TIME):
-        if self.CurrentWindowVisualState() == WindowVisualState.Minimized:
+        curState = self.CurrentWindowVisualState()
+        if curState == WindowVisualState.Minimized:
             self.ShowWindow(ShowWindow.Restore)
+        elif curState == WindowVisualState.Maximized:
+            self.ShowWindow(ShowWindow.Maximize)
         else:
             self.ShowWindow(ShowWindow.Show)
         ret = Win32API.SetForegroundWindow(self.Handle)  #maybe fail if foreground windows's process is not python
@@ -4080,6 +4083,7 @@ def WalkControl(control, includeTop = False, maxDepth = 0xFFFFFFFF):
     """
     control: Control
     maxDepth: integer
+    yield 2 items tuple(Control, depth)
     """
     if includeTop:
         yield control, 0
