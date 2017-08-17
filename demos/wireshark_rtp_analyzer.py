@@ -7,6 +7,7 @@ Wireshark version must >= 2.0
 run Wireshark and start capture
 use VLC to play a rtsp url
 stop capture
+export rtp to csv file
 run this script
 """
 
@@ -35,7 +36,7 @@ class PacketInfo():
         self.Seq = 0
 
 
-def AnalyzeUI(sampleRate = 90000, payload = 96, beginNo = 0, maxPackets = 0xFFFFFFFF, calculateLost = False):
+def AnalyzeUI(sampleRate = 90000, payload = 96, beginNo = 0, maxPackets = 0xFFFFFFFF, showLost = False):
     """Wireshark version must >= 2.0"""
     wireSharkWindow = automation.WindowControl(searchDepth= 1, ClassName = 'Qt5QWindowIcon')
     if wireSharkWindow.Exists(0, 0):
@@ -92,8 +93,10 @@ def AnalyzeUI(sampleRate = 90000, payload = 96, beginNo = 0, maxPackets = 0xFFFF
                             packet.Seq = int(info[startIndex+4:endIndex].rstrip(','))
                         startIndex = info.find('Time=', startIndex)
                         if startIndex > 0:
-                            endIndex = info.find(' ', startIndex)
-                            packet.TimeStamp = int(info[startIndex+5:endIndex].rstrip(','))
+                            endIndex = startIndex + 5 + 1
+                            while str.isdigit(info[startIndex+5:endIndex]) and endIndex <= len(info):
+                                packet.TimeStamp = int(info[startIndex+5:endIndex])
+                                endIndex += 1
                             if packet.No >= beginNo:
                                 packets.append(packet)
                                 automation.Logger.WriteLine('No: {0[No]:<10}, Time: {0[Time]:<10}, Protocol: {0[Protocol]:<6}, Length: {0[Length]:<6}, Info: {0[Info]:<10},'.format(packet.__dict__))
@@ -101,9 +104,10 @@ def AnalyzeUI(sampleRate = 90000, payload = 96, beginNo = 0, maxPackets = 0xFFFF
             if item.BoundingRectangle[3] >= bottom:
                 automation.SendKeys('{PageDown}')
                 time.sleep(0.1)
-    AnalyzePackets(packets, sampleRate, calculateLost)
+    AnalyzePackets(packets, sampleRate, showLost)
 
-def AnalyzeCsvFile(csvFile, sampleRate = 90000, payload = 96, beginNo = 0, maxPackets = 0xFFFFFFFF, calculateLost = False):
+
+def AnalyzeCsvFile(csvFile, sampleRate = 90000, payload = 96, beginNo = 0, maxPackets = 0xFFFFFFFF, showLost = False):
     """Analyze Wireshark export csv file"""
     headers = []
     headerFunctionDict = {'No': int,
@@ -151,15 +155,18 @@ def AnalyzeCsvFile(csvFile, sampleRate = 90000, payload = 96, beginNo = 0, maxPa
                                     packet.Seq = int(info[startIndex+4:endIndex].rstrip(','))
                                 startIndex = info.find('Time=', startIndex)
                                 if startIndex > 0:
-                                    endIndex = info.find(' ', startIndex)
-                                    packet.TimeStamp = int(info[startIndex+5:endIndex].rstrip(','))
+                                    endIndex = startIndex + 5 + 1
+                                    while str.isdigit(info[startIndex+5:endIndex]) and endIndex <= len(info):
+                                        packet.TimeStamp = int(info[startIndex+5:endIndex])
+                                        endIndex += 1
                                     if packet.No >= beginNo:
                                         packets.append(packet)
                                         automation.Logger.WriteLine('No: {0[No]:<10}, Time: {0[Time]:<10}, Protocol: {0[Protocol]:<6}, Length: {0[Length]:<6}, Info: {0[Info]:<10},'.format(packet.__dict__))
                     index = (index + 1) % len(headers)
-    AnalyzePackets(packets, sampleRate, calculateLost)
+    AnalyzePackets(packets, sampleRate, showLost)
 
-def AnalyzePackets(packets, sampleRate, calculateLost):
+
+def AnalyzePackets(packets, sampleRate, showLost):
     automation.Logger.WriteLine('\n----------\nAnalyze Result:')
     seq = packets[0].Seq - 1
     lostSeqs = []
@@ -202,12 +209,13 @@ def AnalyzePackets(packets, sampleRate, calculateLost):
         seqCount = packets[-1].Seq - packets[0].Seq + 1
         totalTimeFromTimeStamp = (framePackets[-1].TimeStamp - framePackets[0].TimeStamp) / sampleRate
         realTime = framePackets[-1].Time - framePackets[0].Time
-        if calculateLost:
-            automation.Logger.WriteLine('\n包总数: {0}, 帧数: {1}, 实际帧率:{2:.2f}, 平均时间戳: {3}, 接收总时间: {4:.6f}, 时间戳总时间: {5:.6f}, 丢包率: {6}({7:.2f}%), 丢包序号: \n{8}'.format(
-                                    len(packets), frameCount, frameCount / realTime, averageDiff, realTime, totalTimeFromTimeStamp, len(lostSeqs), len(lostSeqs) / seqCount, '\n'.join(lostSeqs)))
-        else:
-            automation.Logger.WriteLine('\n包总数: {0}, 帧数: {1}, 实际帧率:{2:.2f}, 平均时间戳: {3}, 接收总时间: {4:.6f}, 时间戳总时间: {5:.6f}'.format(
-                                    len(packets), frameCount, frameCount / realTime, averageDiff, realTime, totalTimeFromTimeStamp))
+        automation.Logger.ColorfulWriteLine('\n接收包总数: <Color=DarkGreen>{0}</Color>, 帧数: <Color=DarkGreen>{1}</Color>, 实际帧率:<Color=DarkGreen>{2:.2f}</Color>, 平均时间戳: <Color=DarkGreen>{3}</Color>, 接收总时间: <Color=DarkGreen>{4:.6f}</Color>, 时间戳总时间: <Color=DarkGreen>{5:.6f}</Color>, 丢包率: <Color=DarkGreen>{6}/{7}({8:.2f}%)</Color>'.format(
+            len(packets), frameCount, frameCount / realTime, averageDiff, realTime, totalTimeFromTimeStamp, len(lostSeqs), seqCount, len(lostSeqs) / seqCount * 100))
+        automation.Logger.ColorfulWriteLine('第一个包Seq: <Color=DarkGreen>{}</Color>, TimeStamp: <Color=DarkGreen>{}</Color>, 最后一个包Seq: <Color=DarkGreen>{}</Color>, TimeStamp: <Color=DarkGreen>{}</Color>, 包总数: <Color=DarkGreen>{}</Color>, 丢包数: <Color=DarkGreen>{}</Color>\n'.format(
+            packets[0].Seq, packets[0].TimeStamp, packets[-1].Seq, packets[-1].TimeStamp, seqCount, len(lostSeqs)))
+        if showLost:
+            lostStr = ''.join([('\n' + str(it) + ',') if i % 20 == 0 else (str(it) + ',') for i, it in enumerate(lostSeqs)])
+            automation.Logger.WriteLine('丢包序号:\n{}'.format(lostStr))
 
 
 if __name__ == '__main__':
@@ -225,20 +233,25 @@ if __name__ == '__main__':
                       help = 'begin no')
     parser.add_argument('-n', '--num', type = int, dest = 'maxPacket', default = 0xFFFFFFFF,
                       help = 'read packets count')
-    parser.add_argument('-l', '--lost', type = bool, dest = 'calculateLost', default = False,
-                          help = 'calculate lost packets')
+    parser.add_argument('-l', '--lostseq', action='store_true', default = False,
+                          help = 'show lost seq')
     args = parser.parse_args()
     cmdWindow = automation.GetConsoleWindow()
     if cmdWindow:  #if run by a debugger, maybe no console window
         cmdWindow.SetTopmost()
     if 0 == args.sampleRate:
-        args.sampleRate = int(input('please input sample rate: '))
+        args.sampleRate = int(input('please input sample rate(e.g. 8000 for Audio, 90000 for Video): '))
+        if args.sampleRate == 90000:
+            automation.Logger.SetLogFile('@analyze_video_result.txt')
+        else:
+            automation.Logger.SetLogFile('@analyze_audio_result.txt')
+        automation.Logger.DeleteLog()
     if 0 == args.payload:
-        args.payload = int(input('please input playload type: '))
+        args.payload = int(input('please input playload type(e.g. 97 for Audio, 96 for Video): '))
     if args.file:
-        AnalyzeCsvFile(args.file, args.sampleRate, args.payload, args.beginNo, args.maxPacket, args.calculateLost)
+        AnalyzeCsvFile(args.file, args.sampleRate, args.payload, args.beginNo, args.maxPacket, args.lostseq)
     else:
-        AnalyzeUI(args.sampleRate, args.payload, args.beginNo, args.maxPacket, args.calculateLost)
+        AnalyzeUI(args.sampleRate, args.payload, args.beginNo, args.maxPacket, args.lostseq)
     if cmdWindow:
         cmdWindow.SetActive()
     input('press enter to exit')
