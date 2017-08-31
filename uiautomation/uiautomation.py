@@ -14,8 +14,8 @@ This means that the code can be freely copied and distributed, and costs nothing
 
 代码原理简单介绍: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
 """
-import sys
 import os
+import sys
 import time
 import datetime
 import ctypes
@@ -42,7 +42,6 @@ class _AutomationClient:
         """Singleton instance (this prevents creation on import)."""
         if cls._instance is None:
             cls._instance = cls()
-
         return cls._instance
 
     def __init__(self):
@@ -2377,7 +2376,6 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         start = time.clock()
         while True:
             control = FindControl(self.searchFromControl, self._CompareFunction, self.searchDepth, False, self.foundIndex)
-            current = time.clock()
             if control:
                 self._element = control.Element
                 control._element = 0 # control will be destroyed, but the element needs to be stroed in self._element
@@ -2385,12 +2383,23 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                 #Logger.Log('Found time: {:.3f}s, {}'.format(elapsedTime, self))
                 return True
             else:
-                if current - start >= maxSearchSeconds:
+                remain = start + maxSearchSeconds - time.clock()
+                if remain > 0:
+                    time.sleep(min(remain, searchIntervalSeconds))
+                else:
                     return False
-            if current + searchIntervalSeconds > start + maxSearchSeconds:
-                time.sleep(start + maxSearchSeconds - current)
+
+    def Disappears(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
+        """check control disappears in maxSearchSeconds, return True if control disappears"""
+        start = time.clock()
+        while True:
+            if not self.Exists(0, 0):
+                return True
+            remain = start + maxSearchSeconds - time.clock()
+            if remain > 0:
+                time.sleep(min(remain, searchIntervalSeconds))
             else:
-                time.sleep(searchIntervalSeconds)
+                return False
 
     def Refind(self, maxSearchSeconds = TIME_OUT_SECOND, searchIntervalSeconds = SEARCH_INTERVAL, raiseException = True):
         """Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds, raise an LookupError if timed out"""
@@ -3948,12 +3957,7 @@ def WaitForExist(control, timeout):
 
 
 def WaitForDisappear(control, timeout):
-    start = time.clock()
-    while time.clock() - start < timeout:
-        if not control.Exists(0, 0):
-            return True
-        time.sleep(1)
-    return False
+    return control.Disappears(timeout, 1)
 
 
 def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):

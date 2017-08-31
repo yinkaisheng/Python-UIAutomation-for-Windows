@@ -28,7 +28,7 @@ def CalcOnXP():
     calcWindow = automation.WindowControl(searchDepth = 1, ClassName = 'SciCalc')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
-    calcWindow.SetTopmost()
+    calcWindow.SetActive()
     calcWindow.SendKeys('{Alt}vs', 0.5)
     clearBtn = calcWindow.ButtonControl(Name = 'CE')
     clearBtn.Click()
@@ -63,7 +63,7 @@ def CalcOnWindows7And8():
     calcWindow = automation.WindowControl(searchDepth = 1, ClassName = 'CalcFrame')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
-    calcWindow.SetTopmost()
+    calcWindow.SetActive()
     calcWindow.SendKeys('{Alt}2')
     clearBtn = calcWindow.ButtonControl(foundIndex= 8, Depth = 3)  #test foundIndex and Depth, the 8th button is clear
     if clearBtn.AutomationId == '82':
@@ -99,7 +99,7 @@ def CalcOnWindows10():
     calcWindow = automation.WindowControl(searchDepth = 1, ClassName = 'ApplicationFrameWindow', Name = 'Calculator')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
-    calcWindow.SetTopmost()
+    calcWindow.SetActive()
     calcWindow.ButtonControl(AutomationId = 'NavButton').Click()
     calcWindow.ListItemControl(Name = 'Scientific Calculator').Click()
     calcWindow.ButtonControl(AutomationId = 'clearButton').Click()
