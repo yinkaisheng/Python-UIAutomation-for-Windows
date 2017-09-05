@@ -17,5 +17,5 @@ setup(
     include_package_data=True,
     scripts=["scripts/automation.py", 'scripts/automation.py'],
     long_description='Python UIAutomation for Windows. Supports py2, py3, x86, x64',
-    zip_safe=True,
+    zip_safe=False,
 )
