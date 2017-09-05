@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 """
-本脚本可以获取QQ2016群所有成员详细资料，请根据提示做对应的操作
+本脚本可以获取QQ2017(v8.9.4)群所有成员详细资料，请根据提示做对应的操作
 作者：yinkaisheng@foxmail.com
 2016-01-06
 """
@@ -15,15 +15,12 @@ import uiautomation as automation
 
 def GetPersonDetail():
     detailWindow = automation.WindowControl(searchDepth= 1, ClassName = 'TXGuiFoundation', SubName = '的资料')
-    detailPane = detailWindow.PaneControl(Name = '资料')
     details = ''
-    for control, depth, remainCount in automation.WalkTree(detailPane, lambda c: c.GetChildren()):
-        if control.ControlType == automation.ControlType.TextControl:
-            details += control.Name
-        elif control.ControlType == automation.ControlType.EditControl:
-            details += control.CurrentValue() + '\n'
+    for control, depth in automation.WalkControl(detailWindow):
+        if isinstance(control, automation.EditControl):
+            details += control.Name + control.CurrentValue() + '\n'
     details += '\n' * 2
-    detailWindow.Click(0.95, 0.02)
+    detailWindow.Click(-10, 10)
     return details
 
 
@@ -35,7 +32,8 @@ def main():
         automation.Logger.WriteLine('没有放在群成员上面，程序退出！')
         return
     consoleWindow = automation.GetConsoleWindow()
-    consoleWindow.SetActive()
+    if consoleWindow:
+        consoleWindow.SetActive()
     qqWindow = listItem.GetTopWindow()
     list = listItem.GetParentControl()
     allListItems = list.GetChildren()
@@ -53,7 +51,8 @@ def main():
         for listItem in allListItems:
             if listItem.ControlType == automation.ControlType.ListItemControl:
                 if automation.Win32API.IsKeyPressed(automation.Keys.VK_F10):
-                    consoleWindow.SetActive()
+                    if consoleWindow:
+                        consoleWindow.SetActive()
                     input('\n您暂停了脚本，按Enter继续\n')
                     qqWindow.SetActive()
                 listItem.RightClick()
