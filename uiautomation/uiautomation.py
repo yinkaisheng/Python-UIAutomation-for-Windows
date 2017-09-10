@@ -1420,6 +1420,15 @@ class Win32API:
         return values.value
 
     @staticmethod
+    def GetEditText(hWnd):
+        """Get text of Win32 Edit"""
+        textLen = Win32API.SendMessage(hWnd, 0x000E, 0, 0) + 1  #WM_GETTEXTLENGTH
+        wArray = ctypes.c_wchar * textLen
+        values = wArray()
+        Win32API.SendMessage(hWnd, 0x000D, textLen, values)  #WM_GETTEXT
+        return values.value
+
+    @staticmethod
     def SetWindowText(hWnd, text):
         """Set window text"""
         return ctypes.windll.user32.SetWindowTextW(hWnd, ctypes.c_wchar_p(text))
