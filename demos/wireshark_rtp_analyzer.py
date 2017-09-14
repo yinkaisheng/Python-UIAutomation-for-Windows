@@ -1,6 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
-#author: yinkaisheng@foxmail.com
+#author: yinkaisheng@live.com
 """
 How to use:
 Wireshark version must >= 2.0

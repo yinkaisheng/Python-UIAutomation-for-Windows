@@ -1,8 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 """
-Author: yinkaisheng(Nanjing, China)
-Mail: yinkaisheng@foxmail.com
+Author: yinkaisheng@live.com
 Source: https://github.com/yinkaisheng/Python-UIAutomation-for-Windows
 
 This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
@@ -11,8 +10,6 @@ Run 'automation.py -h' for help.
 
 uiautomation is shared under the Apache Licene 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
-
-代码原理简单介绍: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
 """
 import os
 import sys
@@ -25,7 +22,7 @@ IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
 
-AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
+AUTHOR_MAIL = 'yinkaisheng@live.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
 SEARCH_INTERVAL = 0.5  # search control interval seconds
 MAX_MOVE_SECOND = 1  # simulate mouse move or drag max seconds
@@ -570,6 +567,7 @@ class MouseEventFlags():
     RightDown = 0x0008
     RightUp = 0x0010
     Wheel = 0x0800
+    HWheel = 0x1000
 
 
 class KeyboardEventFlags:
@@ -599,6 +597,7 @@ class Keys:
     VK_TAB = 0x09                           #TAB key
     VK_CLEAR = 0x0C                         #CLEAR key
     VK_RETURN = 0x0D                        #ENTER key
+    VK_ENTER = 0x0D
     VK_SHIFT = 0x10                         #SHIFT key
     VK_CONTROL = 0x11                       #CTRL key
     VK_MENU = 0x12                          #ALT key
@@ -618,7 +617,9 @@ class Keys:
     VK_MODECHANGE = 0x1F                    #IME mode change request
     VK_SPACE = 0x20                         #SPACEBAR
     VK_PRIOR = 0x21                         #PAGE UP key
+    VK_PAGEUP = 0x21
     VK_NEXT = 0x22                          #PAGE DOWN key
+    VK_PAGEDOWN = 0x22
     VK_END = 0x23                           #END key
     VK_HOME = 0x24                          #HOME key
     VK_LEFT = 0x25                          #LEFT ARROW key
@@ -1240,8 +1241,7 @@ class Win32API:
         Win32API.mouse_event(MouseEventFlags.LeftDown | MouseEventFlags.Absolute, x, y, 0, 0)
         time.sleep(0.05)
         Win32API.mouse_event(MouseEventFlags.LeftUp | MouseEventFlags.Absolute, x, y, 0, 0)
-        if waitTime > 0:
-            time.sleep(waitTime)
+        time.sleep(waitTime)
 
     @staticmethod
     def MouseMiddleClick(x, y, waitTime = OPERATION_WAIT_TIME):
@@ -1253,8 +1253,7 @@ class Win32API:
         Win32API.mouse_event(MouseEventFlags.MiddleDown | MouseEventFlags.Absolute, x, y, 0, 0)
         time.sleep(0.05)
         Win32API.mouse_event(MouseEventFlags.MiddleUp | MouseEventFlags.Absolute, x, y, 0, 0)
-        if waitTime > 0:
-            time.sleep(waitTime)
+        time.sleep(waitTime)
 
     @staticmethod
     def MouseRightClick(x, y, waitTime = OPERATION_WAIT_TIME):
@@ -1266,8 +1265,7 @@ class Win32API:
         Win32API.mouse_event(MouseEventFlags.RightDown | MouseEventFlags.Absolute, x, y, 0, 0)
         time.sleep(0.05)
         Win32API.mouse_event(MouseEventFlags.RightUp | MouseEventFlags.Absolute, x, y, 0, 0)
-        if waitTime > 0:
-            time.sleep(waitTime)
+        time.sleep(waitTime)
 
     @staticmethod
     def MouseMoveTo(x, y, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
@@ -1305,8 +1303,7 @@ class Win32API:
                 Win32API.SetCursorPos(cx, cy)
                 time.sleep(interval)
         Win32API.SetCursorPos(x, y)
-        if waitTime > 0:
-            time.sleep(waitTime)
+        time.sleep(waitTime)
 
     #@staticmethod
     #def MouseDragTo(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
@@ -1346,8 +1343,29 @@ class Win32API:
                 Win32API.SetCursorPos(int(x1), int(y1))
                 time.sleep(interval)
         Win32API.mouse_event(MouseEventFlags.Absolute | MouseEventFlags.LeftUp, x2*65536//screenWidth, y2*65536//screenHeight, 0, 0)
-        if waitTime > 0:
-            time.sleep(waitTime)
+        time.sleep(waitTime)
+
+    @staticmethod
+    def MouseWheelDown(wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+        """
+        Simulate mouse wheel down
+        wheelTimes, int value
+        """
+        for i in range(wheelTimes):
+            Win32API.mouse_event(MouseEventFlags.Wheel, 0, 0, -120, 0)
+            time.sleep(0.1)
+        time.sleep(waitTime)
+
+    @staticmethod
+    def MouseWheelUp(wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+        """
+        Simulate mouse wheel up
+        wheelTimes, int value
+        """
+        for i in range(wheelTimes):
+            Win32API.mouse_event(MouseEventFlags.Wheel, 0, 0, 120, 0)
+            time.sleep(0.1)
+        time.sleep(waitTime)
 
     @staticmethod
     def GetScreenSize():
@@ -1554,8 +1572,7 @@ class Win32API:
         """
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        if waitTime > 0:
-            time.sleep(waitTime)
+        time.sleep(waitTime)
 
     #@staticmethod
     #def SendWait(keys):
@@ -1565,20 +1582,32 @@ class Win32API:
         #System.Windows.Forms.SendKeys.SendWait(keys)
 
     @staticmethod
-    def PressKey(key):
+    def KeyDown(key, waitTime = OPERATION_WAIT_TIME):
         """
         Simulate a key down for key
         key: a value in class Keys
         """
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
+        time.sleep(waitTime)
 
     @staticmethod
-    def ReleaseKey(key):
+    def KeyUp(key, waitTime = OPERATION_WAIT_TIME):
         """
         Simulate a key up for key
         key: a value in class Keys
         """
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
+        time.sleep(waitTime)
+
+    @staticmethod
+    def PressKey(key, waitTime = OPERATION_WAIT_TIME):
+        """Same as KeyDown"""
+        Win32API.KeyDown(key, waitTime)
+
+    @staticmethod
+    def ReleaseKey(key, waitTime = OPERATION_WAIT_TIME):
+        """Same as KeyUp"""
+        Win32API.KeyUp(key, waitTime)
 
     @staticmethod
     def IsKeyPressed(key):
@@ -1641,7 +1670,7 @@ class Win32API:
         SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
         SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
         SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
-        SendKeys('{{}你好{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {你好}abc abc test}}}!a ()()
+        SendKeys('{{}Hello{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {Hello}abc abc test}}}!a ()()
         SendKeys('0123456789{Enter}')
         SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{Enter}')
         SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
@@ -1819,8 +1848,7 @@ class Win32API:
         #if shift & 0x8000:
             #Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
             #Win32API.keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        if waitTime > 0:
-            time.sleep(waitTime)
+        time.sleep(waitTime)
 
 
 class Bitmap:
@@ -2547,7 +2575,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         Click(0.5, 0.5): click center
         Click(10, 10): click left+10, top+10
         Click(-10, -10): click right-10, bottom-10
-        simulateMove：bool, if True, first move cursor to control smoothly
+        simulateMove: bool, if True, first move cursor to control smoothly
         """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseClick(x, y, waitTime)
@@ -2557,7 +2585,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         Click(0.5, 0.5): click center
         Click(10, 10): click left+10, top+10
         Click(-10, -10): click right-10, bottom-10
-        simulateMove：bool, if True, first move cursor to control smoothly
+        simulateMove: bool, if True, first move cursor to control smoothly
         """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseMiddleClick(x, y, waitTime)
@@ -2567,7 +2595,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         RightClick(0.5, 0.5): right click center
         RightClick(10, 10): right click left+10, top+10
         RightClick(-10, -10): click right-10, bottom-10
-        simulateMove：bool, if True, first move cursor to control smoothly
+        simulateMove: bool, if True, first move cursor to control smoothly
         """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseRightClick(x, y, waitTime)
@@ -2577,12 +2605,32 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         DoubleClick(0.5, 0.5): double click center
         DoubleClick(10, 10): double click left+10, top+10
         DoubleClick(-10, -10): click right-10, bottom-10
-        simulateMove：bool, if True, first move cursor to control smoothly
+        simulateMove: bool, if True, first move cursor to control smoothly
         """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseClick(x, y, 0)
         time.sleep(Win32API.GetDoubleClickTime() * 1.0 / 2000)
         Win32API.MouseClick(x, y, waitTime)
+
+    def WheelDown(self, wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+        """
+        Mouse wheel down
+        """
+        x, y = Win32API.GetCursorPos()
+        self.SetFocus()
+        self.MoveCursorToMyCenter(False)
+        Win32API.MouseWheelDown(wheelTimes, waitTime)
+        Win32API.SetCursorPos(x, y)
+
+    def WheelUp(self, wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+        """
+        Mouse wheel up
+        """
+        x, y = Win32API.GetCursorPos()
+        self.SetFocus()
+        self.MoveCursorToMyCenter(False)
+        Win32API.MouseWheelUp(wheelTimes, waitTime)
+        Win32API.SetCursorPos(x, y)
 
     def GetParentControl(self):
         """Return Control"""
@@ -2781,8 +2829,7 @@ class ExpandCollapsePattern:
         if pattern:
             _AutomationClient.instance().dll.ExpandCollapsePatternExpand(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if waitTime > 0:
-                time.sleep(waitTime)
+            time.sleep(waitTime)
         else:
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
@@ -2792,8 +2839,7 @@ class ExpandCollapsePattern:
         if pattern:
             _AutomationClient.instance().dll.ExpandCollapsePatternCollapse(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if waitTime > 0:
-                time.sleep(waitTime)
+            time.sleep(waitTime)
         else:
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
@@ -2913,8 +2959,7 @@ class InvokePattern:
         if pattern:
             _AutomationClient.instance().dll.InvokePatternInvoke(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if waitTime > 0:
-                time.sleep(waitTime)
+            time.sleep(waitTime)
         else:
             Logger.WriteLine('InvokePattern is not supported!', ConsoleColor.Yellow)
 
@@ -3218,8 +3263,7 @@ class TogglePattern:
         if pattern:
             _AutomationClient.instance().dll.TogglePatternToggle(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if waitTime > 0:
-                time.sleep(waitTime)
+            time.sleep(waitTime)
         else:
             Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
 
@@ -3295,8 +3339,7 @@ class ValuePattern:
         if pattern:
             value = _AutomationClient.instance().dll.ValuePatternSetValue(pattern, ctypes.c_wchar_p(value))
             _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if waitTime > 0:
-                time.sleep(waitTime)
+            time.sleep(waitTime)
         else:
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
 
@@ -3330,8 +3373,7 @@ class WindowPattern:
         if pattern:
             _AutomationClient.instance().dll.WindowPatternSetWindowVisualState(pattern, value)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if waitTime > 0:
-                time.sleep(waitTime)
+            time.sleep(waitTime)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
@@ -3393,8 +3435,7 @@ class WindowPattern:
         if pattern:
             _AutomationClient.instance().dll.WindowPatternClose(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if waitTime > 0:
-                time.sleep(waitTime)
+            time.sleep(waitTime)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
@@ -3708,8 +3749,7 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
         else:
             self.ShowWindow(ShowWindow.Show)
         ret = Win32API.SetForegroundWindow(self.Handle)  #maybe fail if foreground windows's process is not python
-        if waitTime > 0:
-            time.sleep(waitTime)
+        time.sleep(waitTime)
         return ret
 
 
@@ -3914,20 +3954,26 @@ def MoveTo(x, y, waitTime = OPERATION_WAIT_TIME):
     Win32API.MouseMoveTo(x, y, waitTime)
 
 
+def WheelDown(wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+    Win32API.MouseWheelDown(wheelTimes, waitTime)
+
+
+def WheelUp(wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+    Win32API.MouseWheelUp(wheelTimes, waitTime)
+
+
 def DragDrop(x1, y1, x2, y2, waitTime = OPERATION_WAIT_TIME):
     Win32API.MouseDragDrop(x1, y1, x2, y2, 1, waitTime)
 
 
 def KeyDown(key, waitTime = OPERATION_WAIT_TIME):
     """key: a value in class Keys"""
-    Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
-    time.sleep(waitTime)
+    Win32API.KeyDown(key, waitTime)
 
 
 def KeyUp(key, waitTime = OPERATION_WAIT_TIME):
     """key: a value in class Keys"""
-    Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-    time.sleep(waitTime)
+    Win32API.KeyUp(key, waitTime)
 
 
 def SendKey(key, waitTime = OPERATION_WAIT_TIME):
@@ -3951,7 +3997,7 @@ def SendKeys(keys, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
     SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
     SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
     SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
-    SendKeys('{{}你好{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {你好}abc abc test}}}!a ()()
+    SendKeys('{{}Hello{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {Hello}abc abc test}}}!a ()()
     SendKeys('0123456789{Enter}')
     SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{Enter}')
     SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
