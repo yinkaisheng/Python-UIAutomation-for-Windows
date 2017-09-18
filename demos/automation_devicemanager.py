@@ -36,7 +36,7 @@ def main():
     if cmdWindow:
         automation.Logger.ColorfulWriteLine('Scroll to top by <Color=Cyan>WheelUp</Color>')
         cmdWindow.SetActive(waitTime = 1)
-    #vScrollBar = tree.ScrollBarControl(AutomationId = 'NonClientVerticalScrollBar')# failed to get scollbar sometimes, why?
+    #vScrollBar = tree.ScrollBarControl(AutomationId = 'NonClientVerticalScrollBar')# failed to get scrollbar sometimes, why?
     vScrollBar = mmcWindow.ScrollBarControl(AutomationId = 'NonClientVerticalScrollBar')
     vScrollBarRect = vScrollBar.BoundingRectangle
     thumb = vScrollBar.ThumbControl()
@@ -66,7 +66,7 @@ def main():
         cmdWindow.SetActive(waitTime = 1)
     mmcWindow.SetActive(waitTime = 1)
     x, y = thumb.MoveCursorToMyCenter()
-    automation.DragDrop(x, y, x, vScrollBarRect[1])
+    automation.DragDrop(x, y, x, vScrollBarRect[1], waitTime = 1)
     x, y = thumb.MoveCursorToMyCenter()
     automation.DragDrop(x, y, x, vScrollBarRect[3])
 
