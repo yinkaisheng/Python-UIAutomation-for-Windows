@@ -44,7 +44,7 @@ def main():
         vPercent = tree.CurrentVerticalScrollPercent()
         vPercent2 = vScrollBar.RangeValuePatternCurrentValue()
         print('TreeControl.CurrentVerticalScrollPercent', vPercent)
-        print('ScrollBarControl.RangeValuePatternCurrentValue', vPercent)
+        print('ScrollBarControl.RangeValuePatternCurrentValue', vPercent2)
         if vPercent2 > 0:
             tree.WheelUp(waitTime = 0.1)
         else:
@@ -56,7 +56,7 @@ def main():
         vPercent = tree.CurrentVerticalScrollPercent()
         vPercent2 = vScrollBar.RangeValuePatternCurrentValue()
         print('TreeControl.CurrentVerticalScrollPercent', vPercent)
-        print('ScrollBarControl.RangeValuePatternCurrentValue', vPercent)
+        print('ScrollBarControl.RangeValuePatternCurrentValue', vPercent2)
         if vPercent2 < 100:
             tree.WheelDown(waitTime = 0.1)
         else:
@@ -69,6 +69,7 @@ def main():
     automation.DragDrop(x, y, x, vScrollBarRect[1], waitTime = 1)
     x, y = thumb.MoveCursorToMyCenter()
     automation.DragDrop(x, y, x, vScrollBarRect[3])
+    mmcWindow.Close()
 
 
 if __name__ == '__main__':
