@@ -36,8 +36,13 @@ def main():
     if cmdWindow:
         automation.Logger.ColorfulWriteLine('Scroll to top by <Color=Cyan>WheelUp</Color>')
         cmdWindow.SetActive(waitTime = 1)
-    #vScrollBar = tree.ScrollBarControl(AutomationId = 'NonClientVerticalScrollBar')# failed to get scrollbar sometimes, why?
-    vScrollBar = mmcWindow.ScrollBarControl(AutomationId = 'NonClientVerticalScrollBar')
+    print(tree.Handle, tree.Element, len(tree.GetChildren()))
+    # before expand, tree has no scrollbar. after expand, tree has a scrollbar.
+    # need to Refind on some PCs before find ScrollBarControl from tree
+    # maybe the old element has no scrollbar info
+    tree.Refind()
+    print(tree.Handle, tree.Element, len(tree.GetChildren()))
+    vScrollBar = tree.ScrollBarControl(AutomationId = 'NonClientVerticalScrollBar')
     vScrollBarRect = vScrollBar.BoundingRectangle
     thumb = vScrollBar.ThumbControl()
     while True:

@@ -209,13 +209,13 @@ class _AutomationClient:
         ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CloseHandle.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.kernel32.TerminateProcess = (ctypes.c_void_p, )
+        ctypes.windll.kernel32.TerminateProcess.argtypes = (ctypes.c_void_p, ctypes.c_uint)
         ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
         ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
         ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
         ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
-        ctypes.windll.user32.SwitchDesktop = (ctypes.c_void_p, )
-        ctypes.windll.user32.CloseDesktop = (ctypes.c_void_p, )
+        ctypes.windll.user32.SwitchDesktop.argtypes = (ctypes.c_void_p, )
+        ctypes.windll.user32.CloseDesktop.argtypes = (ctypes.c_void_p, )
 
     def __del__(self):
         self.dll.ReleaseInstance()
@@ -3825,7 +3825,7 @@ class Logger:
         Logger.LogFile = path
 
     @staticmethod
-    def Write(log, consoleColor = -1, writeToFile = True, printToStdout = True):
+    def Write(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
         """
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
@@ -3847,29 +3847,31 @@ class Logger:
             sys.stdout.flush()
         if not writeToFile:
             return
+        if not logFile:
+            logFile = Logger.LogFile
         try:
-            logFile = None
+            fout = None
             if IsPy3:
-                logFile = open(Logger.LogFile, 'a+', encoding = 'utf-8')
+                fout = open(logFile, 'a+', encoding = 'utf-8')
             else:
-                logFile = codecs.open(Logger.LogFile, 'a+', 'utf-8')
-            logFile.write(log)
+                fout = codecs.open(logFile, 'a+', 'utf-8')
+            fout.write(log)
         except Exception as ex:
             sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
         finally:
-            if logFile:
-                logFile.close()
+            if fout:
+                fout.close()
 
     @staticmethod
-    def WriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
+    def WriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
         """
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
         """
-        Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout)
+        Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfulWrite(log, consoleColor = -1, writeToFile = True, printToStdout = True):
+    def ColorfulWrite(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
         """ColorfulWrite('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value"""
         text = []
         start = 0
@@ -3888,15 +3890,15 @@ class Logger:
                     text.append((log[start:], consoleColor))
                 break
         for t, c in text:
-            Logger.Write(t, c, writeToFile, printToStdout)
+            Logger.Write(t, c, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfulWriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True):
+    def ColorfulWriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
         """ColorfulWriteLine('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value"""
-        Logger.ColorfulWrite(log + Logger.LineSep, consoleColor, writeToFile, printToStdout)
+        Logger.ColorfulWrite(log + Logger.LineSep, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def Log(log = '', consoleColor = -1, writeToFile = True, printToStdout = True):
+    def Log(log = '', consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
         """
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
@@ -3905,10 +3907,10 @@ class Logger:
         frame = sys._getframe(1)
         log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}{}'.format(t.year, t.month, t.day,
             t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log, Logger.LineSep)
-        Logger.Write(log, consoleColor, writeToFile, printToStdout)
+        Logger.Write(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfulLog(log = '', consoleColor = -1, writeToFile = True, printToStdout = True):
+    def ColorfulLog(log = '', consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
         """
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
@@ -3917,7 +3919,7 @@ class Logger:
         frame = sys._getframe(1)
         log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}{}'.format(t.year, t.month, t.day,
             t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log, Logger.LineSep)
-        Logger.ColorfulWrite(log, consoleColor, writeToFile, printToStdout)
+        Logger.ColorfulWrite(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
     def DeleteLog():

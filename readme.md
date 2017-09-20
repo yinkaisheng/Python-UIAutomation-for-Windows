@@ -31,7 +31,7 @@ C++ dll source code: [UIAutomationClient](https://github.com/yinkaisheng/UIAutom
 How to use uiautomation?
 run '**automation.py -h**'
 ![help](images/uiautomation-h.png)
-Understand the arguments of uiautomation, and try the following examples  
+Understand the arguments of automation.py, and try the following examples  
 **automation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
 **automation.py -t 0**, print current active window's controls  
   
@@ -76,6 +76,7 @@ searchDepth = 0xFFFFFFFF,
 searchWaitTime = SEARCH_INTERVAL,   
 foundIndex = 1  
 Name  
+SubName  
 ClassName  
 AutomationId  
 ControlType  
