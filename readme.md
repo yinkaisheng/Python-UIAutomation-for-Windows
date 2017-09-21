@@ -33,7 +33,7 @@ run '**automation.py -h**'
 ![help](images/uiautomation-h.png)
 Understand the arguments of automation.py, and try the following examples  
 **automation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
-**automation.py -t 0**, print current active window's controls  
+**automation.py -t 0 -n -m**, print current active window's controls, show fullname, shou more properties
   
 run notepad.exe, run automation.py -t 3, swith to Notepad and wait for 5 seconds  
   
@@ -84,6 +84,16 @@ Depth
 
 See Control.\_\_init\_\_ for the comment of the parameters  
 See automation_notepad_py3.py for a detailed example  
+
+**If automation.py can't print the controls you see.
+Maybe the controls were built by DirectUI(or CustomControl), not UI Frameworks supplied by Microsoft.
+In order to support UIAutomation, a UI Framework must implement [UI Automation Provider](https://msdn.microsoft.com/en-us/library/windows/desktop/ee671597(v=vs.85).aspx).**
+
+A Microsoft UI Automation provider is a software object that exposes an element of an application's UI so that accessibility client applications can retrieve information about the element and invoke its functionality. In general, each control or other distinct element in a UI has a provider.
+
+Microsoft includes a provider for each of the standard controls that are supplied with Microsoft Win32, Windows Forms, and Windows Presentation Foundation (WPF). This means that the standard controls are automatically exposed to UI Automation clients; you do not need to implement any accessibility interfaces for the standard controls.
+
+If your application includes any custom controls, you need to implement UI Automation providers for those controls to make them accessible to accessibility client applications. You also need to implement providers for any third party controls that do not include a provider. You implement a provider by implementing UI Automation provider interfaces and control pattern interfaces.
 
 --------------------------------------------------------------------------------
 Another UI tool inspectX86.exe or inspectX64.exe supplied by Microsoft can also be used to see the UI elements.
