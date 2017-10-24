@@ -1,7 +1,7 @@
 # The uiautomation module
 
 This module is for UIAutomatoin on Windows(Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10).
-It supports UIAutomatoin for the applications which implmented UIAutomation Provider, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
+It supports UIAutomatoin for the applications which implmented UIAutomation Provider, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox(<=56).
 
 uiautomation is shared under the Apache Licence 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
@@ -87,7 +87,7 @@ See automation_notepad_py3.py for a detailed example
 
 **If automation.py can't print the controls you see.
 Maybe the controls were built by DirectUI(or CustomControl), not UI Frameworks supplied by Microsoft.
-In order to support UIAutomation, a UI Framework must implement [UI Automation Provider](https://msdn.microsoft.com/en-us/library/windows/desktop/ee671597(v=vs.85).aspx).**
+In order to support UIAutomation, an UI Framework must implement [UI Automation Provider](https://msdn.microsoft.com/en-us/library/windows/desktop/ee671597(v=vs.85).aspx).**
 
 A Microsoft UI Automation provider is a software object that exposes an element of an application's UI so that accessibility client applications can retrieve information about the element and invoke its functionality. In general, each control or other distinct element in a UI has a provider.
 
