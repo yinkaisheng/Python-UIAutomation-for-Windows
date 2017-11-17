@@ -1176,14 +1176,16 @@ class Win32API:
             ctypes.windll.kernel32.GetConsoleScreenBufferInfo(Win32API.ConsoleOutputHandle, ctypes.byref(bufferInfo))
             Win32API.DefaultColor = int(bufferInfo.wAttributes & 0xFF)
         if IsPy3:
-            sys.stdout.flush() # need flush stdout in python 3
+            if sys.stdout:
+                sys.stdout.flush() # need flush stdout in python 3
         ctypes.windll.kernel32.SetConsoleTextAttribute(Win32API.ConsoleOutputHandle, color)
 
     @staticmethod
     def ResetConsoleColor():
         """Reset the default text color on console window"""
         if IsPy3:
-            sys.stdout.flush() # need flush stdout in python 3
+            if sys.stdout:
+                sys.stdout.flush() # need flush stdout in python 3
         ctypes.windll.kernel32.SetConsoleTextAttribute(Win32API.ConsoleOutputHandle, Win32API.DefaultColor)
 
     @staticmethod
@@ -1487,7 +1489,7 @@ class Win32API:
         return isLocked
 
     @staticmethod
-    def PlayWaveFile(filePath, isAsync = True):
+    def PlayWaveFile(filePath = r'C:\Windows\Media\notify.wav', isAsync = True):
         """play wave file"""
         SND_ASYNC = 0x0001
         SND_NODEFAULT = 0x0002
@@ -2552,6 +2554,8 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def MoveCursor(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
         """Move cursor to control's rect, default to center"""
         left, top, right, bottom = self.BoundingRectangle
+        if left == 0 and top == 0 and right == 0 and bottom == 0:
+            Logger.WriteLine('{}\'s BoundingRectangle is empty(0,0,0,0). searchPorperty: {}'.format(self.ControlTypeName, self.searchPorpertyDict), ConsoleColor.Yellow)
         if type(ratioX) is float:
             x = left + int((right - left) * ratioX)
         else:
@@ -3830,7 +3834,7 @@ class Logger:
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
         """
-        if printToStdout:
+        if printToStdout and sys.stdout:
             isValidColor = (consoleColor >= ConsoleColor.Black and consoleColor <= ConsoleColor.White)
             if isValidColor:
                 Win32API.SetConsoleColor(consoleColor)
@@ -3857,7 +3861,8 @@ class Logger:
                 fout = codecs.open(logFile, 'a+', 'utf-8')
             fout.write(log)
         except Exception as ex:
-            sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
+            if sys.stdout:
+                sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
         finally:
             if fout:
                 fout.close()
