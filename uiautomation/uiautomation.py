@@ -3484,11 +3484,21 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
         else:
             #Windows Form's ComboBoxControl doesn't support ExpandCollapsePattern
             self.Click(-10, 0.5, False)
-        listItemControl = ListItemControl(searchFromControl = self, Name = name)
-        if listItemControl.Exists(1, SEARCH_INTERVAL):
+        find = False
+        listItemControl = self.ListItemControl(Name = name)
+        if listItemControl.Exists(1):
             listItemControl.ScrollIntoView()
             listItemControl.Click(waitTime = waitTime)
+            find = True
         else:
+            #on Windows 10, ComboBox's pop window is a child of root control
+            comboBox = ListControl(searchDepth= 1, ClassName = 'ComboLBox')
+            if comboBox.Exists(1):
+                listItemControl = comboBox.ListItemControl(Name = name)
+                if listItemControl.Exists(0, 0):
+                    listItemControl.Click(waitTime = waitTime)
+                    find = True
+        if not find:
             Logger.ColorfulWriteLine('Can\'t find <Color=Cyan>{}</Color> in ComboBoxControl'.format(name), ConsoleColor.Yellow)
             if supportExpandCollapse:
                 self.Collapse(waitTime)
