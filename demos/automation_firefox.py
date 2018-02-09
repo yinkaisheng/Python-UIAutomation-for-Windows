@@ -1,5 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
+# Firefox version must <= 56
 import os
 import sys
 import time

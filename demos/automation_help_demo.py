@@ -20,7 +20,7 @@ def DemoCN():
     while not isinstance(automation.GetFocusedControl(), automation.EditControl):
         time.sleep(1)
     automation.SendKeys('cmd{Enter}')
-    cmdWindow = automation.WindowControl(SubName = 'cmd.exe')
+    cmdWindow = automation.WindowControl(RegexName = '.+cmd.exe')
     cmdWindow.TitleBarControl().RightClick()
     automation.SendKey(automation.Keys.VK_P)
     optionWindow = cmdWindow.WindowControl(SubName = '属性')

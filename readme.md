@@ -77,6 +77,7 @@ searchWaitTime = SEARCH_INTERVAL,
 foundIndex = 1  
 Name  
 SubName  
+RegexName  
 ClassName  
 AutomationId  
 ControlType  

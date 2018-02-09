@@ -32,7 +32,7 @@ def testNotepadCN():
     #打开notepad
     subprocess.Popen('notepad')
     #查找notepad， 如果name有中文，python2中要使用Unicode
-    window = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad', SubName = u'无标题 - 记事本')
+    window = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad', RegexName = u'.* - 记事本')
     #可以判断window是否存在，如果不判断，找不到window的话会抛出异常
     #if window.Exists(maxSearchSeconds = 3):
     if automation.WaitForExist(window, 3):
@@ -93,7 +93,7 @@ def testNotepadEN():
     subprocess.Popen('notepad')
     #search notepad window, if searchFromControl is None, search from RootControl
     #searchDepth = 1 makes searching faster, only searches RootControl's children, not children's children
-    window = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad', SubName = 'Untitled - Notepad')
+    window = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad', RegexName = '.* - Notepad')
     #if window.Exists(maxSearchSeconds = 3): #check before using it
     if automation.WaitForExist(window, 3):
         automation.Logger.WriteLine("Notepad exists now")

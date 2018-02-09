@@ -15,6 +15,7 @@ import os
 import sys
 import time
 import datetime
+import re
 import ctypes
 import ctypes.wintypes
 
@@ -2330,6 +2331,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                             AutomationId: str or unicode
                             Name: str or unicode
                             SubName: str or unicode
+                            RegexName: str or unicode, supports regex
                             Depth: integer, exact depth from searchFromControl, if set, searchDepth will be set to Depth too
         """
         self._element = element
@@ -2339,6 +2341,8 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         self.searchWaitTime = searchWaitTime
         self.foundIndex = foundIndex
         self.searchPorpertyDict = searchPorpertyDict
+        regName = searchPorpertyDict.get('RegexName', '')
+        self.regexName = re.compile(regName) if regName else None
 
     def __del__(self):
         """
@@ -2383,6 +2387,9 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                     return False
             if 'SubName' == key:
                 if value not in control.Name:
+                    return False
+            if 'RegexName' == key:
+                if not self.regexName.match(control.Name):
                     return False
             if 'Depth' == key:
                 if value != depth:
