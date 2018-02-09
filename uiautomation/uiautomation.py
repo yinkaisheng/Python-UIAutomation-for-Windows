@@ -2365,10 +2365,17 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def AddSearchProperty(self, **searchPorpertyDict):
         """searchPorpertyDict: dict"""
         self.searchPorpertyDict.update(searchPorpertyDict)
+        if 'Depth' in searchPorpertyDict:
+            self.searchDepth = searchPorpertyDict['Depth']
+        if 'RegexName' in searchPorpertyDict:
+            regName = searchPorpertyDict['RegexName']
+            self.regexName = re.compile(regName) if regName else None
 
     def RemoveSearchProperty(self, **searchPorpertyDict):
         for key in searchPorpertyDict:
             del self.searchPorpertyDict[key]
+            if key == 'RegexName':
+                self.regexName = None
 
     def _CompareFunction(self, control, depth):
         """This function defines how to search, return True if found"""
