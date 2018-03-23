@@ -3829,6 +3829,7 @@ ControlDict = {
 class Logger:
     LogFile = '@AutomationLog.txt'
     LineSep = '\n'
+    KeepOpen = False
     ColorName2Value = {
         "Black"       : ConsoleColor.Black          ,
         "DarkBlue"    : ConsoleColor.DarkBlue       ,
@@ -3849,8 +3850,9 @@ class Logger:
     }
 
     @staticmethod
-    def SetLogFile(path):
+    def SetLogFile(path, keepOpen = False):
         Logger.LogFile = path
+        Logger.KeepOpen = keepOpen
 
     @staticmethod
     def Write(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
@@ -3888,7 +3890,7 @@ class Logger:
             if sys.stdout:
                 sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
         finally:
-            if fout:
+            if fout and not Logger.KeepOpen:
                 fout.close()
 
     @staticmethod
@@ -4361,6 +4363,11 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
         for key in theDict:
             if theValue == theDict[key]:
                 return key
+    def releaseAllKey():
+        for key, value in Keys.__dict__.items():
+            if isinstance(value, int) and key.startswith('VK'):
+                if Win32API.IsKeyPressed(value):
+                    Win32API.ReleaseKey(value)
 
     id2HotKey = {}
     id2Function = {}
@@ -4383,22 +4390,23 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
         modName = getModName(ModifierKey.__dict__, stopHotKey[0])
         keyName = getKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
-            Logger.ColorfulWriteLine('Register stop hotKey <Color=DarkGreen>{}</Color> succeed'.format((modName, keyName)), writeToFile = False)
+            Logger.ColorfulWriteLine('Register stop hotKey <Color=Yellow>{}</Color> succeed'.format((modName, keyName)), writeToFile = False)
         else:
             registed = False
-            Logger.ColorfulWriteLine('Register stop hotKey <Color=DarkGreen>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile = False)
+            Logger.ColorfulWriteLine('Register stop hotKey <Color=Yellow>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile = False)
     if not registed:
         return
     if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, ModifierKey.MOD_CONTROL, Keys.VK_D):
-        Logger.ColorfulWriteLine('Register <Color=DarkGreen>Ctrl+D</Color> succeed, for exiting current script', writeToFile = False)
+        Logger.ColorfulWriteLine('Register <Color=Yellow>Ctrl+D</Color> succeed, for exiting current script', writeToFile = False)
     else:
-        Logger.ColorfulWriteLine('Register <Color=DarkGreen>Ctrl+D</Color> failed', writeToFile = False)
+        Logger.ColorfulWriteLine('Register <Color=Yellow>Ctrl+D</Color> failed', writeToFile = False)
     from threading import Thread, Event
     funcThread = None
     stopEvent = Event()
     msg = MSG()
     def threadFunc(function, stopEvent):
         function(stopEvent)
+        releaseAllKey()  #need to release keys if some keys were pressed
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if msg.wParam in id2HotKey:
