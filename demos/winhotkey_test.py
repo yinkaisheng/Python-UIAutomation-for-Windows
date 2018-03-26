@@ -8,14 +8,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 
 import uiautomation as automation
 
 
-def ReleaseAllKey():
-    for key, value in automation.Keys.__dict__.items():
-        if isinstance(value, int) and key.startswith('VK'):
-            if automation.Win32API.IsKeyPressed(value):
-                automation.Logger.WriteLine('{:<30} is pressed, release it'.format(key))
-                automation.Win32API.ReleaseKey(value)
-
-
 def test1(stopEvent):
     c = automation.GetRootControl()
     n = 0
@@ -46,7 +38,6 @@ def test2(stopEvent):
                 automation.Win32API.TerminateProcess(pid)
             break
         stopEvent.wait(1)
-    ReleaseAllKey()
     automation.Logger.WriteLine('test2 exits', automation.ConsoleColor.DarkGreen)
 
 
