@@ -2794,7 +2794,10 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         """element: value of IUIAutomationElement"""
         if element:
             controlType = _AutomationClient.instance().dll.GetElementControlType(element)
-            return ControlDict[controlType](element)
+            if controlType in ControlDict:
+                return ControlDict[controlType](element)
+            else:
+                Logger.WriteLine("GetElementControlType returns {}, invalid ControlType!".format(controlType), ConsoleColor.Red)  #rarely happens
 
     @staticmethod
     def CreateControlFromControl(control):
