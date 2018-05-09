@@ -2197,6 +2197,10 @@ class QTPLikeSyntaxSupport():
     WindowControl(Name="SomeWindowTitle").ButtonControl(AutomationId="OneOfButton").Click()
     This class inherited by Control class
     """
+
+    def Control(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+        return Control(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self, **searchPorpertyDict)
+
     def ButtonControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
         return ButtonControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self, **searchPorpertyDict)
 
@@ -3508,10 +3512,10 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
             listItemControl.Click(waitTime = waitTime)
             find = True
         else:
-            #on Windows 10, ComboBox's pop window is a child of root control
-            comboBox = ListControl(searchDepth= 1, ClassName = 'ComboLBox')
-            if comboBox.Exists(1):
-                listItemControl = comboBox.ListItemControl(Name = name)
+            #ComboBox's pop window is a child of root control
+            listControl = ListControl(searchDepth= 1)
+            if listControl.Exists(1):
+                listItemControl = listControl.ListItemControl(Name = name)
                 if listItemControl.Exists(0, 0):
                     listItemControl.Click(waitTime = waitTime)
                     find = True
