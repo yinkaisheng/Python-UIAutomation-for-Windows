@@ -108,6 +108,7 @@ def CalcOnWindows10():
         char2Button[key] = calcWindow.ButtonControl(AutomationId = char2Id[key])
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90')
     Calc(calcWindow, char2Button, '2*3.14159*10')
+    calcWindow.CaptureToImage('calc.png', 7, 0, -14, -7)  # on windows 10, 7 pixels of windows border are transparent
 
 if __name__ == '__main__':
     import platform

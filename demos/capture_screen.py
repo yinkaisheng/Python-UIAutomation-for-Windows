@@ -12,7 +12,6 @@ import uiautomation as automation
 def CaptureControl(c, path, up = False):
     if c.CaptureToImage(path):
         automation.Logger.WriteLine('capture image: ' + path)
-        subprocess.Popen(path, shell = True)
     else:
         automation.Logger.WriteLine('capture failed', automation.ConsoleColor.Yellow)
     if up:
@@ -27,6 +26,8 @@ def CaptureControl(c, path, up = False):
             savePath = name + '_p' * depth + ext
             if c.CaptureToImage(savePath):
                 automation.Logger.WriteLine('capture image: ' + savePath)
+    subprocess.Popen(path, shell = True)
+
 
 def main(args):
     if args.time > 0:

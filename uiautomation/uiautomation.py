@@ -1891,7 +1891,11 @@ class Bitmap:
         left, top, right, bottom: control's internal postion(from 0,0)
         """
         self.Release()
-        self._bitmap = _AutomationClient.instance().dll.BitmapFromWindow(hwnd, left, top, right, bottom)
+        root = GetRootControl()
+        rect = Rect()
+        ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
+        left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
+        self._bitmap = _AutomationClient.instance().dll.BitmapFromWindow(root.Handle, left, top, right, bottom)
         self._getsize()
         return self._bitmap > 0
 
@@ -1909,9 +1913,9 @@ class Bitmap:
                 return False
             left, top, right, bottom = control.BoundingRectangle
         if width <= 0:
-            width = right - left - x
+            width = right - left + width
         if height <= 0:
-            height = bottom - top - y
+            height = bottom - top + height
         hWnd = control.Handle
         if hWnd:
             left = x
@@ -3512,7 +3516,7 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
             listItemControl.Click(waitTime = waitTime)
             find = True
         else:
-            #ComboBox's pop window is a child of root control
+            #ComboBox's popup window is a child of root control
             listControl = ListControl(searchDepth= 1)
             if listControl.Exists(1):
                 listItemControl = listControl.ListItemControl(Name = name)
