@@ -1,6 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
-# Firefox version must <= 56
+# Firefox version must <= 56 or >= 60
 import os
 import sys
 import time
@@ -22,7 +22,7 @@ def main():
     newTabButton.Click()
     edit = firefoxWindow.EditControl()
     # edit.Click()
-    edit.SendKeys('http://global.bing.com/?rb=0&setmkt=en-us&setlang=en-us{Enter}')
+    edit.SendKeys('http://www.bing.com/?rb=0&setmkt=en-us&setlang=en-us{Enter}')
     time.sleep(2)
     searchEdit = automation.FindControl(firefoxWindow,
                            lambda c, d: (isinstance(c, automation.EditControl) or isinstance(c, automation.ComboBoxControl)) and c.Name == 'Enter your search term'

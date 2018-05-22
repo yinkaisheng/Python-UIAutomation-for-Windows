@@ -1855,6 +1855,7 @@ class Win32API:
 
 
 class Bitmap:
+    '''A simple Bitmap class via Windows GDI+, but may not have high efficiency'''
     def __init__(self, width = 0, height = 0):
         self._width = width
         self._height = height
