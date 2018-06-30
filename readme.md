@@ -34,7 +34,7 @@ run '**automation.py -h**'
 ![help](images/uiautomation-h.png)
 Understand the arguments of automation.py, and try the following examples  
 **automation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
-**automation.py -t 0 -n -m**, print current active window's controls, show fullname, shou more properties
+**automation.py -t 0 -n -m**, print current active window's controls, show fullname, show more properties
   
 run notepad.exe, run automation.py -t 3, swith to Notepad and wait for 5 seconds  
   
@@ -84,7 +84,7 @@ AutomationId
 ControlType  
 Depth  
 
-See Control.\_\_init\_\_ for the comment of the parameters  
+See Control.\_\_init\_\_ for the comments of the parameters  
 See automation_notepad_py3.py for a detailed example  
 
 **If automation.py can't print the controls you see.
@@ -106,6 +106,12 @@ Inspect is installed with the Windows Software Development Kit (SDK) for Windows
 
 Inspect
 ![Inspect](https://i-msdn.sec.s-msft.com/dynimg/IC510569.png)
+
+--------------------------------------------------------------------------------
+Note:
+This module was developed in my spare time and for my personal use.
+I only tested it with official CPython 2.7, 3.4 and 3.6.
+
 --------------------------------------------------------------------------------
 
 [代码原理简单介绍](http://www.cnblogs.com/Yinkaisheng/p/3444132.html)
