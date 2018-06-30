@@ -16,6 +16,8 @@ If "RuntimeError: Can not get an instance of IUIAutomation" occured when running
 You need to install update [KB971513](https://support.microsoft.com/en-us/kb/971513) for your Windows(Mostly Windows XP).
 You can also download it from here [https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation](https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation)
 
+On Windows 8/8.1, to automate a Metro App, the app must be foreground. If a Metro App was switched to background, uiautomation can't fetch it controls' information.
+
 By the way, You'd better run python as administrator. Otherwise uiautomation may fail to enumerate controls under some circumstances.
 
 [Requirements:](https://msdn.microsoft.com/zh-cn/library/ee671406(v=vs.85).aspx)
