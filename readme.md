@@ -6,7 +6,8 @@ It supports UIAutomatoin for the applications which implmented UIAutomation Prov
 uiautomation is shared under the Apache Licence 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
-You can install uiautomation by "pip install uiautomation". After installation, automation.py will be in 'C:\PythonXX\Scripts\'
+You can install uiautomation by "pip install uiautomation". After installation, a automation.py that calls uiautomation will be in 'C:\PythonXX\Scripts\'.
+You use this script to traverse UI controls.
 
 Run 'C:\PythonXX\Scripts\automation.py -h' for help.
 Run automate_notepad_py3.py to see a simple demo.
@@ -111,23 +112,23 @@ Inspect
 
 Some screenshots:
 
+Batch rename pdf bookmark
+![bookmark](images/rename_pdf_bookmark.gif)
+
+Firefox
+![Firefox](images/automation_firefox.png)
+
 WindowsDesktop
 ![Desktop](images/automation_desktop.png)
 
 Qt5
 ![Qt5](images/automation_Qt.png)
 
-Firefox
-![Firefox](images/automation_firefox.png)
-
 Wireshark(version must >= 2.0)
 ![Wireshark](images/wireshark_rtp_analyzer.png)
 
 QQ
 ![QQ](images/automation_qq.png)
-
-Batch rename pdf bookmark
-![bookmark](images/rename_pdf_bookmark.gif)
 
 Pretty print dir
 ![PrettyPrint](images/pretty_print_dir.png)
