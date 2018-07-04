@@ -17,7 +17,7 @@ def Calc(window, btns, expression):
     for char in expression:
         automation.Logger.Write(char, writeToFile = False)
         btns[char].Click(waitTime = 0.05)
-    window.SendKeys('{Ctrl}c', waitTime = 0)
+    window.SendKeys('{Ctrl}c', waitTime = 0.05)
     result = automation.GetClipboardText()
     automation.Logger.WriteLine(result, automation.ConsoleColor.Cyan, writeToFile = False)
     time.sleep(1)
@@ -32,9 +32,7 @@ def CalcOnXP():
     calcWindow.SendKeys('{Alt}vs', 0.5)
     clearBtn = calcWindow.ButtonControl(Name = 'CE')
     clearBtn.Click()
-    char2Button = {}
-    for key in chars:
-        char2Button[key] = calcWindow.ButtonControl(Name = key)
+    char2Button = {key: calcWindow.ButtonControl(Name = key) for key in chars}
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90')
     Calc(calcWindow, char2Button, '2*3.14159*10')
 
@@ -68,9 +66,7 @@ def CalcOnWindows7And8():
     clearBtn = calcWindow.ButtonControl(foundIndex= 8, Depth = 3)  #test foundIndex and Depth, the 8th button is clear
     if clearBtn.AutomationId == '82':
         clearBtn.Click()
-    char2Button = {}
-    for key in char2Id:
-        char2Button[key] = calcWindow.ButtonControl(AutomationId = char2Id[key])
+    char2Button = {key: calcWindow.ButtonControl(AutomationId = char2Id[key]) for key in char2Id}
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90')
     Calc(calcWindow, char2Button, '2*3.14159*10')
 
@@ -103,9 +99,7 @@ def CalcOnWindows10():
     calcWindow.ButtonControl(AutomationId = 'NavButton').Click()
     calcWindow.ListItemControl(Name = 'Scientific Calculator').Click()
     calcWindow.ButtonControl(AutomationId = 'clearButton').Click()
-    char2Button = {}
-    for key in char2Id:
-        char2Button[key] = calcWindow.ButtonControl(AutomationId = char2Id[key])
+    char2Button = {key: calcWindow.ButtonControl(AutomationId = char2Id[key]) for key in char2Id}
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90')
     Calc(calcWindow, char2Button, '2*3.14159*10')
     calcWindow.CaptureToImage('calc.png', 7, 0, -14, -7)  # on windows 10, 7 pixels of windows border are transparent
