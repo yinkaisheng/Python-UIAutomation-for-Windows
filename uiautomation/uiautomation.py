@@ -542,7 +542,7 @@ class tagPROCESSENTRY32(ctypes.Structure):
         ('th32ParentProcessID', ctypes.wintypes.DWORD),
         ('pcPriClassBase',      ctypes.wintypes.LONG),
         ('dwFlags',             ctypes.wintypes.DWORD),
-        ('szExeFile',           ctypes.c_wchar * 260)
+        ('szExeFile',           ctypes.c_wchar * MAX_PATH)
     ]
 
 
@@ -768,6 +768,7 @@ class Keys:
 
 class ConsoleColor():
     """This class defines the values of color for printing on console window"""
+    Default = -1
     Black = 0
     DarkBlue = 1
     DarkGreen = 2
@@ -1501,7 +1502,7 @@ class Win32API:
 
     @staticmethod
     def GetProcessCommandLine(processId):
-        """may not work"""
+        """may not work on Windows 7 or higher bacause of security policy"""
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
         _AutomationClient.instance().dll.GetProcessCommandLine(processId, values, MAX_PATH)
@@ -1855,7 +1856,7 @@ class Win32API:
 
 
 class Bitmap:
-    '''A simple Bitmap class via Windows GDI+, but may not have high efficiency'''
+    '''A simple Bitmap class wraps Windows GDI+ Gdiplus::Bitmap, but may not have high efficiency'''
     def __init__(self, width = 0, height = 0):
         self._width = width
         self._height = height
@@ -3081,7 +3082,6 @@ class ScrollPattern:
         else:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
-
     def SetScrollPercent(self, horizontalPercent, verticalPercent):
         """Need two integers as parameters"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
@@ -3839,9 +3839,8 @@ ControlDict = {
 
 
 class Logger:
-    LogFile = '@AutomationLog.txt'
+    FileName = '@AutomationLog.txt'
     LineSep = '\n'
-    KeepOpen = False
     ColorName2Value = {
         "Black"       : ConsoleColor.Black          ,
         "DarkBlue"    : ConsoleColor.DarkBlue       ,
@@ -3862,9 +3861,8 @@ class Logger:
     }
 
     @staticmethod
-    def SetLogFile(path, keepOpen = False):
-        Logger.LogFile = path
-        Logger.KeepOpen = keepOpen
+    def SetLogFile(path):
+        Logger.FileName = path
 
     @staticmethod
     def Write(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
@@ -3886,23 +3884,23 @@ class Logger:
                     sys.stdout.write(Logger.LineSep)
             if isValidColor:
                 Win32API.ResetConsoleColor()
-            sys.stdout.flush()
+            if sys.stdout:
+                sys.stdout.flush()
         if not writeToFile:
             return
-        if not logFile:
-            logFile = Logger.LogFile
+        fileName = logFile if logFile else Logger.FileName
         try:
             fout = None
             if IsPy3:
-                fout = open(logFile, 'a+', encoding = 'utf-8')
+                fout = open(fileName, 'a+', encoding = 'utf-8')
             else:
-                fout = codecs.open(logFile, 'a+', 'utf-8')
+                fout = codecs.open(fileName, 'a+', 'utf-8')
             fout.write(log)
         except Exception as ex:
             if sys.stdout:
                 sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
         finally:
-            if fout and not Logger.KeepOpen:
+            if fout:
                 fout.close()
 
     @staticmethod
@@ -3966,8 +3964,8 @@ class Logger:
 
     @staticmethod
     def DeleteLog():
-        if os.path.exists(Logger.LogFile):
-            os.remove(Logger.LogFile)
+        if os.path.exists(Logger.FileName):
+            os.remove(Logger.FileName)
 
 
 def SetGlobalSearchTimeOut(seconds):
@@ -4309,7 +4307,7 @@ def EnumAndLogControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMo
 def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = False, foundIndex = 1):
     """
     control: Control
-    compareFunc: compare function, should return True or False
+    compareFunc: compare function with parameters (control, depth), should return True or False
     maxDepth: integer
     findFromSelf: bool
     foundIndex: integer, value must be greater or equal to 1
