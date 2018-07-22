@@ -1419,6 +1419,11 @@ class Win32API:
         return Win32API.SetWindowPos(hWnd, topValue, 0, 0, 0, 0, SWP.SWP_NOSIZE|SWP.SWP_NOMOVE)
 
     @staticmethod
+    def SwitchToThisWindow(hWnd):
+        """Call API SwitchToThisWindow from user32.dll"""
+        return ctypes.windll.user32.SwitchToThisWindow(hWnd, 1)
+
+    @staticmethod
     def ShowWindow(hWnd, cmdShow):
         """ShowWindow(hWnd, ShowWindow.Show), see values in class ShowWindow"""
         return ctypes.windll.user32.ShowWindow(hWnd, cmdShow)
@@ -3760,6 +3765,9 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
 
     def SetTopmost(self, isTopmost = True):
         return Win32API.SetWindowTopmost(self.Handle, isTopmost)
+
+    def SwitchToThisWindow(self):
+        Win32API.SwitchToThisWindow(self.Handle)
 
     def MoveToCenter(self):
         left, top, right, bottom = self.BoundingRectangle
