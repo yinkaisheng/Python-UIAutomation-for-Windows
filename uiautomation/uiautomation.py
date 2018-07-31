@@ -2588,7 +2588,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             y = top + int((bottom - top) * ratioY)
         else:
             y = (top if ratioY >= 0 else bottom) + ratioY
-        if simulateMove:
+        if simulateMove and MAX_MOVE_SECOND > 0:
             Win32API.MouseMoveTo(x, y, waitTime = 0)
         else:
             Win32API.SetCursorPos(x, y)
