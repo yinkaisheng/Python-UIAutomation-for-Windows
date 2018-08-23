@@ -2439,9 +2439,11 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         if self._element:
             _AutomationClient.instance().dll.ReleaseElement(self._element)
         self._element = 0
-        if self.searchFromControl:
-            self.searchFromControl.Element # search searchFromControl first before timing
         start = time.clock()
+        # Use same timeout(s) parameters for resolve all parents
+        prev =  self.searchFromControl
+        if prev and not prev._element and not prev.Exists(maxSearchSeconds, searchIntervalSeconds):
+            return False
         while True:
             control = FindControl(self.searchFromControl, self._CompareFunction, self.searchDepth, False, self.foundIndex)
             if control:
