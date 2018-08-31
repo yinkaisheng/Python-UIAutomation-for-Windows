@@ -1341,12 +1341,14 @@ class Win32API:
             yStep = (y2 - y1) * 1.0 / stepCount
             interval = moveTime / stepCount
             for i in range(stepCount):
+                time.sleep(interval)
                 x1 += xStep
                 y1 += yStep
-                Win32API.mouse_event(MouseEventFlags.Move, int(xStep), int(yStep), 0, 0)
                 Win32API.SetCursorPos(int(x1), int(y1))
-                time.sleep(interval)
+        else:
+            time.sleep(0.05)
         Win32API.mouse_event(MouseEventFlags.Absolute | MouseEventFlags.LeftUp, x2*65536//screenWidth, y2*65536//screenHeight, 0, 0)
+        Win32API.SetCursorPos(x2, y2)
         time.sleep(waitTime)
 
     @staticmethod
