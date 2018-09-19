@@ -3882,6 +3882,8 @@ class Logger:
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
         """
+        if not isinstance(log, str):
+            log = str(log)
         if printToStdout and sys.stdout:
             isValidColor = (consoleColor >= ConsoleColor.Black and consoleColor <= ConsoleColor.White)
             if isValidColor:
@@ -3921,6 +3923,8 @@ class Logger:
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
         """
+        if not isinstance(log, str):
+            log = str(log)
         Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
@@ -4070,13 +4074,14 @@ def WaitForDisappear(control, timeout):
     return control.Disappears(timeout, 1)
 
 
-def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):
+def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, yieldConditionFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):
     """
     walking a tree not using recursive algorithm
     if getChildrenFunc is valid, ignore getFirstChildFunc and getNextSiblingFunc
         yield 3 items tuple: (item, depth, remain children count in current depth)
     if getChildrenFunc is not valid, using getFirstChildFunc and getNextSiblingFunc
         yield 2 items tuple: (item, depth)
+    if yieldConditionFunc is not None, only yield items that yieldConditionFunc(item, depth) returns True
     example:
     def GetDirChildren(dir):
         if os.path.isdir(dir):
@@ -4090,13 +4095,15 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
     depth = 0
     if getChildrenFunc:
         if includeTop:
-            yield top, 0, 0
+            if not yieldConditionFunc or yieldConditionFunc(top, 0):
+                yield top, 0, 0
         children = getChildrenFunc(top)
         childList = [children]
         while depth >= 0:   #or while childList:
             lastItems = childList[-1]
             if lastItems:
-                yield lastItems[0], depth + 1, len(lastItems) - 1
+                if not yieldConditionFunc or yieldConditionFunc(lastItems[0], depth + 1):
+                    yield lastItems[0], depth + 1, len(lastItems) - 1
                 if depth + 1 < maxDepth:
                     children = getChildrenFunc(lastItems[0])
                     if children:
@@ -4108,13 +4115,15 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
                 depth -= 1
     elif getFirstChildFunc and getNextSiblingFunc:
         if includeTop:
-            yield top, 0
+            if not yieldConditionFunc or yieldConditionFunc(top, 0):
+                yield top, 0
         child = getFirstChildFunc(top)
         childList = [child]
         while depth >= 0:  #or while childList:
             lastItem = childList[-1]
             if lastItem:
-                yield lastItem, depth + 1
+                if not yieldConditionFunc or yieldConditionFunc(lastItem, depth + 1):
+                    yield lastItem, depth + 1
                 child = getNextSiblingFunc(lastItem)
                 childList[depth] = child
                 if depth + 1 < maxDepth:
@@ -4403,19 +4412,19 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
         keyName = getKeyName(Keys.__dict__, hotkey[1])
         id2Name[hotKeyId] = str((modName, keyName))
         if ctypes.windll.user32.RegisterHotKey(0, hotKeyId, hotkey[0], hotkey[1]):
-            Logger.ColorfulWriteLine('Register hotKey <Color=DarkGreen>{}</Color> succeed'.format((modName, keyName)), writeToFile = False)
+            Logger.ColorfulWriteLine('Register hotkey <Color=DarkGreen>{}</Color> succeed'.format((modName, keyName)), writeToFile = False)
         else:
             registed = False
-            Logger.ColorfulWriteLine('Register hotKey <Color=DarkGreen>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile = False)
+            Logger.ColorfulWriteLine('Register hotkey <Color=DarkGreen>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile = False)
         hotKeyId += 1
     if stopHotKey and len(stopHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, stopHotKey[0])
         keyName = getKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
-            Logger.ColorfulWriteLine('Register stop hotKey <Color=Yellow>{}</Color> succeed'.format((modName, keyName)), writeToFile = False)
+            Logger.ColorfulWriteLine('Register stop hotkey <Color=Yellow>{}</Color> succeed'.format((modName, keyName)), writeToFile = False)
         else:
             registed = False
-            Logger.ColorfulWriteLine('Register stop hotKey <Color=Yellow>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile = False)
+            Logger.ColorfulWriteLine('Register stop hotkey <Color=Yellow>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile = False)
     if not registed:
         return
     if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, ModifierKey.MOD_CONTROL, Keys.VK_D):
