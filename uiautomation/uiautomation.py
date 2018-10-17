@@ -1333,7 +1333,7 @@ class Win32API:
         if maxPoint < maxSide:
             maxPoint = 100 + int((maxSide-100) / maxSide * maxPoint)
             moveTime = moveTime * maxPoint * 1.0 / maxSide
-        stepCount = maxPoint // 20
+        stepCount = maxPoint // 4  # step should be smaller
         Win32API.SetCursorPos(x1, y1)
         Win32API.mouse_event(MouseEventFlags.LeftDown| MouseEventFlags.Absolute, x1*65536//screenWidth, y1*65536//screenHeight, 0, 0)
         if stepCount > 1:
@@ -4021,8 +4021,8 @@ def WheelUp(wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
     Win32API.MouseWheelUp(wheelTimes, waitTime)
 
 
-def DragDrop(x1, y1, x2, y2, waitTime = OPERATION_WAIT_TIME):
-    Win32API.MouseDragDrop(x1, y1, x2, y2, 1, waitTime)
+def DragDrop(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
+    Win32API.MouseDragDrop(x1, y1, x2, y2, moveSpeed, waitTime)
 
 
 def KeyDown(key, waitTime = OPERATION_WAIT_TIME):
