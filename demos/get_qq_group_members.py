@@ -44,10 +44,9 @@ def main():
         automation.Logger.WriteLine('\n3秒后开始获取QQ群成员详细资料，您可以一直按住F10键暂停脚本')
         time.sleep(3)
         qqWindow.SetActive()
-        #确保群里第一个成员可见在最上面
-        left, top, right, bottom = list.BoundingRectangle
-        while allListItems[0].BoundingRectangle[1] < top:
-            automation.Win32API.MouseClick(right - 5, top + 20)
+		#确保群里第一个成员可见在最上面
+        list.Click()
+        list.SendKeys('{Home}', waitTime = 1)
         for listItem in allListItems:
             if listItem.ControlType == automation.ControlType.ListItemControl:
                 if automation.Win32API.IsKeyPressed(automation.Keys.VK_F10):
