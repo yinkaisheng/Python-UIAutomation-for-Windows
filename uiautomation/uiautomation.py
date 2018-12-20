@@ -2350,6 +2350,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                             SubName: str or unicode
                             RegexName: str or unicode, supports regex
                             Depth: integer, exact depth from searchFromControl, if set, searchDepth will be set to Depth too
+                            Compare: custom compare function(control, depth)
         """
         self._element = element
         self._elementDirectAssign = True if element else False
@@ -2400,24 +2401,29 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             if 'ControlType' == key:
                 if value != control.ControlType:
                     return False
-            if 'ClassName' == key:
+            elif 'ClassName' == key:
                 if value != control.ClassName:
                     return False
-            if 'AutomationId' == key:
+            elif 'AutomationId' == key:
                 if value != control.AutomationId:
                     return False
-            if 'Name' == key:
+            elif 'Name' == key:
                 if value != control.Name:
                     return False
-            if 'SubName' == key:
+            elif 'SubName' == key:
                 if value not in control.Name:
                     return False
-            if 'RegexName' == key:
+            elif 'RegexName' == key:
                 if not self.regexName.match(control.Name):
                     return False
-            if 'Depth' == key:
+            elif 'Depth' == key:
                 if value != depth:
                     return False
+            elif 'Compare' == key:
+                if not value(control, depth):
+                    return False
+            else:
+                raise KeyError('unsupported argument: {} in {} constructor'.format(key, self.__class__.__name__))
         return True
 
     def Exists(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
@@ -3898,8 +3904,7 @@ class Logger:
                     sys.stdout.write(Logger.LineSep)
             if isValidColor:
                 Win32API.ResetConsoleColor()
-            if sys.stdout:
-                sys.stdout.flush()
+            sys.stdout.flush()
         if not writeToFile:
             return
         fileName = logFile if logFile else Logger.FileName

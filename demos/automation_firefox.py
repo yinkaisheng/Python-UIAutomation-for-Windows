@@ -22,17 +22,19 @@ def main():
     newTabButton.Click()
     edit = firefoxWindow.EditControl()
     # edit.Click()
-    edit.SendKeys('http://www.bing.com/?rb=0&setmkt=en-us&setlang=en-us{Enter}')
+    edit.SendKeys('https://www.bing.com/?rb=0&setmkt=en-us&setlang=en-us{Enter}')
     time.sleep(2)
-    searchEdit = automation.FindControl(firefoxWindow,
-                           lambda c, d: (isinstance(c, automation.EditControl) or isinstance(c, automation.ComboBoxControl)) and c.Name == 'Enter your search term'
-                           )
-    # searchEdit.Click()
+    searchEdit = firefoxWindow.Control(Compare = lambda c, d:
+        (isinstance(c, automation.EditControl) or isinstance(c, automation.ComboBoxControl)) and c.Name == 'Enter your search term')
+    searchEdit.Click()
     searchEdit.SendKeys('Python-UIAutomation-for-Windows site:github.com{Enter}', 0.05)
     link = firefoxWindow.HyperlinkControl(SubName = 'yinkaisheng/Python-UIAutomation-for-Windows')
-    automation.Win32API.PressKey(automation.Keys.VK_CONTROL)
-    link.Click()  #press control to open the page in a new tab
-    automation.Win32API.ReleaseKey(automation.Keys.VK_CONTROL)
+    try:
+        automation.Win32API.PressKey(automation.Keys.VK_CONTROL)
+        link.Click()  #press control to open the page in a new tab
+    except Exception as ex:
+        automation.Win32API.ReleaseKey(automation.Keys.VK_CONTROL)
+        raise
     newTab = tab.TabItemControl(SubName = 'yinkaisheng/Python-UIAutomation-for-Windows')
     newTab.Click()
     starButton = firefoxWindow.ButtonControl(Name = 'Star this repository')
