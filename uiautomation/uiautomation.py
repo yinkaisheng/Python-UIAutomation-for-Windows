@@ -211,6 +211,7 @@ class _AutomationClient:
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CloseHandle.argtypes = (ctypes.c_void_p, )
         ctypes.windll.kernel32.TerminateProcess.argtypes = (ctypes.c_void_p, ctypes.c_uint)
+        ctypes.windll.kernel32.QueryFullProcessImageNameW.argtypes = (ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.c_wchar_p, ctypes.POINTER(ctypes.wintypes.DWORD))
         ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
         ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
         ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
@@ -545,6 +546,19 @@ class tagPROCESSENTRY32(ctypes.Structure):
         ('szExeFile',           ctypes.c_wchar * MAX_PATH)
     ]
 
+class tagMODULEENTRY32(ctypes.Structure):
+    _fields_ = [
+        ('dwSize',              ctypes.wintypes.DWORD),
+        ('th32ModuleID',        ctypes.wintypes.DWORD),
+        ('th32ProcessID',       ctypes.wintypes.DWORD),
+        ('GlblcntUsage',        ctypes.POINTER(ctypes.wintypes.DWORD)),
+        ('ProccntUsage',        ctypes.wintypes.DWORD),
+        ('modBaseAddr',         ctypes.wintypes.PBYTE),
+        ('modBaseSize',         ctypes.wintypes.DWORD),
+        ('hModule',             ctypes.c_void_p),
+        ('szModule',            ctypes.c_wchar * 256),
+        ('szExeFile',           ctypes.c_wchar * MAX_PATH)
+    ]
 
 class MSG(ctypes.Structure):
     _fields_ = [
@@ -1509,7 +1523,7 @@ class Win32API:
 
     @staticmethod
     def GetProcessCommandLine(processId):
-        """may not work on Windows 7 or higher bacause of security policy"""
+        """may not work on Windows 7 or higher bacause of security policy, use wmi for a better result"""
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
         _AutomationClient.instance().dll.GetProcessCommandLine(processId, values, MAX_PATH)
@@ -1517,13 +1531,16 @@ class Win32API:
 
     @staticmethod
     def GetParentProcessId(processId = -1):
+        '''may fail for no access right, use wmi for a better result'''
         return _AutomationClient.instance().dll.GetParentProcessId(processId)
 
     @staticmethod
     def IsProcess64Bit(processId):
-        """return True if process is 64 bit
-            return False if process is 32 bit
-            return None if unknown, maybe caused by having no acess right to the process"""
+        """
+        return True if process is 64 bit
+        return False if process is 32 bit
+        return None if unknown, maybe caused by having no acess right to the process
+        """
         try:
             func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  #only 64 bit OS has this function
         except Exception as ex:
@@ -1532,14 +1549,49 @@ class Win32API:
             IsWow64Process = ctypes.windll.kernel32.IsWow64Process
         except Exception as ex:
             return False
-        hProcess = ctypes.windll.kernel32.OpenProcess(0x0400, 0, processId);  #PROCESS_QUERY_INFORMATION=0x0400
+        hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  #PROCESS_QUERY_INFORMATION=0x0400,PROCESS_QUERY_LIMITED_INFORMATION=0x1000
         if hProcess:
             is64Bit = ctypes.c_int32()
             if IsWow64Process(hProcess, ctypes.byref(is64Bit)):
-                ctypes.windll.kernel32.CloseHandle(hProcess)
+                ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
                 return False if is64Bit.value else True
             else:
-                ctypes.windll.kernel32.CloseHandle(hProcess)
+                ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
+
+    @staticmethod
+    def GetProcessPath(processId):
+        '''may fail, use wmi for a better result'''
+        processPath = ''
+        if processId > 0:
+            hModuleSnap = ctypes.windll.kernel32.CreateToolhelp32Snapshot(8, processId)  # TH32CS_SNAPMODULE = 8
+            if hModuleSnap:
+                moduleEntry32 = tagMODULEENTRY32()
+                moduleEntry32.dwSize = ctypes.sizeof(moduleEntry32)
+                if ctypes.windll.kernel32.Module32FirstW(ctypes.c_void_p(hModuleSnap), ctypes.byref(moduleEntry32)):
+                    processPath = moduleEntry32.szExeFile
+                else:
+                    # if the calling process is a 32-bit process,
+                    # you must call the QueryFullProcessImageName function to retrieve the full path of the executable file for a 64-bit process
+                    if sys.maxsize <= 0xFFFFFFFF:
+                        hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  # PROCESS_QUERY_LIMITED_INFORMATION=0x1000
+                        if hProcess:
+                            wArray = ctypes.c_wchar * MAX_PATH
+                            szPath = wArray()
+                            pSize = ctypes.POINTER(ctypes.wintypes.DWORD)()
+                            pSize.contents = ctypes.wintypes.DWORD(MAX_PATH)
+                            if ctypes.windll.kernel32.QueryFullProcessImageNameW(ctypes.c_void_p(hProcess), 0, szPath, pSize):
+                                processPath = szPath.value
+                            else:
+                                pass  # failed
+                            ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
+                        else:
+                            pass  # failed
+                    else:
+                        pass    # failed
+                ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hModuleSnap))
+            else:
+                pass  # failed
+        return processPath
 
     @staticmethod
     def TerminateProcess(processId):
@@ -1547,7 +1599,7 @@ class Win32API:
         hProcess = ctypes.windll.kernel32.OpenProcess(0x0001, 0, processId);  #PROCESS_TERMINATE=0x0001
         if hProcess:
             ret = ctypes.windll.kernel32.TerminateProcess(hProcess, -1)
-            ctypes.windll.kernel32.CloseHandle(hProcess)
+            ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
             return ret
 
     @staticmethod
@@ -1559,9 +1611,16 @@ class Win32API:
 
     @staticmethod
     def EnumProcess():
-        """Return a list of namedtuple (pid, name), see TerminateProcessByName"""
+        """
+        Return a list of namedtuple (pid, name), see TerminateProcessByName. use wmi or psutil for a better result
+        import wmi
+        wobj = wmi.WMI ()
+        for it in wobj.Win32_Process ():
+            #print(it.properties)
+            print(it.ProcessId, it.Name, it.ParentProcessId, it.ExecutablePath, it.CommandLine, it.WorkingSetSize)
+        """
         import collections
-        hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(15, 0)  #TH32CS_SNAPALL is 15
+        hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(15, 0)  #TH32CS_SNAPALL = 15
         processEntry32 = tagPROCESSENTRY32()
         processClass = collections.namedtuple('processInfo', 'pid name')
         processEntry32.dwSize = ctypes.sizeof(processEntry32)
@@ -1569,10 +1628,10 @@ class Win32API:
         continueFind = ctypes.windll.kernel32.Process32FirstW(ctypes.c_void_p(hSnapshot), ctypes.byref(processEntry32))
         while continueFind:
             pid = processEntry32.th32ProcessID
-            name = (processEntry32.szExeFile)
+            name = processEntry32.szExeFile
             processList.append(processClass(pid, name))
             continueFind = ctypes.windll.kernel32.Process32NextW(ctypes.c_void_p(hSnapshot), ctypes.byref(processEntry32))
-        ctypes.windll.kernel32.CloseHandle(hSnapshot)
+        ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hSnapshot))
         return processList
 
     @staticmethod
