@@ -37,6 +37,7 @@ C++ dll source code: [UIAutomationClient](https://github.com/yinkaisheng/UIAutom
 How to use uiautomation?
 run '**automation.py -h**'
 ![help](images/uiautomation-h.png)
+
 Understand the arguments of automation.py, and try the following examples  
 **automation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
 **automation.py -t 0 -n -m**, print current active window's controls, show fullname, show more properties
@@ -87,7 +88,8 @@ RegexName
 ClassName  
 AutomationId  
 ControlType  
-Depth  
+Depth
+Compare
 
 See Control.\_\_init\_\_ for the comments of the parameters  
 See automation_notepad_py3.py for a detailed example  
