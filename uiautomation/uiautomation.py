@@ -19,6 +19,7 @@ import re
 import ctypes
 import ctypes.wintypes
 
+IsNT6 = os.sys.getwindowsversion().major >= 6
 IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
@@ -211,7 +212,8 @@ class _AutomationClient:
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CloseHandle.argtypes = (ctypes.c_void_p, )
         ctypes.windll.kernel32.TerminateProcess.argtypes = (ctypes.c_void_p, ctypes.c_uint)
-        ctypes.windll.kernel32.QueryFullProcessImageNameW.argtypes = (ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.c_wchar_p, ctypes.POINTER(ctypes.wintypes.DWORD))
+        if IsNT6:
+            ctypes.windll.kernel32.QueryFullProcessImageNameW.argtypes = (ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.c_wchar_p, ctypes.POINTER(ctypes.wintypes.DWORD))
         ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
         ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
         ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
@@ -1572,7 +1574,7 @@ class Win32API:
                 else:
                     # if the calling process is a 32-bit process,
                     # you must call the QueryFullProcessImageName function to retrieve the full path of the executable file for a 64-bit process
-                    if sys.maxsize <= 0xFFFFFFFF:
+                    if sys.maxsize <= 0xFFFFFFFF and IsNT6:
                         hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  # PROCESS_QUERY_LIMITED_INFORMATION=0x1000
                         if hProcess:
                             wArray = ctypes.c_wchar * MAX_PATH
