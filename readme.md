@@ -88,8 +88,8 @@ RegexName
 ClassName  
 AutomationId  
 ControlType  
-Depth
-Compare
+Depth  
+Compare  
 
 See Control.\_\_init\_\_ for the comments of the parameters  
 See automation_notepad_py3.py for a detailed example  
