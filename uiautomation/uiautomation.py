@@ -555,7 +555,7 @@ class tagMODULEENTRY32(ctypes.Structure):
         ('th32ProcessID',       ctypes.wintypes.DWORD),
         ('GlblcntUsage',        ctypes.POINTER(ctypes.wintypes.DWORD)),
         ('ProccntUsage',        ctypes.wintypes.DWORD),
-        ('modBaseAddr',         ctypes.wintypes.PBYTE),
+        ('modBaseAddr',         ctypes.POINTER(ctypes.wintypes.BYTE)),
         ('modBaseSize',         ctypes.wintypes.DWORD),
         ('hModule',             ctypes.c_void_p),
         ('szModule',            ctypes.c_wchar * 256),
