@@ -102,7 +102,7 @@ Depth
 Compare  
 
 See Control.\_\_init\_\_ for the comments of the parameters  
-See automation_notepad_py3.py for a detailed example  
+See scripts in folder **demos** for more examples  
 
 **If automation.py can't print the controls you see.
 Maybe the controls were built by DirectUI(or CustomControl), not UI Frameworks supplied by Microsoft.
