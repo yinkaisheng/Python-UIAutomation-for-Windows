@@ -46,36 +46,46 @@ run notepad.exe, run automation.py -t 3, swith to Notepad and wait for 5 seconds
   
 automation.py will print the controls of Notepad and save them to @AutomationLog.txt:  
   
-ControlType: WindowControl    ClassName: Notepad  
-　　ControlType: EditControl    ClassName: Edit  
-　　　　ControlType: ScrollBarControl    ClassName:  
-　　　　　　ControlType: ButtonControl    ClassName:  
-　　　　　　ControlType: ButtonControl    ClassName:  
-　　　　ControlType: ScrollBarControl    ClassName:  
-　　　　　　ControlType: ButtonControl    ClassName:  
-　　　　　　ControlType: ButtonControl    ClassName:  
-　　　　ControlType: ThumbControl    ClassName:  
-　　ControlType: StatusBarControl    ClassName:  
-　　　　ControlType: TextControl    ClassName:  
-　　　　ControlType: TextControl    ClassName:  
+ControlType: PaneControl    ClassName: #32769    Name: 桌面    Depth: 0    **(Desktop window, the root control)**  
+　　ControlType: WindowControl    ClassName: Notepad    Depth: 1    **(Top level window)**  
+　　　　ControlType: EditControl    ClassName: Edit    Depth: 2  
+　　　　　　ControlType: ScrollBarControl    ClassName:     Depth: 3  
+　　　　　　　　ControlType: ButtonControl    ClassName:     Depth: 4  
+　　　　　　　　ControlType: ButtonControl    ClassName:     Depth: 4  
+　　　　　　ControlType: ThumbControl    ClassName:     Depth: 3  
+　　　　ControlType: TitleBarControl    ClassName:     Depth: 2  
+　　　　　　ControlType: MenuBarControl    ClassName:     Depth: 3  
+　　　　　　　　ControlType: MenuItemControl    ClassName:     Depth: 4  
+　　　　　　ControlType: ButtonControl    ClassName:     Name: 最小化    Depth: 3    **(Minimize Button)**  
+　　　　　　ControlType: ButtonControl    ClassName:     Name: 最大化    Depth: 3    **(Maximize Button)**  
+　　　　　　ControlType: ButtonControl    ClassName:     Name: 关闭    Depth: 3    **(Close Button)**  
 ...  
 
 run the following code
 ```python
+# -*- coding: utf-8 -*-
 import subprocess
-import uiautomation as automation
+import uiautomation as auto
 
-print(automation.GetRootControl())
+print(auto.GetRootControl())
 subprocess.Popen('notepad.exe')
-notepadWindow = automation.WindowControl(searchDepth = 1, ClassName = 'Notepad')
+# you should find the top level window first, then find children from the top level window
+notepadWindow = auto.WindowControl(searchDepth = 1, ClassName = 'Notepad')
 print(notepadWindow.Name)
 notepadWindow.SetTopmost(True)
+# find the first EditControl in notepadWindow
 edit = notepadWindow.EditControl()
 edit.SetValue('Hello')
 edit.SendKeys('{Ctrl}{End}{Enter}World')
-
+# find the first TitleBarControl in notepadWindow, 
+# then find the second ButtonControl in TitleBarControl, which is the Maximize button
+notepadWindow.TitleBarControl().ButtonControl(foundIndex = 2).Click()
+# find the first button in notepadWindow whose Name is '关闭', the close button, the relative depth from Close button to Notepad window is 2
+notepadWindow.ButtonControl(searchDepth = 2, Name = '关闭').Click()
+# then notepad will popup a window askes you to save or not, press hotkey alt+n not to save
+auto.SendKeys('{Alt}n')
 ```
-automation.GetRootControl() returns the root control  
+automation.GetRootControl() returns the root control(the Desktop window)  
 automation.WindowControl(searchDepth = 1, ClassName = 'Notepad') creates a WindowControl, the parameters specify how to search the control  
 the following parameters can be used  
 searchFromControl = None,   

@@ -4,7 +4,7 @@ import sys
 import time
 
 from uiautomation import (Win32API, Logger, ControlFromCursor, GetRootControl, GetFocusedControl,
-                                       EnumAndLogControlAncestors, EnumAndLogControl, ConsoleColor)
+                            LogControl, EnumAndLogControlAncestors, EnumAndLogControl, ConsoleColor)
 from uiautomation import VERSION
 
 
@@ -14,7 +14,7 @@ def usage():
 <Color=Cyan>-t</Color>      delay <Color=Cyan>time</Color>, default 3 seconds, begin to enumerate after Value seconds, this must be an integer
         you can delay a few seconds and make a window active so automation can enumerate the active window
 <Color=Cyan>-d</Color>      enumerate tree <Color=Cyan>depth</Color>, this must be an integer, if it is null, enumerate the whole tree
-<Color=Cyan>-r</Color>      enumerate from <Color=Cyan>root</Color>:desktop window, if it is null, enumerate from foreground window
+<Color=Cyan>-r</Color>      enumerate from <Color=Cyan>root</Color>:Desktop window, if it is null, enumerate from foreground window
 <Color=Cyan>-f</Color>      enumerate from <Color=Cyan>focused</Color> control, if it is null, enumerate from foreground window
 <Color=Cyan>-c</Color>      enumerate the control under <Color=Cyan>cursor</Color>, if depth is < 0, enumerate from its ancestor up to depth
 <Color=Cyan>-a</Color>      show <Color=Cyan>ancestors</Color> of the control under cursor
@@ -48,6 +48,7 @@ def main():
     focus = False
     cursor = False
     ancestor = False
+    foreground = True
     showAllName = False
     showMore = False
     depth = 0xFFFFFFFF
@@ -58,12 +59,16 @@ def main():
             exit(0)
         elif o in ('-r', '-root'):
             root = True
+            foreground = False
         elif o in ('-f', '-focus'):
             focus = True
+            foreground = False
         elif o in ('-c', '-cursor'):
             cursor = True
+            foreground = False
         elif o in ('-a', '-ancestor'):
             ancestor = True
+            foreground = False
         elif o in ('-n', '-showAllName'):
             showAllName = True
         elif o in ('-m', '-showMore'):
@@ -73,7 +78,7 @@ def main():
         elif o in ('-t', '-time'):
             seconds = int(v)
     if seconds > 0:
-        Logger.Write('please wait for {0} seconds\n\n'.format(seconds), writeToFile=False)
+        Logger.Write('please wait for {0} seconds\n\n'.format(seconds), writeToFile = False)
         time.sleep(seconds)
     Logger.Log('Starts, Current Cursor Position: {}'.format(Win32API.GetCursorPos()))
     control = None
@@ -84,7 +89,7 @@ def main():
     if cursor:
         control = ControlFromCursor()
         if depth < 0:
-            while depth < 0:
+            while depth < 0 and control:
                 control = control.GetParentControl()
                 depth += 1
             depth = 0xFFFFFFFF
@@ -93,8 +98,9 @@ def main():
         if control:
             EnumAndLogControlAncestors(control, showAllName, showMore)
         else:
-            Logger.Write('IUIAutomation return null element under cursor\n', ConsoleColor.Yellow)
+            Logger.Write('IUIAutomation returns null element under cursor\n', ConsoleColor.Yellow)
     else:
+        indent = 0
         if not control:
             control = GetFocusedControl()
             controlList = []
@@ -105,7 +111,10 @@ def main():
                 control = controlList[0]
             else:
                 control = controlList[1]
-        EnumAndLogControl(control, depth, showAllName, showMore)
+                if foreground:
+                    indent = 1
+                    LogControl(controlList[0], 0, showAllName, showMore)
+        EnumAndLogControl(control, depth, showAllName, showMore, startIndent = indent)
     Logger.Log('Ends\n')
 
 if __name__ == '__main__':

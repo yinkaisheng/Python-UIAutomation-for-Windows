@@ -2401,7 +2401,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         element: integer
         searchFromControl: Control, if is None, search from root control
         searchDepth: integer, max search depth from searchFromControl
-        foundIndex: integer, value must be greater or equal to 1
+        foundIndex: integer, value must >= 1
         searchWaitTime: float, wait searchWaitTime before every search
         searchPorpertyDict: a dict that defines how to search, only the following keys are valid
                             ControlType: integer in class ControlType
@@ -2410,7 +2410,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                             Name: str or unicode
                             SubName: str or unicode
                             RegexName: str or unicode, supports regex
-                            Depth: integer, exact depth from searchFromControl, if set, searchDepth will be set to Depth too
+                            Depth: integer, relative depth from searchFromControl, if set, searchDepth will be set to Depth too
                             Compare: custom compare function(control, depth)
         """
         self._element = element
@@ -4380,7 +4380,7 @@ def EnumAndLogControlAncestors(control, showAllName = True, showMore = False):
         LogControl(control, i, showAllName, showMore)
 
 
-def EnumAndLogControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMore = False):
+def EnumAndLogControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMore = False, startIndent = 0):
     """
     control: Control
     maxDepth: integer
@@ -4388,7 +4388,7 @@ def EnumAndLogControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMo
     showMore: bool
     """
     for c, d in WalkControl(control, True, maxDepth):
-        LogControl(c, d, showAllName, showMore)
+        LogControl(c, d + startIndent, showAllName, showMore)
 
 
 def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = False, foundIndex = 1):
