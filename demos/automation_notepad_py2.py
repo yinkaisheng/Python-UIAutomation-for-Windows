@@ -19,7 +19,7 @@ Run 'automation.py -h' for help.
 uiautomation is shared under the Apache Licene 2.0.
 This means that the code can be freely copied and distributed, and costs nothing to use.
 
-具体用法参考: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
+代码原理介绍: http://www.cnblogs.com/Yinkaisheng/p/3444132.html
 """
 
 
