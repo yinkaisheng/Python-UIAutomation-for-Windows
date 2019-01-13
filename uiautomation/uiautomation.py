@@ -31,6 +31,7 @@ MAX_MOVE_SECOND = 1  # simulate mouse move or drag max seconds
 TIME_OUT_SECOND = 15
 OPERATION_WAIT_TIME = 0.5
 MAX_PATH = 260
+CHECK_SEARCH_PROPERTY_NAME = True
 
 
 class _AutomationClient:
@@ -2483,7 +2484,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             elif 'Compare' == key:
                 if not value(control, depth):
                     return False
-            else:
+            elif CHECK_SEARCH_PROPERTY_NAME:
                 raise KeyError('unsupported argument: {} in {} constructor'.format(key, self.__class__.__name__))
         return True
 
