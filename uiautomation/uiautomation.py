@@ -2509,7 +2509,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         if self._element:
             _AutomationClient.instance().dll.ReleaseElement(self._element)
         self._element = 0
-        start = time.clock()
+        start = time.time()
         # Use same timeout(s) parameters for resolve all parents
         prev =  self.searchFromControl
         if prev and not prev._element and not prev.Exists(maxSearchSeconds, searchIntervalSeconds):
@@ -2519,11 +2519,11 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             if control:
                 self._element = control.Element
                 control._element = 0 # control will be destroyed, but the element needs to be stroed in self._element
-                #elapsedTime = time.clock() - start
+                #elapsedTime = time.time() - start
                 #Logger.Log('Found time: {:.3f}s, {}'.format(elapsedTime, self))
                 return True
             else:
-                remain = start + maxSearchSeconds - time.clock()
+                remain = start + maxSearchSeconds - time.time()
                 if remain > 0:
                     time.sleep(min(remain, searchIntervalSeconds))
                 else:
@@ -2531,11 +2531,11 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     def Disappears(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
         """check control disappears in maxSearchSeconds, return True if control disappears"""
-        start = time.clock()
+        start = time.time()
         while True:
             if not self.Exists(0, 0):
                 return True
-            remain = start + maxSearchSeconds - time.clock()
+            remain = start + maxSearchSeconds - time.time()
             if remain > 0:
                 time.sleep(min(remain, searchIntervalSeconds))
             else:
@@ -3084,7 +3084,7 @@ class ScrollItemPattern:
         """Return bool"""
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId) != 0
 
-    def ScrollIntoView(self):
+    def ScrollIntoView(self, waitTime=OPERATION_WAIT_TIME):
         """Scroll the control into view, so it can be seen"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId)
         if pattern:
@@ -3174,7 +3174,7 @@ class SelectionItemPattern:
         """Return bool"""
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId) != 0
 
-    def Select(self):
+    def Select(self, waitTime=OPERATION_WAIT_TIME):
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
         if pattern:
             _AutomationClient.instance().dll.SelectionItemPatternSelect(pattern)
@@ -4526,12 +4526,12 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
                         else:
                             Logger.WriteLine('There is a thread that had already run for hotkey {}'.format(id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile = False)
             elif stopHotKeyId == msg.wParam:
-                if msg.lParam&0x0000FFFF == stopHotKey[0] and msg.lParam>>16&0x0000FFFF == stopHotKey[1]:
+                if msg.lParam & 0x0000FFFF == stopHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == stopHotKey[1]:
                     Logger.WriteLine('----------stop hotkey pressed----------', writeToFile = False)
                     stopEvent.set()
                     for id in id2Thread:
                         id2Thread[id] = None
             elif exitHotKeyId == msg.wParam:
-                if msg.lParam&0x0000FFFF == ModifierKey.MOD_CONTROL and msg.lParam>>16&0x0000FFFF == Keys.VK_D:
+                if msg.lParam & 0x0000FFFF == ModifierKey.MOD_CONTROL and msg.lParam >> 16 & 0x0000FFFF == Keys.VK_D:
                     Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow, False)
                     break

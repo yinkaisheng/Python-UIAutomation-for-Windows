@@ -32,7 +32,7 @@ def CaptureControl(c, path, up = False):
 def main(args):
     if args.time > 0:
         time.sleep(args.time)
-    start = time.clock()
+    start = time.time()
     if args.active:
         c = automation.GetForegroundControl()
     elif args.cursor or args.up:
@@ -40,7 +40,7 @@ def main(args):
     elif args.fullscreen:
         c = automation.GetRootControl()
     CaptureControl(c, args.path, args.up)
-    automation.Logger.WriteLine('cost time: {:.3f} s'.format(time.clock() - start))
+    automation.Logger.WriteLine('cost time: {:.3f} s'.format(time.time() - start))
 
 
 if __name__ == '__main__':
