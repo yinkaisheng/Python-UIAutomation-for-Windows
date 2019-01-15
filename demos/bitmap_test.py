@@ -19,32 +19,32 @@ def main():
 
     cmdWindow.SetActive()
     automation.Logger.WriteLine('create a blue image')
-    start = time.clock()
+    start = time.time()
     for x in range(width):
         for y in range(height):
             argb = 0x0000FF | ((255 * x // 500) << 24)
             bitmap.SetPixelColor(x, y, argb)
-    cost = time.clock() - start
+    cost = time.time() - start
     automation.Logger.WriteLine('write {}x{} image by SetPixelColor cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_blue.png')
 
-    start = time.clock()
+    start = time.time()
     for x in range(width):
         for y in range(height):
             bitmap.GetPixelColor(x, y)
-    cost = time.clock() - start
+    cost = time.time() - start
     automation.Logger.WriteLine('read {}x{} image by GetPixelColor cost {:.3f}s'.format(width, height, cost))
 
-    start = time.clock()
+    start = time.time()
     argb = [(0xFF0000 | (0x0000FF * y // height) | ((255 * x // width) << 24)) for x in range(width) for y in range(height)]
     bitmap.SetPixelColorsHorizontally(0, 0, argb)
-    cost = time.clock() - start
+    cost = time.time() - start
     automation.Logger.WriteLine('write {}x{} image by SetPixelColorsHorizontally cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_red.png')
 
-    start = time.clock()
+    start = time.time()
     bitmap.GetAllPixelColors()
-    cost = time.clock() - start
+    cost = time.time() - start
     automation.Logger.WriteLine('read {}x{} image by GetAllPixelColors cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_red.png')
     bitmap.ToFile('image_red.jpg')
