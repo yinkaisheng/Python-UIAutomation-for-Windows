@@ -2578,7 +2578,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     @property
     def ControlTypeName(self):
         """Return str ControlTypeName"""
-        return ControlTypeNameDict[self.ControlType]
+        return ControlTypeNameDict.get(self.ControlType, 'UnknownControl')
 
     @property
     def LocalizedControlType(self):
