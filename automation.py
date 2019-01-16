@@ -18,7 +18,7 @@ def usage():
 <Color=Cyan>-f</Color>      enumerate from <Color=Cyan>focused</Color> control, if it is null, enumerate from foreground window
 <Color=Cyan>-c</Color>      enumerate the control under <Color=Cyan>cursor</Color>, if depth is < 0, enumerate from its ancestor up to depth
 <Color=Cyan>-a</Color>      show <Color=Cyan>ancestors</Color> of the control under cursor
-<Color=Cyan>-n</Color>      show control full <Color=Cyan>name</Color>
+<Color=Cyan>-n</Color>      show control full <Color=Cyan>name, value</Color>, default show the first 30 characters, but don't truncate in log file
 <Color=Cyan>-m</Color>      show <Color=Cyan>more</Color> properties
 
 if <Color=Red>UnicodeError</Color> or <Color=Red>LookupError</Color> occurred when printing,
@@ -31,8 +31,9 @@ examples:
 automation.py -t3
 automation.py -t3 -r -d1 -m -n
 automation.py -c -t3
+automation.py -c -t3 -n -d-1
 
-""", writeToFile = False)
+""", writeToFile=False)
 
 
 def main():

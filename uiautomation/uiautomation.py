@@ -2914,7 +2914,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         # return '[{0}]'.format(self)
 
     def __unicode__(self):
-        return u'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{0:X}({1})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle)
+        return u'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle)
 
 
 #Patterns -----
@@ -3945,19 +3945,26 @@ class Logger:
         Logger.FileName = path
 
     @staticmethod
-    def Write(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
+    def Write(log, consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None, printTruncateLen=0):
         """
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
         """
-        if not isinstance(log, str):
-            log = str(log)
+        if IsPy3:
+            if not isinstance(log, str):
+                log = str(log)
+        else:
+            if not isinstance(log, str) and not isinstance(log, unicode):
+                log = unicode(log)
         if printToStdout and sys.stdout:
             isValidColor = (consoleColor >= ConsoleColor.Black and consoleColor <= ConsoleColor.White)
             if isValidColor:
                 Win32API.SetConsoleColor(consoleColor)
             try:
-                sys.stdout.write(log)
+                if printTruncateLen > 0 and len(log) > printTruncateLen:
+                    sys.stdout.write(log[:printTruncateLen] + '...')
+                else:
+                    sys.stdout.write(log)
             except Exception as ex:
                 Win32API.SetConsoleColor(ConsoleColor.Red)
                 isValidColor = True
@@ -3990,8 +3997,12 @@ class Logger:
         consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
         if consoleColor == -1, use default color
         """
-        if not isinstance(log, str):
-            log = str(log)
+        if IsPy3:
+            if not isinstance(log, str):
+                log = str(log)
+        else:
+            if not isinstance(log, str) and not isinstance(log, unicode):
+                log = unicode(log)
         Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
@@ -4309,9 +4320,6 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
         for key in theDict:
             if theValue == theDict[key]:
                 return key
-    name = control.Name
-    if not showAllName and name and len(name) > 30:
-        name = name[:30] + '...'
     indent = ' ' * depth * 4
     Logger.Write('{0}ControlType: '.format(indent))
     Logger.Write(control.ControlTypeName, ConsoleColor.DarkGreen)
@@ -4323,14 +4331,14 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     left, top, right, bottom = control.BoundingRectangle
     Logger.Write(str(control.BoundingRectangle), ConsoleColor.DarkGreen)
     Logger.Write('    Name: ')
-    Logger.Write(name, ConsoleColor.DarkGreen)
+    Logger.Write(control.Name, ConsoleColor.DarkGreen, printTruncateLen=30)
     Logger.Write('    Handle: ')
     Logger.Write('0x{0:X}({0})'.format(control.Handle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
     Logger.Write(str(depth), ConsoleColor.DarkGreen)
     if ((isinstance(control, ValuePattern) and control.IsValuePatternAvailable())):
         Logger.Write('    Value: ')
-        Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen)
+        Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen, printTruncateLen=30)
     if ((isinstance(control, RangeValuePattern) and control.IsRangeValuePatternAvailable())):
         Logger.Write('    RangeValue: ')
         Logger.Write(str(control.RangeValuePatternCurrentValue()), ConsoleColor.DarkGreen)
