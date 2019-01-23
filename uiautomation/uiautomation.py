@@ -1974,7 +1974,8 @@ class Bitmap:
         """
         capture control to Bitmap
         x, y: the point in control's internal position(from 0,0)
-        width, height: image's width and height, use 0 for control's entire area
+        width, height: image's width and height from x, y, use 0 for entire area,
+        if width(or height) < 0, image size will be control's width(or height) - width(or height)
         """
         left, top, right, bottom = control.BoundingRectangle
         while (right - left) == 0 or (bottom - top) == 0:
@@ -2852,7 +2853,8 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         """
         capture control to Bitmap object
         x, y: the point in control's internal position(from 0,0)
-        width, height: image's width and height, use 0 for entire area
+        width, height: image's width and height from x, y, use 0 for entire area,
+        if width(or height) < 0, image size will be control's width(or height) - width(or height)
         """
         bitmap = Bitmap()
         bitmap.FromControl(self, x, y, width, height)
@@ -2863,7 +2865,8 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         capture control to image file
         savePath, savePath shoud end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff
         x, y: the point in control's internal position(from 0,0)
-        width, height: image's width and height, use 0 for entire area
+        width, height: image's width and height from x, y, use 0 for entire area,
+        if width(or height) < 0, image size will be control's width(or height) - width(or height)
         """
         bitmap = Bitmap()
         if bitmap.FromControl(self, x, y, width, height):
