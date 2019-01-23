@@ -3551,7 +3551,8 @@ class WindowPattern:
 
 
 #see Control Pattern Mapping for UI Automation Clients
-#https://msdn.microsoft.com/zh-cn/library/dd319586(v=vs.85).aspx
+# https://docs.microsoft.com/en-us/dotnet/framework/ui-automation/control-pattern-mapping-for-ui-automation-clients
+
 
 class AppBarControl(Control):
     def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
@@ -3583,7 +3584,13 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
         self.AddSearchProperty(ControlType = ControlType.ComboBoxControl)
 
     def Select(self, name, waitTime = OPERATION_WAIT_TIME):
-        """not support Qt's ComboBoxControl"""
+        """
+        name: str
+        show combobox's popup menu and select a item by name,
+        this is not a standard API in UIAutomation, here is a workaround,
+        it may not work for some comboboxes, such as comboboxes in older Qt version
+        if it doesn't work, you should write your own version Select, or it doesn't support selection at all
+        """
         supportExpandCollapse = self.IsExpandCollapsePatternAvailable()
         if supportExpandCollapse:
             self.Expand()
@@ -4120,7 +4127,7 @@ def SendKey(key, waitTime = OPERATION_WAIT_TIME):
     """
     Simulate typing a key
     key: a value in class Keys
-    example: SendKey(automation.Keys.VK_F)
+    example: SendKey(uiautomation.Keys.VK_F)
     """
     Win32API.SendKey(key, waitTime)
 
@@ -4437,9 +4444,9 @@ def ShowDesktop():
 
 def RunWithHotKey(keyFunctionDict, stopHotKey = None):
     """
-    keyFunctionDict: hotkey, function dict, like {(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1) : func}
+    keyFunctionDict: hotkey, function dict, like {(uiautomation.ModifierKey.MOD_CONTROL, uiautomation.Keys.VK_1) : func}
     bind function with hotkey, the function will be run or stopped in another thread when the hotkey was pressed
-    automation doesn't support multi thread, so you can't use UI Control in the function
+    uiautomation doesn't support multi thread, so you can't use UI Control in the function
     you can call another script that uses UI Control
 
     def main(stopEvent):
@@ -4451,10 +4458,10 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
             n += 1
             stopEvent.wait(1)
         print('main exit')
-        print(automation.GetRootControl())      # will raise exception, can't use UI Control, todo
+        print(uiautomation.GetRootControl())      # will raise exception, can't use UI Control, todo
 
-    automation.RunHotKey({(automation.ModifierKey.MOD_CONTROL, automation.Keys.VK_1) : main}
-                        , (automation.ModifierKey.MOD_CONTROL | automation.ModifierKey.MOD_SHIFT, automation.Keys.VK_2))
+    uiautomation.RunHotKey({(uiautomation.ModifierKey.MOD_CONTROL, uiautomation.Keys.VK_1) : main}
+                        , (uiautomation.ModifierKey.MOD_CONTROL | uiautomation.ModifierKey.MOD_SHIFT, uiautomation.Keys.VK_2))
     """
     stopHotKeyId = 1
     exitHotKeyId = 2
