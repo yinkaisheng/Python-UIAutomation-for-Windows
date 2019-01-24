@@ -3588,7 +3588,7 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
         name: str
         show combobox's popup menu and select a item by name,
         this is not a standard API in UIAutomation, here is a workaround,
-        it may not work for some comboboxes, such as comboboxes in older Qt version
+        it may not work for some comboboxes, such as comboboxes in older Qt version,
         if it doesn't work, you should write your own version Select, or it doesn't support selection at all
         """
         supportExpandCollapse = self.IsExpandCollapsePatternAvailable()
@@ -4341,14 +4341,14 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     left, top, right, bottom = control.BoundingRectangle
     Logger.Write(str(control.BoundingRectangle), ConsoleColor.DarkGreen)
     Logger.Write('    Name: ')
-    Logger.Write(control.Name, ConsoleColor.DarkGreen, printTruncateLen=30)
+    Logger.Write(control.Name, ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
     Logger.Write('    Handle: ')
     Logger.Write('0x{0:X}({0})'.format(control.Handle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
     Logger.Write(str(depth), ConsoleColor.DarkGreen)
     if ((isinstance(control, ValuePattern) and control.IsValuePatternAvailable())):
         Logger.Write('    Value: ')
-        Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen, printTruncateLen=30)
+        Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
     if ((isinstance(control, RangeValuePattern) and control.IsRangeValuePatternAvailable())):
         Logger.Write('    RangeValue: ')
         Logger.Write(str(control.RangeValuePatternCurrentValue()), ConsoleColor.DarkGreen)
