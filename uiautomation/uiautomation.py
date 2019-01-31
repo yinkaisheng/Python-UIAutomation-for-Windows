@@ -5,7 +5,7 @@ Author: yinkaisheng@live.com
 Source: https://github.com/yinkaisheng/Python-UIAutomation-for-Windows
 
 This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
-It supports UIAutomation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt and Firefox.
+It supports UIAutomation for the applications which implmented IUIAutomation, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt, Firefox and Chrome.
 Run 'automation.py -h' for help.
 
 uiautomation is shared under the Apache Licene 2.0.
@@ -23,6 +23,13 @@ IsNT6 = os.sys.getwindowsversion().major >= 6
 IsPy3 = sys.version_info[0] >= 3
 if not IsPy3:
     import codecs
+
+if sys.version_info[:2] >= (3, 3):
+    ProcessTime = time.perf_counter
+else:
+    # On Windows, time.clock returns wall-clock seconds elapsed since the first call to this function
+    ProcessTime = time.clock
+    ProcessTime()  # need to call it once
 
 AUTHOR_MAIL = 'yinkaisheng@live.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
@@ -1293,7 +1300,7 @@ class Win32API:
         """
         Simulate mouse move to point x, y from current cursor
         x and y must be integer
-        moveSpeed: double, 1 normal speed, < 1 move slower, > 1 move faster
+        moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster
         """
         if moveSpeed <= 0:
             moveTime = 0
@@ -1335,7 +1342,7 @@ class Win32API:
         """
         Simulate mouse drag from point x1, y1 drop to point x2, y2
         x1, y1, x2, y2, must be integer
-        moveSpeed: double, 1 normal speed, < 1 move slower, > 1 move faster
+        moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster
         """
         if moveSpeed <= 0:
             moveTime = 0
@@ -1735,7 +1742,7 @@ class Win32API:
         """
         Simulate typing keys on keyboard
         text: str, keys to type
-        interval: double, seconds between keys
+        interval: float, seconds between keys
         debug: bool, if True, print the Keys
         example:
         {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
@@ -2430,6 +2437,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         Warning: when script exits, module ctypes may be None,
         ctypes sometimes is None before all controls are destoryed
         but __del__ needs method in dll(which needs ctypes) to release resources
+        to avoid this issue, don't use controls in global area
         """
         if self._element:
             _AutomationClient.instance().dll.ReleaseElement(self._element)
@@ -2510,7 +2518,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         if self._element:
             _AutomationClient.instance().dll.ReleaseElement(self._element)
         self._element = 0
-        start = time.time()
+        start = ProcessTime()
         # Use same timeout(s) parameters for resolve all parents
         prev =  self.searchFromControl
         if prev and not prev._element and not prev.Exists(maxSearchSeconds, searchIntervalSeconds):
@@ -2520,11 +2528,11 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             if control:
                 self._element = control.Element
                 control._element = 0 # control will be destroyed, but the element needs to be stroed in self._element
-                #elapsedTime = time.time() - start
+                #elapsedTime = ProcessTime() - start
                 #Logger.Log('Found time: {:.3f}s, {}'.format(elapsedTime, self))
                 return True
             else:
-                remain = start + maxSearchSeconds - time.time()
+                remain = start + maxSearchSeconds - ProcessTime()
                 if remain > 0:
                     time.sleep(min(remain, searchIntervalSeconds))
                 else:
@@ -2532,11 +2540,11 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     def Disappears(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
         """check control disappears in maxSearchSeconds, return True if control disappears"""
-        start = time.time()
+        start = ProcessTime()
         while True:
             if not self.Exists(0, 0):
                 return True
-            remain = start + maxSearchSeconds - time.time()
+            remain = start + maxSearchSeconds - ProcessTime()
             if remain > 0:
                 time.sleep(min(remain, searchIntervalSeconds))
             else:
@@ -2838,7 +2846,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         """
         Simulate typing keys
         keys: str, keys to type, see docstring of Win32API.SendKeys
-        interval: double, seconds between keys
+        interval: float, seconds between keys
         """
         self.SetFocus()
         Win32API.SendKeys(keys, interval, waitTime)
@@ -4136,7 +4144,7 @@ def SendKeys(keys, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
     """
     Simulate typing keys on keyboard
     keys: str, keys to type
-    interval: double, seconds between keys
+    interval: float, seconds between keys
     debug: bool, if True, print the Keys
     example:
     {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
