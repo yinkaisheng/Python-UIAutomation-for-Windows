@@ -18,6 +18,7 @@ import datetime
 import re
 import ctypes
 import ctypes.wintypes
+import msvcrt
 
 IsNT6 = os.sys.getwindowsversion().major >= 6
 IsPy3 = sys.version_info[0] >= 3
@@ -25,11 +26,11 @@ if not IsPy3:
     import codecs
 
 if sys.version_info[:2] >= (3, 3):
-    ProcessTime = time.perf_counter
+    ProcessTime = time.perf_counter  # this returns nearly 0 when first call it if python version <= 3.6
 else:
     # On Windows, time.clock returns wall-clock seconds elapsed since the first call to this function
     ProcessTime = time.clock
-    ProcessTime()  # need to call it once
+ProcessTime()  # need to call it once
 
 AUTHOR_MAIL = 'yinkaisheng@live.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
@@ -39,6 +40,21 @@ TIME_OUT_SECOND = 15
 OPERATION_WAIT_TIME = 0.5
 MAX_PATH = 260
 CHECK_SEARCH_PROPERTY_NAME = True
+
+
+class Point(ctypes.Structure):
+    _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
+
+
+class MSG(ctypes.Structure):
+    _fields_ = [
+        ("hwnd", ctypes.c_void_p),
+        ("message", ctypes.c_uint),
+        ("wParam", ctypes.c_uint),
+        ("lParam", ctypes.c_long),
+        ("time", ctypes.c_uint),
+        ("pt", Point)
+    ]
 
 
 class _AutomationClient:
@@ -76,7 +92,6 @@ class _AutomationClient:
             raise RuntimeError('Can not get an instance of IUIAutomation.\nYou may need to install Windows Update KB971513.\nhttps://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation')
 
     def InitFunctionType(self):
-        self.dll.FreeBSTR.argtypes = (ctypes.c_size_t, )
         self.dll.GetAutomationObject.restype = ctypes.c_size_t
         self.dll.GetRawTreeWalker.restype = ctypes.c_size_t
         self.dll.ElementAddRef.argtypes = (ctypes.c_size_t, )
@@ -210,7 +225,38 @@ class _AutomationClient:
         self.dll.BitmapGetPixel.argtypes = (ctypes.c_size_t, ctypes.c_uint, ctypes.c_uint)
         self.dll.BitmapSetPixel.argtypes = (ctypes.c_size_t, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint)
 
-        #Windows dll
+        # Windows dll
+        ctypes.cdll.msvcrt.wcsncpy.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_size_t)
+        ctypes.windll.winmm.PlaySoundW.argtypes = (ctypes.c_wchar_p, ctypes.c_void_p, ctypes.c_uint)
+        ctypes.windll.OleAut32.SysFreeString.argtypes = (ctypes.c_wchar_p, )
+        ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
+        ctypes.windll.user32.GetWindowDC.argtypes = (ctypes.c_void_p, )
+        ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
+        ctypes.windll.user32.ReleaseDC.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
+        ctypes.windll.user32.OpenDesktopW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_int, ctypes.c_uint)
+        ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
+        ctypes.windll.user32.WindowFromPoint.argtypes = (Point, )
+        ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
+        ctypes.windll.user32.SwitchDesktop.argtypes = (ctypes.c_void_p, )
+        ctypes.windll.user32.CloseDesktop.argtypes = (ctypes.c_void_p, )
+        ctypes.windll.user32.GetMessageW.argtypes = (ctypes.POINTER(MSG), ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint)
+        ctypes.windll.user32.SetClipboardData.argtypes = (ctypes.c_uint, ctypes.c_void_p)
+        ctypes.windll.user32.PostMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_long)
+        ctypes.windll.user32.SendMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_long)
+        ctypes.windll.user32.GetCursorPos.argtypes = (ctypes.POINTER(Point), )
+        ctypes.windll.user32.MessageBoxW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint)
+        ctypes.windll.user32.SetForegroundWindow.argtypes = (ctypes.c_void_p, )
+        ctypes.windll.user32.GetForegroundWindow.restype = ctypes.c_void_p
+        ctypes.windll.user32.SwitchToThisWindow.argtypes = (ctypes.c_void_p, ctypes.c_int)
+        ctypes.windll.user32.ShowWindow.argtypes = (ctypes.c_void_p, ctypes.c_int)
+        ctypes.windll.user32.MoveWindow.argtypes = (ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
+        ctypes.windll.user32.SetWindowPos.argtypes = (ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint)
+        ctypes.windll.user32.GetWindowTextW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_int)
+        ctypes.windll.user32.SetWindowTextW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p)
+        ctypes.windll.kernel32.GetConsoleOriginalTitleW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint)
+        ctypes.windll.kernel32.GetConsoleTitleW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint)
+        ctypes.windll.kernel32.SetConsoleTitleW.argtypes = (ctypes.c_wchar_p, )
+        ctypes.windll.kernel32.SetConsoleTextAttribute.argtypes = (ctypes.c_void_p, ctypes.c_ushort)
         ctypes.windll.kernel32.GlobalLock.argtypes = (ctypes.c_void_p, )
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
         ctypes.windll.kernel32.GlobalUnlock.argtypes = (ctypes.c_void_p, )
@@ -220,14 +266,10 @@ class _AutomationClient:
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CloseHandle.argtypes = (ctypes.c_void_p, )
         ctypes.windll.kernel32.TerminateProcess.argtypes = (ctypes.c_void_p, ctypes.c_uint)
+        ctypes.windll.kernel32.Module32FirstW.argtypes = (ctypes.c_void_p, ctypes.POINTER(tagMODULEENTRY32))
+        ctypes.windll.kernel32.Process32FirstW.argtypes = (ctypes.c_void_p, ctypes.POINTER(tagPROCESSENTRY32))
         if IsNT6:
             ctypes.windll.kernel32.QueryFullProcessImageNameW.argtypes = (ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.c_wchar_p, ctypes.POINTER(ctypes.wintypes.DWORD))
-        ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
-        ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
-        ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
-        ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
-        ctypes.windll.user32.SwitchDesktop.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.user32.CloseDesktop.argtypes = (ctypes.c_void_p, )
 
     def __del__(self):
         self.dll.ReleaseInstance()
@@ -508,10 +550,6 @@ class RowOrColumnMajor:
     Indeterminate = 2
 
 
-class Point(ctypes.Structure):
-    _fields_ = [("x", ctypes.c_ulong), ("y", ctypes.c_ulong)]
-
-
 class Coord(ctypes.Structure):
     _fields_ = [('X', ctypes.c_short), ('Y', ctypes.c_short)]
 
@@ -556,6 +594,7 @@ class tagPROCESSENTRY32(ctypes.Structure):
         ('szExeFile',           ctypes.c_wchar * MAX_PATH)
     ]
 
+
 class tagMODULEENTRY32(ctypes.Structure):
     _fields_ = [
         ('dwSize',              ctypes.wintypes.DWORD),
@@ -568,16 +607,6 @@ class tagMODULEENTRY32(ctypes.Structure):
         ('hModule',             ctypes.c_void_p),
         ('szModule',            ctypes.c_wchar * 256),
         ('szExeFile',           ctypes.c_wchar * MAX_PATH)
-    ]
-
-class MSG(ctypes.Structure):
-    _fields_ = [
-        ("hwnd",      ctypes.c_uint),
-        ("message",   ctypes.c_uint),
-        ("wParam",    ctypes.c_uint),
-        ("lParam",    ctypes.c_uint),
-        ("time",      ctypes.c_uint),
-        ("pt",        ctypes.c_ulonglong)
     ]
 
 
@@ -1170,31 +1199,38 @@ class Win32API:
 
     @staticmethod
     def GetClipboardText():
+        """Return str"""
         if ctypes.windll.user32.OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(13): # CF_TEXT=1, CF_UNICODETEXT=13
                 hClipboardData = ctypes.windll.user32.GetClipboardData(13)
-                hText = ctypes.windll.kernel32.GlobalLock(hClipboardData);
+                hText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
                 text = ctypes.c_wchar_p(hText).value[:]
-                ctypes.windll.kernel32.GlobalUnlock(hClipboardData);
+                ctypes.windll.kernel32.GlobalUnlock(hClipboardData)
                 ctypes.windll.user32.CloseClipboard()
                 return text
         return ''
 
     @staticmethod
     def SetClipboardText(text):
+        """text: str"""
         if ctypes.windll.user32.OpenClipboard(0):
             ctypes.windll.user32.EmptyClipboard()
-            textLen = (len(text) + 1) * 2
-            hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0, textLen)  # GMEM_FIXED=0
+            textByteLen = (len(text) + 1) * 2
+            hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0, textByteLen)  # GMEM_FIXED=0
             hDestText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
-            _AutomationClient.instance().dll.WcsCpy(ctypes.c_wchar_p(hDestText), textLen, ctypes.c_wchar_p(text))
+            ctypes.cdll.msvcrt.wcsncpy(ctypes.c_wchar_p(hDestText), ctypes.c_wchar_p(text), textByteLen // 2)
             ctypes.windll.kernel32.GlobalUnlock(hClipboardData)
-            ctypes.windll.user32.SetClipboardData(13, ctypes.c_void_p(hClipboardData)) # CF_TEXT=1, CF_UNICODETEXT=13
+            # system owns hClipboardData after calling SetClipboardData,
+            # application can not write to or free the data once ownership has been transferred to the system
+            ctypes.windll.user32.SetClipboardData(13, hClipboardData)  # CF_TEXT=1, CF_UNICODETEXT=13
             ctypes.windll.user32.CloseClipboard()
 
     @staticmethod
     def SetConsoleColor(color):
-        """Change the text color on console window"""
+        """
+        color: int, a value in class ConsoleColor
+        Change the text color on console window
+        """
         if not Win32API.DefaultColor:
             if not Win32API.ConsoleOutputHandle:
                 Win32API.ConsoleOutputHandle = ctypes.windll.kernel32.GetStdHandle(Win32API.StdOutputHandle)
@@ -1216,7 +1252,7 @@ class Win32API:
 
     @staticmethod
     def WindowFromPoint(x, y):
-        """Return hwnd"""
+        """Return int"""
         point = Point()
         point.x = x
         point.y = y
@@ -1224,19 +1260,23 @@ class Win32API:
 
     @staticmethod
     def GetCursorPos():
-        """Return tuple (x, y)"""
+        """Return two int tuple (x, y)"""
         point = Point()
         ctypes.windll.user32.GetCursorPos(ctypes.byref(point))
         return int(point.x), int(point.y)
 
     @staticmethod
     def SetCursorPos(x, y):
-        """Set cursor to point x, y"""
+        """
+        x: int
+        y: int
+        Set cursor to point x, y
+        """
         ctypes.windll.user32.SetCursorPos(x, y)
 
     @staticmethod
     def GetDoubleClickTime():
-        """Get the double click time of mouse"""
+        """return int, in milliseconds"""
         return ctypes.windll.user32.GetDoubleClickTime()
 
     @staticmethod
@@ -1252,18 +1292,20 @@ class Win32API:
     @staticmethod
     def PostMessage(handle, msg, wparam, lparam):
         """Call API PostMessageW from user32.dll"""
-        return ctypes.windll.user32.PostMessageW(handle, msg, wparam, lparam)
+        return ctypes.windll.user32.PostMessageW(ctypes.c_void_p(handle), msg, wparam, lparam)
 
     @staticmethod
     def SendMessage(handle, msg, wparam, lparam):
         """Call API SendMessageW from user32.dll"""
-        return ctypes.windll.user32.SendMessageW(handle, msg, wparam, lparam)
+        return ctypes.windll.user32.SendMessageW(ctypes.c_void_p(handle), msg, wparam, lparam)
 
     @staticmethod
-    def MouseClick(x, y, waitTime = OPERATION_WAIT_TIME):
+    def MouseClick(x, y, waitTime=OPERATION_WAIT_TIME):
         """
+        x: int
+        y: int
+        waitTime: float
         Simulate mouse click at point x, y
-        x and y must be integer
         """
         Win32API.SetCursorPos(x, y)
         Win32API.mouse_event(MouseEventFlags.LeftDown | MouseEventFlags.Absolute, x, y, 0, 0)
@@ -1272,10 +1314,12 @@ class Win32API:
         time.sleep(waitTime)
 
     @staticmethod
-    def MouseMiddleClick(x, y, waitTime = OPERATION_WAIT_TIME):
+    def MouseMiddleClick(x, y, waitTime=OPERATION_WAIT_TIME):
         """
+        x: int
+        y: int
+        waitTime: float
         Simulate mouse middle click at point x, y
-        x and y must be integer
         """
         Win32API.SetCursorPos(x, y)
         Win32API.mouse_event(MouseEventFlags.MiddleDown | MouseEventFlags.Absolute, x, y, 0, 0)
@@ -1284,10 +1328,12 @@ class Win32API:
         time.sleep(waitTime)
 
     @staticmethod
-    def MouseRightClick(x, y, waitTime = OPERATION_WAIT_TIME):
+    def MouseRightClick(x, y, waitTime=OPERATION_WAIT_TIME):
         """
+        x: int
+        y: int
+        waitTime: float
         Simulate mouse right click at point x, y
-        x and y must be integer
         """
         Win32API.SetCursorPos(x, y)
         Win32API.mouse_event(MouseEventFlags.RightDown | MouseEventFlags.Absolute, x, y, 0, 0)
@@ -1296,11 +1342,13 @@ class Win32API:
         time.sleep(waitTime)
 
     @staticmethod
-    def MouseMoveTo(x, y, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
+    def MouseMoveTo(x, y, moveSpeed=1, waitTime=OPERATION_WAIT_TIME):
         """
-        Simulate mouse move to point x, y from current cursor
-        x and y must be integer
+        x: int
+        y: int
         moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster
+        waitTime: float
+        Simulate mouse move to point x, y from current cursor
         """
         if moveSpeed <= 0:
             moveTime = 0
@@ -1333,16 +1381,16 @@ class Win32API:
         Win32API.SetCursorPos(x, y)
         time.sleep(waitTime)
 
-    #@staticmethod
-    #def MouseDragTo(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
-    #use MouseDragDrop instead
-
     @staticmethod
-    def MouseDragDrop(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
+    def MouseDragDrop(x1, y1, x2, y2, moveSpeed=1, waitTime=OPERATION_WAIT_TIME):
         """
-        Simulate mouse drag from point x1, y1 drop to point x2, y2
-        x1, y1, x2, y2, must be integer
+        x1: int
+        y1: int
+        x2: int
+        y2: int
         moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster
+        waitTime: float
+        Simulate mouse drag from point x1, y1 drop to point x2, y2
         """
         if moveSpeed <= 0:
             moveTime = 0
@@ -1371,15 +1419,15 @@ class Win32API:
                 Win32API.SetCursorPos(int(x1), int(y1))
         else:
             time.sleep(0.05)
-        Win32API.mouse_event(MouseEventFlags.Absolute | MouseEventFlags.LeftUp, x2*65536//screenWidth, y2*65536//screenHeight, 0, 0)
+        Win32API.mouse_event(MouseEventFlags.Absolute | MouseEventFlags.LeftUp, x2 * 65536 // screenWidth, y2 * 65536 // screenHeight, 0, 0)
         Win32API.SetCursorPos(x2, y2)
         time.sleep(waitTime)
 
     @staticmethod
-    def MouseWheelDown(wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+    def MouseWheelDown(wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
         """
-        Simulate mouse wheel down
-        wheelTimes, int value
+        wheelTimes: int
+        waitTime: float
         """
         for i in range(wheelTimes):
             Win32API.mouse_event(MouseEventFlags.Wheel, 0, 0, -120, 0)
@@ -1387,10 +1435,10 @@ class Win32API:
         time.sleep(waitTime)
 
     @staticmethod
-    def MouseWheelUp(wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+    def MouseWheelUp(wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
         """
-        Simulate mouse wheel up
-        wheelTimes, int value
+        wheelTimes: int
+        waitTime: float
         """
         for i in range(wheelTimes):
             Win32API.mouse_event(MouseEventFlags.Wheel, 0, 0, 120, 0)
@@ -1399,7 +1447,7 @@ class Win32API:
 
     @staticmethod
     def GetScreenSize():
-        """Return tuple (width, height)"""
+        """Return two int values tuple (width, height)"""
         SM_CXSCREEN = 0
         SM_CYSCREEN = 1
         w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN)
@@ -1407,74 +1455,107 @@ class Win32API:
         return w, h
 
     @staticmethod
-    def GetPixelColor(x, y, handle = 0):
+    def GetPixelColor(x, y, handle=0):
         """
-        If handle is 0, get pixel from desktop, return bgr
+        x: int
+        y: int
+        handle: int, handle of a Win32 window
+        Return int, the bgr value of point (x,y)
         r = bgr & 0x0000FF
         g = (bgr & 0x00FF00) >> 8
         b = (bgr & 0xFF0000) >> 16
-
-        Not all devices support GetPixel. An application should call GetDeviceCaps to determine whether a specified device supports this function. Console window doesn't support.
+        If handle is 0, get pixel from Desktop window
+        Note:
+        Not all devices support GetPixel.
+        An application should call GetDeviceCaps to determine whether a specified device supports this function.
+        For example, console window doesn't support.
         """
-        hdc = ctypes.windll.user32.GetWindowDC(handle)
+        hdc = ctypes.windll.user32.GetWindowDC(ctypes.c_void_p(handle))
         bgr = ctypes.windll.gdi32.GetPixel(hdc, x, y)
-        ctypes.windll.user32.ReleaseDC(handle, hdc)
+        ctypes.windll.user32.ReleaseDC(ctypes.c_void_p(handle), hdc)
         return bgr
 
     @staticmethod
-    def MessageBox(content, title, flags = MB.OK):
-        """Call API MessageBox from user32.dll"""
-        return ctypes.windll.user32.MessageBoxW(0, ctypes.c_wchar_p(content), ctypes.c_wchar_p(title), flags)
+    def MessageBox(content, title, flags=MB.OK):
+        """
+        content: str
+        title: str
+        flags: int, a value or some combined values in class MB
+        """
+        return ctypes.windll.user32.MessageBoxW(ctypes.c_void_p(0), ctypes.c_wchar_p(content), ctypes.c_wchar_p(title), flags)
 
     @staticmethod
     def SetForegroundWindow(hWnd):
         """
-        Set a window to foreground
-        hWnd: integer, handle of a Win32 window
+        hWnd: int, handle of a Win32 window
         """
-        return ctypes.windll.user32.SetForegroundWindow(hWnd)
+        return ctypes.windll.user32.SetForegroundWindow(ctypes.c_void_p(hWnd))
 
     @staticmethod
     def SetWindowTopmost(hWnd, isTopmost):
         """
-        Set a window to Topmost
-        hWnd: integer, handle of a Win32 window
-        isTopmost: bool, be topmost or not
+        hWnd: int, handle of a Win32 window
+        isTopmost: bool
         """
         topValue = SWP.HWND_TOPMOST if isTopmost else SWP.HWND_NOTOPMOST
-        return Win32API.SetWindowPos(hWnd, topValue, 0, 0, 0, 0, SWP.SWP_NOSIZE|SWP.SWP_NOMOVE)
+        return Win32API.SetWindowPos(hWnd, topValue, 0, 0, 0, 0, SWP.SWP_NOSIZE | SWP.SWP_NOMOVE)
 
     @staticmethod
     def SwitchToThisWindow(hWnd):
-        """Call API SwitchToThisWindow from user32.dll"""
-        return ctypes.windll.user32.SwitchToThisWindow(hWnd, 1)
+        """hWnd: int, handle of a Win32 window"""
+        return ctypes.windll.user32.SwitchToThisWindow(ctypes.c_void_p(hWnd), 1)
 
     @staticmethod
     def ShowWindow(hWnd, cmdShow):
-        """ShowWindow(hWnd, ShowWindow.Show), see values in class ShowWindow"""
-        return ctypes.windll.user32.ShowWindow(hWnd, cmdShow)
+        """
+        hWnd: int, handle of a Win32 window
+        cmdShow: int, a value in Class ShowWindow
+        """
+        return ctypes.windll.user32.ShowWindow(ctypes.c_void_p(hWnd), cmdShow)
 
     @staticmethod
-    def MoveWindow(hWnd, x, y, width, height, repaint = 1):
-        """Call API MoveWindow from user32.dll"""
-        return ctypes.windll.user32.MoveWindow(hWnd, x, y, width, height, repaint)
+    def MoveWindow(hWnd, x, y, width, height, repaint=1):
+        """
+        hWnd: int, handle of a Win32 window
+        x: int
+        y: int
+        width: int
+        height: int
+        repaint: int, use 1 or 0
+        """
+        return ctypes.windll.user32.MoveWindow(ctypes.c_void_p(hWnd), x, y, width, height, repaint)
 
     @staticmethod
     def SetWindowPos(hWnd, hWndInsertAfter, x, y, width, height, flags):
-        """Call API SetWindowPos from user32.dll, flags see class SWP"""
-        return ctypes.windll.user32.SetWindowPos(hWnd, hWndInsertAfter, x, y, width, height, flags)
+        """
+        hWnd: int, handle of a Win32 window
+        hWndInsertAfter: int, a value whose name starts with 'HWND' in class SWP,
+        x: int
+        y: int
+        width: int
+        height: int
+        flags: int, a value whose name starts with 'SWP' in class SWP,
+        """
+        return ctypes.windll.user32.SetWindowPos(ctypes.c_void_p(hWnd), ctypes.c_void_p(hWndInsertAfter), x, y, width, height, flags)
 
     @staticmethod
     def GetWindowText(hWnd):
-        """Get window text"""
+        """
+        hWnd: int, handle of a Win32 window
+        Return str
+        """
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
-        ctypes.windll.user32.GetWindowTextW(hWnd, values, MAX_PATH)
+        ctypes.windll.user32.GetWindowTextW(ctypes.c_void_p(hWnd), values, MAX_PATH)
         return values.value
 
     @staticmethod
     def GetEditText(hWnd):
-        """Get text of Win32 Edit"""
+        """
+        hWnd: int, handle of a Win32 window
+        Return str
+        Get text of Win32 Edit
+        """
         textLen = Win32API.SendMessage(hWnd, 0x000E, 0, 0) + 1  #WM_GETTEXTLENGTH
         wArray = ctypes.c_wchar * textLen
         values = wArray()
@@ -1483,12 +1564,15 @@ class Win32API:
 
     @staticmethod
     def SetWindowText(hWnd, text):
-        """Set window text"""
-        return ctypes.windll.user32.SetWindowTextW(hWnd, ctypes.c_wchar_p(text))
+        """
+        hWnd: int, handle of a Win32 window
+        text: str
+        """
+        return ctypes.windll.user32.SetWindowTextW(ctypes.c_void_p(hWnd), ctypes.c_wchar_p(text))
 
     @staticmethod
     def GetConsoleOriginalTitle():
-        """GetConsoleOriginalTitle"""
+        """Return str"""
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
         ctypes.windll.kernel32.GetConsoleOriginalTitleW(values, MAX_PATH)
@@ -1496,7 +1580,7 @@ class Win32API:
 
     @staticmethod
     def GetConsoleTitle():
-        """GetConsoleTitle"""
+        """Return str"""
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
         ctypes.windll.kernel32.GetConsoleTitleW(values, MAX_PATH)
@@ -1504,16 +1588,20 @@ class Win32API:
 
     @staticmethod
     def SetConsoleTitle(text):
-        """SetConsoleTitle"""
+        """text: str"""
         return ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(text))
 
     @staticmethod
     def GetForegroundWindow():
+        """Return int, the handle of the foreground window"""
         return ctypes.windll.user32.GetForegroundWindow()
 
     @staticmethod
     def IsDesktopLocked():
-        """desktop is locked if press Win+L, Ctrl+Alt+Del or in remote desktop mode"""
+        """
+        Return bool
+        Desktop is locked if press Win+L, Ctrl+Alt+Del or in remote desktop mode
+        """
         isLocked = False
         desk = ctypes.windll.user32.OpenDesktopW(ctypes.c_wchar_p('Default'), 0, 0, 0x0100)  #DESKTOP_SWITCHDESKTOP = 0x0100
         if desk:
@@ -1522,34 +1610,53 @@ class Win32API:
         return isLocked
 
     @staticmethod
-    def PlayWaveFile(filePath = r'C:\Windows\Media\notify.wav', isAsync = True):
-        """play wave file"""
-        SND_ASYNC = 0x0001
-        SND_NODEFAULT = 0x0002
-        flag = SND_NODEFAULT
-        if isAsync:
-            flag |= SND_ASYNC
-        ctypes.windll.winmm.sndPlaySoundW(ctypes.c_wchar_p(filePath), flag)
+    def PlayWaveFile(filePath=r'C:\Windows\Media\notify.wav', isAsync=True, isLoop=False):
+        """
+        filePath: str, if emtpy, stop playing the current sound
+        isAsync: bool, if True, the sound is played asynchronously and returns immediately.
+        isLoop: bool, if True, the sound plays repeatedly until PlayWaveFile(None) is called again, must also set isAsync to True
+        """
+        if filePath:
+            SND_ASYNC = 0x0001
+            SND_NODEFAULT = 0x0002
+            SND_LOOP = 0x0008
+            flag = SND_NODEFAULT
+            if isAsync:
+                flag |= SND_ASYNC
+            if loop:
+                flag |= SND_LOOP
+                flag |= SND_ASYNC
+            return ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(filePath), ctypes.c_void_p(0), flag)
+        else:
+            return ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(0), ctypes.c_void_p(0), 0)
 
     @staticmethod
     def GetProcessCommandLine(processId):
-        """may not work on Windows 7 or higher bacause of security policy, use wmi for a better result"""
+        """
+        processId: int
+        Return str
+        May not work on Windows 7 or higher bacause of no access right, use wmi for a better result
+        """
         wArray = ctypes.c_wchar * MAX_PATH
         values = wArray()
         _AutomationClient.instance().dll.GetProcessCommandLine(processId, values, MAX_PATH)
         return values.value
 
     @staticmethod
-    def GetParentProcessId(processId = -1):
-        '''may fail for no access right, use wmi for a better result'''
+    def GetParentProcessId(processId=-1):
+        """
+        processId: int
+        May not work on Windows 7 or higher bacause of no access right, use wmi for a better result
+        """
         return _AutomationClient.instance().dll.GetParentProcessId(processId)
 
     @staticmethod
     def IsProcess64Bit(processId):
         """
-        return True if process is 64 bit
-        return False if process is 32 bit
-        return None if unknown, maybe caused by having no acess right to the process
+        processId: int
+        Return True if process is 64 bit
+        Return False if process is 32 bit
+        Return None if unknown, maybe caused by having no acess right to the process
         """
         try:
             func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  #only 64 bit OS has this function
@@ -1557,6 +1664,7 @@ class Win32API:
             return False
         try:
             IsWow64Process = ctypes.windll.kernel32.IsWow64Process
+            IsWow64Process.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
         except Exception as ex:
             return False
         hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  #PROCESS_QUERY_INFORMATION=0x0400,PROCESS_QUERY_LIMITED_INFORMATION=0x1000
@@ -1570,14 +1678,17 @@ class Win32API:
 
     @staticmethod
     def GetProcessPath(processId):
-        '''may fail, use wmi for a better result'''
+        """
+        processId: int
+        May not work on Windows 7 or higher bacause of no access right, use wmi for a better result
+        """
         processPath = ''
         if processId > 0:
             hModuleSnap = ctypes.windll.kernel32.CreateToolhelp32Snapshot(8, processId)  # TH32CS_SNAPMODULE = 8
             if hModuleSnap:
                 moduleEntry32 = tagMODULEENTRY32()
                 moduleEntry32.dwSize = ctypes.sizeof(moduleEntry32)
-                if ctypes.windll.kernel32.Module32FirstW(ctypes.c_void_p(hModuleSnap), ctypes.byref(moduleEntry32)):
+                if ctypes.windll.kernel32.Module32FirstW(hModuleSnap, ctypes.byref(moduleEntry32)):
                     processPath = moduleEntry32.szExeFile
                 else:
                     # if the calling process is a 32-bit process,
@@ -1605,8 +1716,11 @@ class Win32API:
 
     @staticmethod
     def TerminateProcess(processId):
-        """Terminate process by process id"""
-        hProcess = ctypes.windll.kernel32.OpenProcess(0x0001, 0, processId);  #PROCESS_TERMINATE=0x0001
+        """
+        processId: int
+        Return 1 if succeed
+        """
+        hProcess = ctypes.windll.kernel32.OpenProcess(0x0001, 0, processId)  # PROCESS_TERMINATE=0x0001
         if hProcess:
             ret = ctypes.windll.kernel32.TerminateProcess(hProcess, -1)
             ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
@@ -1614,7 +1728,9 @@ class Win32API:
 
     @staticmethod
     def TerminateProcessByName(processName):
-        """Terminate process by process name, example: TerminateProcessByName('notepad.exe')"""
+        """
+        processName: str, such as notepad.exe, ignore case
+        """
         for pid, name in Win32API.EnumProcess():
             if name.lower() == processName.lower():
                 Win32API.TerminateProcess(pid)
@@ -1622,7 +1738,7 @@ class Win32API:
     @staticmethod
     def EnumProcess():
         """
-        Return a list of namedtuple (pid, name), see TerminateProcessByName. use wmi or psutil for a better result
+        Return a list of namedtuple (pid: int, name: str), see TerminateProcessByName. use wmi or psutil for a better result
         import wmi
         wobj = wmi.WMI ()
         for it in wobj.Win32_Process ():
@@ -1645,10 +1761,10 @@ class Win32API:
         return processList
 
     @staticmethod
-    def SendKey(key, waitTime = OPERATION_WAIT_TIME):
+    def SendKey(key, waitTime=OPERATION_WAIT_TIME):
         """
+        key: int, a value in class Keys
         Simulate typing a key
-        key: a value in class Keys
         """
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
@@ -1662,45 +1778,59 @@ class Win32API:
         #System.Windows.Forms.SendKeys.SendWait(keys)
 
     @staticmethod
-    def KeyDown(key, waitTime = OPERATION_WAIT_TIME):
+    def KeyDown(key, waitTime=OPERATION_WAIT_TIME):
         """
+        key: int, a value in class Keys
+        waitTime: float
         Simulate a key down for key
-        key: a value in class Keys
         """
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
         time.sleep(waitTime)
 
     @staticmethod
-    def KeyUp(key, waitTime = OPERATION_WAIT_TIME):
+    def KeyUp(key, waitTime=OPERATION_WAIT_TIME):
         """
+        key: int, a value in class Keys
+        waitTime: float
         Simulate a key up for key
-        key: a value in class Keys
         """
         Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
         time.sleep(waitTime)
 
     @staticmethod
-    def PressKey(key, waitTime = OPERATION_WAIT_TIME):
-        """Same as KeyDown"""
+    def PressKey(key, waitTime=OPERATION_WAIT_TIME):
+        """
+        key: int, a value in class Keys
+        waitTime: float
+        Simulate pressing a key, same as KeyDown
+        """
         Win32API.KeyDown(key, waitTime)
 
     @staticmethod
-    def ReleaseKey(key, waitTime = OPERATION_WAIT_TIME):
-        """Same as KeyUp"""
+    def ReleaseKey(key, waitTime=OPERATION_WAIT_TIME):
+        """
+        key: int, a value in class Keys
+        waitTime: float
+        Simulate repleasing a key, same as KeyUp
+        """
         Win32API.KeyUp(key, waitTime)
 
     @staticmethod
     def IsKeyPressed(key):
         """
-        Check key is pressed or not
-        key: a value in class Keys
+        key: int, a value in class Keys
+        Return bool
         """
         state = ctypes.windll.user32.GetAsyncKeyState(key)
         return True if state & 0x8000 else False
 
     @staticmethod
     def VKtoSC(key):
-        """key: a value in class Keys"""
+        """
+        key: int, a value in class Keys
+        Return int
+        This function is only for internal use in SendKeys, you don't need it
+        """
         SCDict = {
             Keys.VK_LSHIFT : 0x02A,
             Keys.VK_RSHIFT : 0x136,
@@ -1738,13 +1868,14 @@ class Win32API:
         return scanCode
 
     @staticmethod
-    def SendKeys(text, interval = 0.01, waitTime = OPERATION_WAIT_TIME, debug = False):
+    def SendKeys(text, interval=0.01, waitTime=OPERATION_WAIT_TIME, debug=False):
         """
-        Simulate typing keys on keyboard
         text: str, keys to type
         interval: float, seconds between keys
-        debug: bool, if True, print the Keys
-        example:
+        waitTime: float
+        debug: bool, if True, print the keys
+        Simulate typing keys on keyboard
+        Examples:
         {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
         SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
         SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
@@ -1932,8 +2063,13 @@ class Win32API:
 
 
 class Bitmap:
-    '''A simple Bitmap class wraps Windows GDI+ Gdiplus::Bitmap, but may not have high efficiency'''
-    def __init__(self, width = 0, height = 0):
+    """A simple Bitmap class wraps Windows GDI+ Gdiplus::Bitmap, but may not have high efficiency"""
+    def __init__(self, width=0, height=0):
+        """
+        width: int
+        height: int
+        Create a black bimap of size(width, height)
+        """
         self._width = width
         self._height = height
         self._bitmap = 0
@@ -1944,6 +2080,7 @@ class Bitmap:
         self.Release()
 
     def _getsize(self):
+        """internal use only"""
         size = _AutomationClient.instance().dll.BitmapGetWidthAndHeight(self._bitmap)
         self._width = size & 0xFFFF
         self._height = size >> 16
@@ -1963,10 +2100,15 @@ class Bitmap:
     def Height(self):
         return self._height
 
-    def FromHandle(self, hwnd, left = 0, top = 0, right = 0, bottom = 0):
+    def FromHandle(self, hwnd, left=0, top=0, right=0, bottom=0):
         """
-        capture Win32 Window to image by its handle
-        left, top, right, bottom: control's internal postion(from 0,0)
+        hwnd: int
+        left: int
+        top: int
+        right: int
+        bottom: int
+        Capture a Win32 Window to Bitmap by its handle
+        left, top, right and bottom are control's internal postion(from 0,0)
         """
         self.Release()
         root = GetRootControl()
@@ -1977,12 +2119,17 @@ class Bitmap:
         self._getsize()
         return self._bitmap > 0
 
-    def FromControl(self, control, x = 0, y = 0, width = 0, height = 0):
+    def FromControl(self, control, x=0, y=0, width=0, height=0):
         """
-        capture control to Bitmap
+        control: a instance of Control or Control's subclasses
+        x: int
+        y: int
+        width: int
+        height: int
+        Capture a control to Bitmap
         x, y: the point in control's internal position(from 0,0)
         width, height: image's width and height from x, y, use 0 for entire area,
-        if width(or height) < 0, image size will be control's width(or height) - width(or height)
+        If width(or height) < 0, image size will be control's width(or height) - width(or height)
         """
         left, top, right, bottom = control.BoundingRectangle
         while (right - left) == 0 or (bottom - top) == 0:
@@ -2015,15 +2162,22 @@ class Bitmap:
         return self.FromHandle(hWnd, left, top, right, bottom)
 
     def FromFile(self, filePath):
-        """load image from file"""
+        """
+        filePath: str
+        Load image from a file
+        Return True if succeed
+        """
         self.Release()
         self._bitmap = _AutomationClient.instance().dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
         self._getsize()
         return self._bitmap > 0
 
     def ToFile(self, savePath):
-        """savePath should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff"""
-        name, ext = os.path.splitext(savePath);
+        """
+        savePath: str, should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff
+        Return 1 if succeed
+        """
+        name, ext = os.path.splitext(savePath)
         extMap = {'.bmp': 'image/bmp'
                   , '.jpg': 'image/jpeg'
                   , '.jpeg': 'image/jpeg'
@@ -2037,7 +2191,9 @@ class Bitmap:
 
     def GetPixelColor(self, x, y):
         """
-        return argb
+        x: int
+        y: int
+        Return int, argb color
         b = argb & 0x0000FF
         g = (argb & 0x00FF00) >> 8
         r = (argb & 0xFF0000) >> 16
@@ -2046,32 +2202,59 @@ class Bitmap:
         return _AutomationClient.instance().dll.BitmapGetPixel(self._bitmap, x, y)
 
     def SetPixelColor(self, x, y, argb):
+        """
+        x: int
+        y: int
+        argb: int, color value
+        """
         return _AutomationClient.instance().dll.BitmapSetPixel(self._bitmap, x, y, argb)
 
     def GetPixelColorsHorizontally(self, x, y, count):
-        """get list of argb form x,y horizontally"""
+        """
+        x: int
+        y: int
+        count: int
+        Return a list of color values in argb form point x,y horizontally
+        """
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*(0 for n in range(count)))
         _AutomationClient.instance().dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
     def GetPixelColorsVertically(self, x, y, count):
-        """get list of argb form x,y vertically"""
+        """
+        x: int
+        y: int
+        count: int
+        Return a list of color values in argb form point x,y vertically
+        """
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*(0 for n in range(count)))
         _AutomationClient.instance().dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
     def GetPixelColorsOfRow(self, y):
-        """return list of argb of y row"""
+        """
+        y: int, row index
+        Return a list of color values in argb of y row
+        """
         return self.GetPixelColorsHorizontally(0, y, self.Width)
 
     def GetPixelColorsOfColumn(self, x):
-        """return list of argb of x column"""
+        """
+        x: int
+        Return a list of color values in argb of x column
+        """
         return self.GetPixelColorsVertically(x, 0, self.Height)
 
     def GetPixelColorsOfRect(self, x, y, width, height):
-        """return list of argb of rect"""
+        """
+        x: int
+        y: int
+        width: int
+        height: int
+        Return a list of color values in argb of the rect
+        """
         allColors = self.GetAllPixelColors()
         colors = []
         for row in range(height):
@@ -2080,8 +2263,8 @@ class Bitmap:
 
     def GetPixelColorsOfRects(self, rects):
         """
-        return list of argb of rects
-        rects example: [[x1, y1, width, height], [x2, y2, width, height]], return [rect1colors, rect2colors]
+        rects: a list of rects, such as [[0,0,10,10], [10,10,20,20]]
+        Returns a list whose elements are all list of color values
         """
         allColors = self.GetAllPixelColors()
         colorsOfRects = []
@@ -2094,18 +2277,26 @@ class Bitmap:
         return colorsOfRects
 
     def GetAllPixelColors(self):
-        """return all argb of all pixels horizontally from 0,0"""
+        """Returns a list of all color values in argb from 0,0 horizontally"""
         return self.GetPixelColorsHorizontally(0, 0, self.Width * self.Height)
 
     def SetPixelColorsHorizontally(self, x, y, colors):
-        """set colors form x,y horizontally"""
+        """
+        x: int
+        y: int
+        colors: a list of int color values in argb
+        Set pixel colors form x,y horizontally"""
         count = len(colors)
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*colors)
         return _AutomationClient.instance().dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
 
     def SetPixelColorsVertically(self, x, y, colors):
-        """set colors form x,y vertically"""
+        """
+        x: int
+        y: int
+        colors: a list of int color values in argb
+        Set pixel colors form x,y vertically"""
         count = len(colors)
         colorArray = ctypes.c_uint32 * count
         values = colorArray(*colors)
@@ -2118,7 +2309,9 @@ class LegacyIAccessiblePattern():
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId) != 0
 
     def AccessibleSelect(self, flag):
-        """call IUIAutomationLegacyIAccessiblePattern Select, flag: a value in AccessibleSelectFlag"""
+        """
+        flag: int, a value in class AccessibleSelectFlag
+        Call IUIAutomationLegacyIAccessiblePattern Select"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             _AutomationClient.instance().dll.LegacyIAccessiblePatternSelect(pattern, flag)
@@ -2127,7 +2320,7 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleDoDefaultAction(self):
-        """call IUIAutomationLegacyIAccessiblePattern DoDefaultAction"""
+        """Call IUIAutomationLegacyIAccessiblePattern DoDefaultAction"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             _AutomationClient.instance().dll.LegacyIAccessiblePatternDoDefaultAction(pattern)
@@ -2136,7 +2329,9 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleSetValue(self, value):
-        """call IUIAutomationLegacyIAccessiblePattern SetValue, value: str"""
+        """
+        value: str
+        call IUIAutomationLegacyIAccessiblePattern SetValue"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             _AutomationClient.instance().dll.LegacyIAccessiblePatternSetValue(pattern, ctypes.c_wchar_p(value))
@@ -2145,7 +2340,9 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentChildId(self):
-        """call IUIAutomationLegacyIAccessiblePattern get_CurrentChildId, return int. If the element is not a child element, CHILDID_SELF (0) is returned"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern get_CurrentChildId.
+        Returns int. If the element is not a child element, CHILDID_SELF (0) is returned"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             value = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentChildId(pattern)
@@ -2155,49 +2352,63 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentName(self):
-        """call IUIAutomationLegacyIAccessiblePattern get_CurrentName, return str"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern get_CurrentName.
+        Return str
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentName(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
             if bstrValue:
-                value = ctypes.c_wchar_p(bstrValue).value[:]
-                _AutomationClient.instance().dll.FreeBSTR(bstrValue)
+                cValue = ctypes.c_wchar_p(bstrValue)
+                value = cValue.value[:]
+                ctypes.windll.OleAut32.SysFreeString(cValue)
                 return value
             return ''
         else:
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentValue(self):
-        """call IUIAutomationLegacyIAccessiblePattern get_CurrentValue, return str"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern get_CurrentValue.
+        Return str
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentValue(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
             if bstrValue:
-                value = ctypes.c_wchar_p(bstrValue).value[:]
-                _AutomationClient.instance().dll.FreeBSTR(bstrValue)
+                cValue = ctypes.c_wchar_p(bstrValue)
+                value = cValue.value[:]
+                ctypes.windll.OleAut32.SysFreeString(cValue)
                 return value
             return ''
         else:
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentDescription(self):
-        """call IUIAutomationLegacyIAccessiblePattern get_CurrentDescription, return str"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern get_CurrentDescription.
+        Return str
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentDescription(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
             if bstrValue:
-                value = ctypes.c_wchar_p(bstrValue).value[:]
-                _AutomationClient.instance().dll.FreeBSTR(bstrValue)
+                cValue = ctypes.c_wchar_p(bstrValue)
+                value = cValue.value[:]
+                ctypes.windll.OleAut32.SysFreeString(cValue)
                 return value
             return ''
         else:
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentRole(self):
-        """call IUIAutomationLegacyIAccessiblePattern get_CurrentRole, return int, a value in AccessibleRole"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern get_CurrentRole.
+        Return int, a value in class AccessibleRole"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             value = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentRole(pattern)
@@ -2207,7 +2418,9 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentState(self):
-        """call IUIAutomationLegacyIAccessiblePattern get_CurrentState, return int, a combine value in AccessibleState"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern get_CurrentState.
+        Return int, a combined value in class AccessibleState"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             value = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentState(pattern)
@@ -2217,35 +2430,44 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentHelp(self):
-        """call IUIAutomationLegacyIAccessiblePattern get_CurrentHelp, return str"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern get_CurrentHelp.
+        Return str
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentHelp(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
             if bstrValue:
-                value = ctypes.c_wchar_p(bstrValue).value[:]
-                _AutomationClient.instance().dll.FreeBSTR(bstrValue)
+                cValue = ctypes.c_wchar_p(bstrValue)
+                value = cValue.value[:]
+                ctypes.windll.OleAut32.SysFreeString(cValue)
                 return value
             return ''
         else:
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentKeyboardShortcut(self):
-        """call IUIAutomationLegacyIAccessiblePattern get_CurrentKeyboardShortcut, return str"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern get_CurrentKeyboardShortcut.
+        Return str"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentKeyboardShortcut(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
             if bstrValue:
-                value = ctypes.c_wchar_p(bstrValue).value[:]
-                _AutomationClient.instance().dll.FreeBSTR(bstrValue)
+                cValue = ctypes.c_wchar_p(bstrValue)
+                value = cValue.value[:]
+                ctypes.windll.OleAut32.SysFreeString(cValue)
                 return value
             return ''
         else:
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleGetCurrentSelection(self):
-        """call IUIAutomationLegacyIAccessiblePattern GetCurrentSelection, return list of Control"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern GetCurrentSelection.
+        Return a list of Controls"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             lists = []
@@ -2261,14 +2483,18 @@ class LegacyIAccessiblePattern():
             Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
 
     def AccessibleCurrentDefaultAction(self):
-        """call IUIAutomationLegacyIAccessiblePattern get_CurrentDefaultAction, return str"""
+        """
+        Call IUIAutomationLegacyIAccessiblePattern get_CurrentDefaultAction.
+        Return str
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
         if pattern:
             bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentDefaultAction(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
             if bstrValue:
-                value = ctypes.c_wchar_p(bstrValue).value[:]
-                _AutomationClient.instance().dll.FreeBSTR(bstrValue)
+                cValue = ctypes.c_wchar_p(bstrValue)
+                value = cValue.value[:]
+                ctypes.windll.OleAut32.SysFreeString(cValue)
                 return value
             return ''
         else:
@@ -2281,146 +2507,146 @@ class QTPLikeSyntaxSupport():
     This class inherited by Control class
     """
 
-    def Control(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def Control(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return Control(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self, **searchPorpertyDict)
 
-    def ButtonControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ButtonControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ButtonControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self, **searchPorpertyDict)
 
-    def CalendarControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def CalendarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return CalendarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def CheckBoxControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def CheckBoxControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return CheckBoxControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def ComboBoxControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ComboBoxControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ComboBoxControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def CustomControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def CustomControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return CustomControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def DataGridControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def DataGridControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return DataGridControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def DataItemControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def DataItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return DataItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def DocumentControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def DocumentControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return DocumentControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def EditControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def EditControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return EditControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def GroupControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def GroupControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return GroupControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def HeaderControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def HeaderControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return HeaderControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def HeaderItemControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def HeaderItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return HeaderItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def HyperlinkControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def HyperlinkControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return HyperlinkControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def ImageControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ImageControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ImageControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def ListControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ListControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ListControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def ListItemControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ListItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ListItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def MenuControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def MenuControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return MenuControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def MenuBarControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def MenuBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return MenuBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def MenuItemControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def MenuItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return MenuItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def PaneControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def PaneControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return PaneControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def ProgressBarControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ProgressBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ProgressBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def RadioButtonControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def RadioButtonControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return RadioButtonControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def ScrollBarControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ScrollBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ScrollBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def SemanticZoomControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def SemanticZoomControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return SemanticZoomControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def SeparatorControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def SeparatorControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return SeparatorControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def SliderControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def SliderControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return SliderControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def SpinnerControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def SpinnerControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return SpinnerControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def SplitButtonControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def SplitButtonControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return SplitButtonControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def StatusBarControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def StatusBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return StatusBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def TabControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def TabControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return TabControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def TabItemControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def TabItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return TabItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def TableControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def TableControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return TableControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def TextControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def TextControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return TextControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def ThumbControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ThumbControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ThumbControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def TitleBarControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def TitleBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return TitleBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def ToolBarControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ToolBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ToolBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def ToolTipControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def ToolTipControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return ToolTipControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def TreeControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def TreeControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return TreeControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def TreeItemControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def TreeItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return TreeItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
-    def WindowControl(self, element = 0, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def WindowControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         return WindowControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl = self,**searchPorpertyDict)
 
 class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         """
-        element: integer
+        element: int
         searchFromControl: Control, if is None, search from root control
-        searchDepth: integer, max search depth from searchFromControl
-        foundIndex: integer, value must >= 1
+        searchDepth: int, max search depth from searchFromControl
+        foundIndex: int, value must >= 1
         searchWaitTime: float, wait searchWaitTime before every search
         searchPorpertyDict: a dict that defines how to search, only the following keys are valid
-                            ControlType: integer in class ControlType
+                            ControlType: int, a value in class ControlType
                             ClassName: str or unicode
                             AutomationId: str or unicode
                             Name: str or unicode
                             SubName: str or unicode
                             RegexName: str or unicode, supports regex
-                            Depth: integer, relative depth from searchFromControl, if set, searchDepth will be set to Depth too
-                            Compare: custom compare function(control, depth)
+                            Depth: int, relative depth from searchFromControl, if set, searchDepth will be set to Depth too
+                            Compare: custom compare function(control, depth) returns a bool value
         """
         self._element = element
         self._elementDirectAssign = True if element else False
@@ -2434,25 +2660,29 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     def __del__(self):
         """
-        Warning: when script exits, module ctypes may be None,
-        ctypes sometimes is None before all controls are destoryed
-        but __del__ needs method in dll(which needs ctypes) to release resources
-        to avoid this issue, don't use controls in global area
+        Note:
+        When script exits, the module ctypes may be None.
+        ctypes sometimes is None before all controls are destoryed,
+        but __del__ needs method in dll(which needs ctypes) to release resources.
+        To avoid this issue, don't use controls in global area
         """
         if self._element:
             _AutomationClient.instance().dll.ReleaseElement(self._element)
             self._element = 0
 
     def SetSearchFromControl(self, searchFromControl):
-        """searchFromControl: control"""
+        """searchFromControl: Control or subclasses"""
         self.searchFromControl = searchFromControl
 
     def SetSearchDepth(self, searchDepth):
-        """searchDepth: integer"""
+        """searchDepth: int"""
         self.searchDepth = searchDepth
 
     def AddSearchProperty(self, **searchPorpertyDict):
-        """searchPorpertyDict: dict"""
+        """
+        searchPorpertyDict: dict, same as searchPorpertyDict in __init__.
+        See __init__ doc string.
+        """
         self.searchPorpertyDict.update(searchPorpertyDict)
         if 'Depth' in searchPorpertyDict:
             self.searchDepth = searchPorpertyDict['Depth']
@@ -2461,13 +2691,20 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             self.regexName = re.compile(regName) if regName else None
 
     def RemoveSearchProperty(self, **searchPorpertyDict):
+        """
+        searchPorpertyDict: dict, same as searchPorpertyDict in __init__.
+        See __init__ doc string.
+        """
         for key in searchPorpertyDict:
             del self.searchPorpertyDict[key]
             if key == 'RegexName':
                 self.regexName = None
 
     def _CompareFunction(self, control, depth):
-        """This function defines how to search, return True if found"""
+        """
+        control: Control or subclasses
+        Define how to search, return True if found
+        """
         for key, value in self.searchPorpertyDict.items():
             if 'ControlType' == key:
                 if value != control.ControlType:
@@ -2497,8 +2734,13 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                 raise KeyError('unsupported argument: {} in {} constructor'.format(key, self.__class__.__name__))
         return True
 
-    def Exists(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
-        """Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds, if found, return True else False"""
+    def Exists(self, maxSearchSeconds=5, searchIntervalSeconds=SEARCH_INTERVAL):
+        """
+        maxSearchSeconds: float
+        searchIntervalSeconds: float
+        Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds.
+        Return True if found
+        """
         if self._element and self._elementDirectAssign:
             #if element is directly assigned, not by searching, just check whether self._element is valid
             #but I can't find an API in UIAutomation that can directly check
@@ -2538,8 +2780,13 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                 else:
                     return False
 
-    def Disappears(self, maxSearchSeconds = 5, searchIntervalSeconds = SEARCH_INTERVAL):
-        """check control disappears in maxSearchSeconds, return True if control disappears"""
+    def Disappears(self, maxSearchSeconds=5, searchIntervalSeconds=SEARCH_INTERVAL):
+        """
+        maxSearchSeconds: float
+        searchIntervalSeconds: float
+        Check if control disappears every searchIntervalSeconds seconds in maxSearchSeconds seconds.
+        Return True if control disappears.
+        """
         start = ProcessTime()
         while True:
             if not self.Exists(0, 0):
@@ -2550,8 +2797,14 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             else:
                 return False
 
-    def Refind(self, maxSearchSeconds = TIME_OUT_SECOND, searchIntervalSeconds = SEARCH_INTERVAL, raiseException = True):
-        """Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds, raise an LookupError if timed out"""
+    def Refind(self, maxSearchSeconds=TIME_OUT_SECOND, searchIntervalSeconds=SEARCH_INTERVAL, raiseException=True):
+        """
+        maxSearchSeconds: float
+        searchIntervalSeconds: float
+        raiseException: bool
+        Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds.
+        Raise an LookupError if timed out
+        """
         if not self.Exists(maxSearchSeconds, searchIntervalSeconds):
             if raiseException:
                 info = 'Find Control Time Out: {'
@@ -2565,64 +2818,68 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     @property
     def Element(self):
-        """Return value of control's IUIAutomationElement"""
+        """Return an int value of control's IUIAutomationElement"""
         if not self._element:
             self.Refind(maxSearchSeconds = TIME_OUT_SECOND, searchIntervalSeconds = self.searchWaitTime)
         return self._element
 
     @property
     def Name(self):
-        """Return unicode Name"""
+        """Return str"""
         bstrValue = _AutomationClient.instance().dll.GetElementName(self.Element)
         if bstrValue:
-            name = ctypes.c_wchar_p(bstrValue).value[:]
-            _AutomationClient.instance().dll.FreeBSTR(bstrValue)
-            return name
+            cValue = ctypes.c_wchar_p(bstrValue)
+            value = cValue.value[:]
+            ctypes.windll.OleAut32.SysFreeString(cValue)
+            return value
         return ''
 
     @property
     def ControlType(self):
-        """Return an integer in class ControlType"""
+        """Return an int value in class ControlType"""
         return _AutomationClient.instance().dll.GetElementControlType(self.Element)
 
     @property
     def ControlTypeName(self):
-        """Return str ControlTypeName"""
+        """Return str"""
         return ControlTypeNameDict.get(self.ControlType, 'UnknownControl')
 
     @property
     def LocalizedControlType(self):
-        """Return unicode LocalizedControlType name"""
+        """Return str"""
         bstrValue = _AutomationClient.instance().dll.GetElementLocalizedControlType(self.Element)
         if bstrValue:
-            name = ctypes.c_wchar_p(bstrValue).value[:]
-            _AutomationClient.instance().dll.FreeBSTR(bstrValue)
-            return name
+            cValue = ctypes.c_wchar_p(bstrValue)
+            value = cValue.value[:]
+            ctypes.windll.OleAut32.SysFreeString(cValue)
+            return value
         return ''
 
     @property
     def ClassName(self):
-        """Return unicode ClassName"""
+        """Return str"""
         bstrValue = _AutomationClient.instance().dll.GetElementClassName(self.Element)
         if bstrValue:
-            name = ctypes.c_wchar_p(bstrValue).value[:]
-            _AutomationClient.instance().dll.FreeBSTR(bstrValue)
-            return name
+            cValue = ctypes.c_wchar_p(bstrValue)
+            value = cValue.value[:]
+            ctypes.windll.OleAut32.SysFreeString(cValue)
+            return value
         return ''
 
     @property
     def AutomationId(self):
-        """Return unicode AutomationId"""
+        """Return str"""
         bstrValue = _AutomationClient.instance().dll.GetElementAutomationId(self.Element)
         if bstrValue:
-            name = ctypes.c_wchar_p(bstrValue).value[:]
-            _AutomationClient.instance().dll.FreeBSTR(bstrValue)
-            return name
+            cValue = ctypes.c_wchar_p(bstrValue)
+            value = cValue.value[:]
+            ctypes.windll.OleAut32.SysFreeString(cValue)
+            return value
         return ''
 
     @property
     def ProcessId(self):
-        """Return process id"""
+        """Return int"""
         return _AutomationClient.instance().dll.GetElementProcessId(self.Element)
 
     @property
@@ -2647,22 +2904,27 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     @property
     def BoundingRectangle(self):
-        """Return tuple (left, top, right, bottom)"""
+        """Return four int values tuple (left, top, right, bottom)"""
         rect = Rect()
         _AutomationClient.instance().dll.GetElementBoundingRectangle(ctypes.c_size_t(self.Element), ctypes.byref(rect))
         return (rect.left, rect.top, rect.right, rect.bottom)
 
     @property
     def Handle(self):
-        """Return control's handle"""
+        """Return int, control's handle"""
         return _AutomationClient.instance().dll.GetElementHandle(self.Element)
 
     def SetFocus(self):
         """Make the control have focus"""
         _AutomationClient.instance().dll.SetElementFocus(self.Element)
 
-    def MoveCursor(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True):
-        """Move cursor to control's rect, default to center"""
+    def MoveCursor(self, ratioX=0.5, ratioY=0.5, simulateMove=True):
+        """
+        ratioX: float or int, if is int, move to left + ratioX, if < 0, move to right + ratioX
+        ratioY: float or int, if is int, move to top + ratioY, if < 0, move to bottom + ratioY
+        simulateMove: bool
+        Move cursor to control's internal positon, default to center
+        """
         left, top, right, bottom = self.BoundingRectangle
         if left == 0 and top == 0 and right == 0 and bottom == 0:
             Logger.WriteLine('{}\'s BoundingRectangle is empty(0,0,0,0). searchPorperty: {}'.format(self.ControlTypeName, self.searchPorpertyDict), ConsoleColor.Yellow)
@@ -2680,55 +2942,69 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             Win32API.SetCursorPos(x, y)
         return x, y
 
-    def MoveCursorToMyCenter(self, simulateMove = True):
+    def MoveCursorToMyCenter(self, simulateMove=True):
         """Move cursor to control's center"""
         return self.MoveCursor(simulateMove = simulateMove)
 
-    def Click(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
+    def Click(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME):
         """
+        ratioX: float or int, if is int, click left + ratioX, if < 0, click right + ratioX
+        ratioY: float or int, if is int, click top + ratioY, if < 0, click bottom + ratioY
+        simulateMove: bool, if True, first move cursor to control smoothly
+        waitTime: float
         Click(0.5, 0.5): click center
         Click(10, 10): click left+10, top+10
         Click(-10, -10): click right-10, bottom-10
-        simulateMove: bool, if True, first move cursor to control smoothly
         """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseClick(x, y, waitTime)
 
-    def MiddleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
+    def MiddleClick(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME):
         """
-        Click(0.5, 0.5): click center
-        Click(10, 10): click left+10, top+10
-        Click(-10, -10): click right-10, bottom-10
+        ratioX: float or int, if is int, click left + ratioX, if < 0, click right + ratioX
+        ratioY: float or int, if is int, click top + ratioY, if < 0, click bottom + ratioY
         simulateMove: bool, if True, first move cursor to control smoothly
+        waitTime: float
+        MiddleClick(0.5, 0.5): middle click center
+        MiddleClick(10, 10): middle click left+10, top+10
+        MiddleClick(-10, -10): middle click right-10, bottom-10
         """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseMiddleClick(x, y, waitTime)
 
-    def RightClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
+    def RightClick(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME):
         """
+        ratioX: float or int, if is int, click left + ratioX, if < 0, click right + ratioX
+        ratioY: float or int, if is int, click top + ratioY, if < 0, click bottom + ratioY
+        simulateMove: bool, if True, first move cursor to control smoothly
+        waitTime: float
         RightClick(0.5, 0.5): right click center
         RightClick(10, 10): right click left+10, top+10
         RightClick(-10, -10): click right-10, bottom-10
-        simulateMove: bool, if True, first move cursor to control smoothly
         """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseRightClick(x, y, waitTime)
 
-    def DoubleClick(self, ratioX = 0.5, ratioY = 0.5, simulateMove = True, waitTime = OPERATION_WAIT_TIME):
+    def DoubleClick(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME):
         """
+        ratioX: float or int, if is int, click left + ratioX, if < 0, click right + ratioX
+        ratioY: float or int, if is int, click top + ratioY, if < 0, click bottom + ratioY
+        simulateMove: bool, if True, first move cursor to control smoothly
+        waitTime: float
         DoubleClick(0.5, 0.5): double click center
         DoubleClick(10, 10): double click left+10, top+10
         DoubleClick(-10, -10): click right-10, bottom-10
-        simulateMove: bool, if True, first move cursor to control smoothly
         """
         x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
         Win32API.MouseClick(x, y, 0)
         time.sleep(Win32API.GetDoubleClickTime() * 1.0 / 2000)
         Win32API.MouseClick(x, y, waitTime)
 
-    def WheelDown(self, wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+    def WheelDown(self, wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
         """
-        Mouse wheel down
+        wheelTimes: int
+        waitTime: float
+        Make Control have focus first and wheel down
         """
         x, y = Win32API.GetCursorPos()
         self.SetFocus()
@@ -2736,9 +3012,11 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         Win32API.MouseWheelDown(wheelTimes, waitTime)
         Win32API.SetCursorPos(x, y)
 
-    def WheelUp(self, wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+    def WheelUp(self, wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
         """
-        Mouse wheel up
+        wheelTimes: int
+        waitTime: float
+        Make Control have focus first and wheel up
         """
         x, y = Win32API.GetCursorPos()
         self.SetFocus()
@@ -2753,7 +3031,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             return Control.CreateControlFromElement(comEle)
 
     def GetTopWindow(self):
-        """Return control's top window"""
+        """Return Control, control's top window"""
         control = self
         parents = []
         while control:
@@ -2791,7 +3069,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             return Control.CreateControlFromElement(comEle)
 
     def GetChildren(self):
-        """Return a list of control's children"""
+        """Return a list of Controls"""
         children = []
         child = self.GetFirstChildControl()
         while child:
@@ -2801,80 +3079,104 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     def ShowWindow(self, cmdShow):
         """
-        ShowWindow(ShowWindow.Show), only works if Handle is valid
-        cmdShow: see values in class ShowWindow
+        cmdShow: int, a value in in class ShowWindow
+        Only work if Handle is valid
         """
         hWnd = self.Handle
         if hWnd:
             return Win32API.ShowWindow(hWnd, cmdShow)
 
     def Show(self):
-        """call ShowWindow(ShowWindow.Show), only works if Handle is valid"""
+        """
+        Call ShowWindow(ShowWindow.Show).
+        Only work if Handle is valid
+        """
         return self.ShowWindow(ShowWindow.Show)
 
     def Hide(self):
-        """call ShowWindow(ShowWindow.Hide), only works if Handle is valid"""
+        """
+        Call ShowWindow(ShowWindow.Hide).
+        Only work if Handle is valid
+        """
         return self.ShowWindow(ShowWindow.Hide)
 
-    def MoveWindow(self, x, y, width, height, repaint = 1):
-        """only works if Handle is valid"""
+    def MoveWindow(self, x, y, width, height, repaint=1):
+        """
+        x: int
+        y: int
+        width: int
+        height: int
+        repaint: int, use 1 or 0
+        Only work if Handle is valid
+        """
         hWnd = self.Handle
         if hWnd:
             return Win32API.MoveWindow(hWnd, x, y, width, height, repaint)
 
     def GetWindowText(self):
-        """only works if Handle is valid"""
+        """
+        Return str
+        Only work if Handle is valid
+        """
         hWnd = self.Handle
         if hWnd:
             return Win32API.GetWindowText(hWnd)
 
     def SetWindowText(self, text):
-        """only works if Handle is valid"""
+        """
+        text: str
+        Only work if Handle is valid
+        """
         hWnd = self.Handle
         if hWnd:
             return Win32API.SetWindowText(hWnd, text)
 
-    def SendKey(self, key, waitTime = OPERATION_WAIT_TIME):
+    def SendKey(self, key, waitTime=OPERATION_WAIT_TIME):
         """
-        Simulate typing a key
-        key: a value in class Keys
+        key: int, a value in class Keys
+        waitTime: float
+        Make control have focus first and type a key
         """
         self.SetFocus()
         Win32API.SendKey(key, waitTime)
 
-    def SendKeys(self, keys, interval = 0.01, waitTime = OPERATION_WAIT_TIME):
+    def SendKeys(self, keys, interval=0.01, waitTime=OPERATION_WAIT_TIME):
         """
-        Simulate typing keys
-        keys: str, keys to type, see docstring of Win32API.SendKeys
+        keys: str, keys to type, see the docstring of Win32API.SendKeys
         interval: float, seconds between keys
+        Make control have focus first and type keys
         """
         self.SetFocus()
         Win32API.SendKeys(keys, interval, waitTime)
 
     def GetPixelColor(self, x, y):
-        """return r, g, b, int, 0xhexstring, #hexstring, only works if Handle is valid"""
+        """
+        x: int
+        y: int
+        Return int, a color value in bgr.
+        Only work if Handle is valid"""
         hWnd = self.Handle
         if hWnd:
             return Win32API.GetPixelColor(x, y, hWnd)
 
-    def ToBitmap(self, x = 0, y = 0, width = 0, height = 0):
+    def ToBitmap(self, x=0, y=0, width=0, height=0):
         """
-        capture control to Bitmap object
-        x, y: the point in control's internal position(from 0,0)
-        width, height: image's width and height from x, y, use 0 for entire area,
-        if width(or height) < 0, image size will be control's width(or height) - width(or height)
+        Capture control to a Bitmap object
+        x, y: int, the point in control's internal position(from 0,0)
+        width, height: int, image's width and height from x, y, use 0 for entire area,
+        If width(or height) < 0, image size will be control's width(or height) - width(or height)
         """
         bitmap = Bitmap()
         bitmap.FromControl(self, x, y, width, height)
         return bitmap
 
-    def CaptureToImage(self, savePath, x = 0, y = 0, width = 0, height = 0):
+    def CaptureToImage(self, savePath, x=0, y=0, width=0, height=0):
         """
-        capture control to image file
-        savePath, savePath shoud end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff
-        x, y: the point in control's internal position(from 0,0)
-        width, height: image's width and height from x, y, use 0 for entire area,
-        if width(or height) < 0, image size will be control's width(or height) - width(or height)
+        Capture control to a image file
+        savePath: str, shoud end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff
+        x, y: int, the point in control's internal position(from 0,0)
+        width, height: int, image's width and height from x, y, use 0 for entire area,
+        If width(or height) < 0, image size will be control's width(or height) - width(or height)
         """
         bitmap = Bitmap()
         if bitmap.FromControl(self, x, y, width, height):
@@ -2882,14 +3184,17 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
 
     def Convert(self):
         """
-        Convert Control to a specific Control
-        for example: if self's ControlType is EditControl, return an EditControl
+        Return an instance of the control's real type
+        For example: if self's ControlType is EditControl, return an EditControl
         """
         return Control.CreateControlFromControl(self)
 
     @staticmethod
     def CreateControlFromElement(element):
-        """element: value of IUIAutomationElement"""
+        """
+        element: int, the value of IUIAutomationElement
+        Return an instance of the control's real type
+        """
         if element:
             controlType = _AutomationClient.instance().dll.GetElementControlType(element)
             if controlType in ControlDict:
@@ -2901,8 +3206,8 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
     def CreateControlFromControl(control):
         """
         control: Control, will add ref for control's element
-        return a specific Control
-        for example: if control's ControlType is EditControl, return an EditControl
+        Return an instance of the control's real type
+        For example: if control's ControlType is EditControl, return an EditControl
         """
         newControl = Control.CreateControlFromElement(control.Element)
         _AutomationClient.instance().dll.ElementAddRef(control.Element)
@@ -2942,8 +3247,8 @@ class ExpandCollapsePattern:
         """Return bool"""
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId) != 0
 
-    def Expand(self, waitTime = OPERATION_WAIT_TIME):
-        """Expand the control"""
+    def Expand(self, waitTime=OPERATION_WAIT_TIME):
+        """waitTime: float"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
             _AutomationClient.instance().dll.ExpandCollapsePatternExpand(pattern)
@@ -2952,8 +3257,8 @@ class ExpandCollapsePattern:
         else:
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
-    def Collapse(self, waitTime = OPERATION_WAIT_TIME):
-        """Collapse the control"""
+    def Collapse(self, waitTime=OPERATION_WAIT_TIME):
+        """waitTime: float"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
             _AutomationClient.instance().dll.ExpandCollapsePatternCollapse(pattern)
@@ -2963,7 +3268,7 @@ class ExpandCollapsePattern:
             Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentExpandCollapseState(self):
-        """Return an integer of class ExpandCollapseState """
+        """Return an int value in class ExpandCollapseState """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
         if pattern:
             state = _AutomationClient.instance().dll.ExpandCollapsePatternCurrentExpandCollapseState(pattern)
@@ -2979,7 +3284,7 @@ class GridItemPattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId) != 0
 
     def CurrentContainingGrid(self):
-        """return Control"""
+        """Return Control"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             element = _AutomationClient.instance().dll.GridItemPatternCurrentContainingGrid(pattern)
@@ -2990,7 +3295,7 @@ class GridItemPattern:
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentRow(self):
-        """return int"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.GridItemPatternCurrentRow(pattern)
@@ -3000,7 +3305,7 @@ class GridItemPattern:
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumn(self):
-        """return int"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.GridItemPatternCurrentColumn(pattern)
@@ -3010,7 +3315,7 @@ class GridItemPattern:
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentRowSpan(self):
-        """return int"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.GridItemPatternCurrentRowSpan(pattern)
@@ -3020,7 +3325,7 @@ class GridItemPattern:
             Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumnSpan(self):
-        """return int"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.GridItemPatternCurrentColumnSpan(pattern)
@@ -3036,7 +3341,7 @@ class GridPattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId) != 0
 
     def GetItem(self, row, column):
-        """return Control"""
+        """Return Control"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
         if pattern:
             element = _AutomationClient.instance().dll.GridPatternGetItem(pattern, row, column)
@@ -3047,7 +3352,7 @@ class GridPattern:
             Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentRowCount(self):
-        """return int"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.GridPatternCurrentRowCount(pattern)
@@ -3057,7 +3362,7 @@ class GridPattern:
             Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumnCount(self):
-        """return int"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.GridPatternCurrentColumnCount(pattern)
@@ -3072,8 +3377,8 @@ class InvokePattern:
         """Return bool"""
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId) != 0
 
-    def Invoke(self, waitTime = OPERATION_WAIT_TIME):
-        """invoke"""
+    def Invoke(self, waitTime=OPERATION_WAIT_TIME):
+        """waitTime: float"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId)
         if pattern:
             _AutomationClient.instance().dll.InvokePatternInvoke(pattern)
@@ -3096,7 +3401,10 @@ class ScrollItemPattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId) != 0
 
     def ScrollIntoView(self, waitTime=OPERATION_WAIT_TIME):
-        """Scroll the control into view, so it can be seen"""
+        """
+        waitTime: float
+        Scroll the control into view, so it can be seen.
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId)
         if pattern:
             _AutomationClient.instance().dll.ScrollItemPatternScrollIntoView(pattern)
@@ -3121,7 +3429,7 @@ class ScrollPattern:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentHorizontalViewSize(self):
-        """Return integer"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             size = _AutomationClient.instance().dll.ScrollPatternCurrentHorizontalViewSize(pattern)
@@ -3131,7 +3439,7 @@ class ScrollPattern:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentHorizontalScrollPercent(self):
-        """Return integer"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             percent = _AutomationClient.instance().dll.ScrollPatternCurrentHorizontalScrollPercent(pattern)
@@ -3151,7 +3459,7 @@ class ScrollPattern:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentVerticalViewSize(self):
-        """Return integer"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             size = _AutomationClient.instance().dll.ScrollPatternCurrentVerticalViewSize(pattern)
@@ -3161,7 +3469,7 @@ class ScrollPattern:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentVerticalScrollPercent(self):
-        """Return integer"""
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             percent = _AutomationClient.instance().dll.ScrollPatternCurrentVerticalScrollPercent(pattern)
@@ -3171,7 +3479,10 @@ class ScrollPattern:
             Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
 
     def SetScrollPercent(self, horizontalPercent, verticalPercent):
-        """Need two integers as parameters"""
+        """
+        horizontalPercent: int, in range [0,100]
+        verticalPercent: int, in range [0,100]
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
         if pattern:
             _AutomationClient.instance().dll.ScrollPatternSetScrollPercent(pattern, horizontalPercent, verticalPercent)
@@ -3186,6 +3497,7 @@ class SelectionItemPattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId) != 0
 
     def Select(self, waitTime=OPERATION_WAIT_TIME):
+        """waitTime: float"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
         if pattern:
             _AutomationClient.instance().dll.SelectionItemPatternSelect(pattern)
@@ -3226,7 +3538,7 @@ class SelectionPattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId) != 0
 
     def GetCurrentSelection(self):
-        """Return an IUIAutomationElementArray"""
+        """Return int, pointer of an IUIAutomationElementArray"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId)
         if pattern:
             pElementArray = _AutomationClient.instance().dll.SelectionPatternGetCurrentSelection(pattern)
@@ -3251,6 +3563,7 @@ class RangeValuePattern:
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
 
     def RangeValuePatternSetValue(self, value):
+        """value: int, in range [0,100]"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
         if pattern:
             _AutomationClient.instance().dll.RangeValuePatternSetValue(pattern, value)
@@ -3259,6 +3572,7 @@ class RangeValuePattern:
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentMaximum(self):
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
         if pattern:
             value = _AutomationClient.instance().dll.RangeValuePatternCurrentMaximum(pattern)
@@ -3268,6 +3582,7 @@ class RangeValuePattern:
             Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentMinimum(self):
+        """Return int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
         if pattern:
             value = _AutomationClient.instance().dll.RangeValuePatternCurrentMinimum(pattern)
@@ -3283,7 +3598,7 @@ class TableItemPattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId) != 0
 
     def CurrentRowHeaderItems(self):
-        """return list of Control"""
+        """Return a list of Control"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId)
         if pattern:
             lists = []
@@ -3299,7 +3614,7 @@ class TableItemPattern:
             Logger.WriteLine('TableItemPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumnHeaderItems(self):
-        """return list of Control"""
+        """Return a list of Control"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId)
         if pattern:
             lists = []
@@ -3321,7 +3636,7 @@ class TablePattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId) != 0
 
     def CurrentRowHeaders(self):
-        """return list of Control"""
+        """Return a list of Control"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
         if pattern:
             lists = []
@@ -3337,7 +3652,7 @@ class TablePattern:
             Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentColumnHeaders(self):
-        """return list of Control"""
+        """Return a list of Control"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
         if pattern:
             lists = []
@@ -3353,7 +3668,7 @@ class TablePattern:
             Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentRowOrColumnMajor(self):
-        """return int, a value in RowOrColumnMajor"""
+        """Return int, a value in RowOrColumnMajor"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
         if pattern:
             value = _AutomationClient.instance().dll.TablePatternCurrentRowOrColumnMajor(pattern)
@@ -3375,8 +3690,11 @@ class TogglePattern:
         """Return bool"""
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId) != 0
 
-    def Toggle(self, waitTime = OPERATION_WAIT_TIME):
-        """Toggle or UnToggle the control"""
+    def Toggle(self, waitTime=OPERATION_WAIT_TIME):
+        """
+        waitTime: float
+        Toggle or UnToggle the control
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
         if pattern:
             _AutomationClient.instance().dll.TogglePatternToggle(pattern)
@@ -3386,7 +3704,7 @@ class TogglePattern:
             Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentToggleState(self):
-        """Return an integer of class ToggleState"""
+        """Return an int value in class ToggleState"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
         if pattern:
             state = _AutomationClient.instance().dll.TogglePatternCurrentToggleState(pattern)
@@ -3402,6 +3720,10 @@ class TransformPattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId) != 0
 
     def Move(self, x, y):
+        """
+        x: int
+        y: int
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId)
         if pattern:
             _AutomationClient.instance().dll.TransformPatternMove(pattern, x, y)
@@ -3410,6 +3732,10 @@ class TransformPattern:
             Logger.WriteLine('TransformPattern is not supported!', ConsoleColor.Yellow)
 
     def Resize(self, width, height):
+        """
+        width: int
+        height: int
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId)
         if pattern:
             _AutomationClient.instance().dll.TransformPatternResize(pattern, width, height)
@@ -3418,6 +3744,7 @@ class TransformPattern:
             Logger.WriteLine('TransformPattern is not supported!', ConsoleColor.Yellow)
 
     def Rotate(self, degrees):
+        """degrees: int"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId)
         if pattern:
             _AutomationClient.instance().dll.TransformPatternRotate(pattern, degrees)
@@ -3438,21 +3765,25 @@ class ValuePattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId) != 0
 
     def CurrentValue(self):
-        """Return unicode string"""
+        """Return str"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
             bstrValue = _AutomationClient.instance().dll.ValuePatternCurrentValue(pattern)
             if bstrValue:
-                value = ctypes.c_wchar_p(bstrValue).value[:]
+                cValue = ctypes.c_wchar_p(bstrValue)
+                value = cValue.value[:]
                 _AutomationClient.instance().dll.ReleasePattern(pattern)
-                _AutomationClient.instance().dll.FreeBSTR(bstrValue)
+                ctypes.windll.OleAut32.SysFreeString(cValue)
                 return value
         else:
             Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
         return ''
 
-    def SetValue(self, value, waitTime = OPERATION_WAIT_TIME):
-        """Set unicode string to control's value"""
+    def SetValue(self, value, waitTime=OPERATION_WAIT_TIME):
+        """
+        value: str
+        waitTime: float
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
         if pattern:
             value = _AutomationClient.instance().dll.ValuePatternSetValue(pattern, ctypes.c_wchar_p(value))
@@ -3478,6 +3809,7 @@ class WindowPattern:
         return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId) != 0
 
     def CurrentWindowVisualState(self):
+        """return int, a value in class WindowVisualState"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.WindowPatternCurrentWindowVisualState(pattern)
@@ -3486,7 +3818,11 @@ class WindowPattern:
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def SetWindowVisualState(self, value, waitTime = OPERATION_WAIT_TIME):
+    def SetWindowVisualState(self, value, waitTime=OPERATION_WAIT_TIME):
+        """
+        value: int, a value in class WindowVisualState
+        waitTime: float
+        """
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             _AutomationClient.instance().dll.WindowPatternSetWindowVisualState(pattern, value)
@@ -3496,6 +3832,7 @@ class WindowPattern:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentCanMaximize(self):
+        """Return int, 1 or 0"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.WindowPatternCurrentCanMaximize(pattern)
@@ -3504,11 +3841,13 @@ class WindowPattern:
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def Maximize(self, waitTime = OPERATION_WAIT_TIME):
+    def Maximize(self, waitTime=OPERATION_WAIT_TIME):
+        """waitTime: float"""
         if self.CurrentCanMaximize():
             self.SetWindowVisualState(WindowVisualState.Maximized, waitTime)
 
     def CurrentCanMinimize(self):
+        """Return int, 1 or 0"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.WindowPatternCurrentCanMinimize(pattern)
@@ -3517,20 +3856,25 @@ class WindowPattern:
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def Minimize(self, waitTime = OPERATION_WAIT_TIME):
+    def Minimize(self, waitTime=OPERATION_WAIT_TIME):
+        """waitTime: float"""
         if self.CurrentCanMinimize():
             self.SetWindowVisualState(WindowVisualState.Minimized, waitTime)
 
-    def Normal(self, waitTime = OPERATION_WAIT_TIME):
+    def Normal(self, waitTime=OPERATION_WAIT_TIME):
+        """waitTime: float"""
         self.SetWindowVisualState(WindowVisualState.Normal, waitTime)
 
     def IsMaximize(self):
+        """Return bool"""
         return self.CurrentWindowVisualState() == WindowVisualState.Maximized
 
     def IsMinimize(self):
+        """Return bool"""
         return self.CurrentWindowVisualState() == WindowVisualState.Minimized
 
     def CurrentIsModal(self):
+        """Return bool"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.WindowPatternCurrentIsModal(pattern)
@@ -3540,6 +3884,7 @@ class WindowPattern:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentIsTopmost(self):
+        """Return bool"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.WindowPatternCurrentIsTopmost(pattern)
@@ -3548,7 +3893,8 @@ class WindowPattern:
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
-    def Close(self, waitTime = OPERATION_WAIT_TIME):
+    def Close(self, waitTime=OPERATION_WAIT_TIME):
+        """waitTime: float"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             _AutomationClient.instance().dll.WindowPatternClose(pattern)
@@ -3563,41 +3909,42 @@ class WindowPattern:
 
 
 class AppBarControl(Control):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.AppBarControl)
 
 
 class ButtonControl(Control, ExpandCollapsePattern, InvokePattern, TogglePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ButtonControl)
 
 
 class CalendarControl(Control, GridPattern, TablePattern, ScrollPattern, SelectionPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.CalendarControl)
 
 
 class CheckBoxControl(Control, TogglePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.CheckBoxControl)
 
 
 class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ComboBoxControl)
 
-    def Select(self, name, waitTime = OPERATION_WAIT_TIME):
+    def Select(self, name, waitTime=OPERATION_WAIT_TIME):
         """
         name: str
-        show combobox's popup menu and select a item by name,
-        this is not a standard API in UIAutomation, here is a workaround,
-        it may not work for some comboboxes, such as comboboxes in older Qt version,
-        if it doesn't work, you should write your own version Select, or it doesn't support selection at all
+        waitTime: float
+        Show combobox's popup menu and select a item by name.
+        This is not a standard API in UIAutomation, here is a workaround.
+        It may not work for some comboboxes, such as comboboxes in older Qt version.
+        If it doesn't work, you should write your own version Select, or it doesn't support selection at all
         """
         supportExpandCollapse = self.IsExpandCollapsePatternAvailable()
         if supportExpandCollapse:
@@ -3628,72 +3975,72 @@ class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePat
 
 
 class CustomControl(Control):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.CustomControl)
 
 
 class DataGridControl(Control, GridPattern, ScrollPattern, SelectionPattern, TablePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.DataGridControl)
 
 
 class DataItemControl(Control, SelectionItemPattern, ExpandCollapsePattern, GridItemPattern, ScrollItemPattern, TableItemPattern, TogglePattern, ValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.DataItemControl)
 
 
 class DocumentControl(Control, TextPattern, ScrollPattern, ValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.DocumentControl)
 
 
 class EditControl(Control, RangeValuePattern, TextPattern, ValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.EditControl)
 
 
 class GroupControl(Control, ExpandCollapsePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.GroupControl)
 
 
 class HeaderControl(Control, TransformPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.HeaderControl)
 
 
 class HeaderItemControl(Control, InvokePattern, TransformPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.HeaderItemControl)
 
 
 class HyperlinkControl(Control, InvokePattern, ValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.HyperlinkControl)
 
 
 class ImageControl(Control, GridItemPattern, TableItemPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ImageControl)
 
 
 class ListControl(Control, GridPattern, MultipleViewPattern, ScrollPattern, SelectionPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ListControl)
 
     def GetSelectedItems(self):
-        """Return a list of children which are selected"""
+        """Return a list of Control which are selected"""
         lists = []
         iUIAutomationElementArray = self.GetCurrentSelection()
         if iUIAutomationElementArray:
@@ -3705,155 +4052,156 @@ class ListControl(Control, GridPattern, MultipleViewPattern, ScrollPattern, Sele
 
 
 class ListItemControl(Control, SelectionItemPattern, ExpandCollapsePattern, GridItemPattern, InvokePattern, ScrollItemPattern, TogglePattern, ValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ListItemControl)
 
 
 class MenuControl(Control):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.MenuControl)
 
 
 class MenuBarControl(Control):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.MenuBarControl)
 
 
 class MenuItemControl(Control, ExpandCollapsePattern, InvokePattern, SelectionItemPattern, TogglePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.MenuItemControl)
 
 
 class PaneControl(Control, DockPattern, ScrollPattern, TransformPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.PaneControl)
 
 
 class ProgressBarControl(Control, RangeValuePattern, ValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ProgressBarControl)
 
 
 class RadioButtonControl(Control, SelectionItemPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.RadioButtonControl)
 
 
 class ScrollBarControl(Control, RangeValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ScrollBarControl)
 
 
 class SemanticZoomControl(Control):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.SemanticZoomControl)
 
 
 class SeparatorControl(Control):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.SeparatorControl)
 
 
 class SliderControl(Control, RangeValuePattern, SelectionPattern, ValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.SliderControl)
 
 
 class SpinnerControl(Control, RangeValuePattern, SelectionPattern, ValuePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.SpinnerControl)
 
 
 class SplitButtonControl(Control, ExpandCollapsePattern, InvokePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.SplitButtonControl)
 
 
 class StatusBarControl(Control, GridPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.StatusBarControl)
 
 
 class TabControl(Control, SelectionPattern, ScrollPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TabControl)
 
 
 class TabItemControl(Control, SelectionItemPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TabItemControl)
 
 
 class TableControl(Control, GridPattern, GridItemPattern, TablePattern, TableItemPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TableControl)
 
 
 class TextControl(Control, GridItemPattern, TableItemPattern, TextPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TextControl)
 
 
 class ThumbControl(Control, TransformPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ThumbControl)
 
 
 class TitleBarControl(Control):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TitleBarControl)
 
 
 class ToolBarControl(Control, DockPattern, ExpandCollapsePattern, TransformPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ToolBarControl)
 
 
 class ToolTipControl(Control, TextPattern, WindowPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.ToolTipControl)
 
 
 class TreeControl(Control, ScrollPattern, SelectionPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TreeControl)
 
 
 class TreeItemControl(Control, ExpandCollapsePattern, InvokePattern, ScrollItemPattern, SelectionItemPattern, TogglePattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.TreeItemControl)
 
 
 class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
-    def __init__(self, element = 0, searchFromControl = None, searchDepth = 0xFFFFFFFF, searchWaitTime = SEARCH_INTERVAL, foundIndex = 1, **searchPorpertyDict):
+    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
         self.AddSearchProperty(ControlType = ControlType.WindowControl)
 
-    def SetTopmost(self, isTopmost = True):
+    def SetTopmost(self, isTopmost=True):
+        """isTopmost: bool"""
         return Win32API.SetWindowTopmost(self.Handle, isTopmost)
 
     def SwitchToThisWindow(self):
@@ -3868,8 +4216,11 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
         if y < 0: y = 0
         return Win32API.SetWindowPos(self.Handle, SWP.HWND_TOP, x, y, 0, 0, SWP.SWP_NOSIZE)
 
-    def MetroClose(self, waitTime = OPERATION_WAIT_TIME):
-        """only works in Windows 8/8.1, if current window is Metro UI"""
+    def MetroClose(self, waitTime=OPERATION_WAIT_TIME):
+        """
+        waitTime: float
+        Only work in Windows 8/8.1, if current window is Metro UI
+        """
         window = WindowControl(searchDepth = 1, ClassName = METRO_WINDOW_CLASS_NAME)
         if window.Exists(0, 0):
             screenWidth, screenHeight = Win32API.GetScreenSize()
@@ -3878,7 +4229,7 @@ class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
         else:
             Logger.WriteLine('Window is not Metro!', ConsoleColor.Yellow)
 
-    def SetActive(self, waitTime = OPERATION_WAIT_TIME):
+    def SetActive(self, waitTime=OPERATION_WAIT_TIME):
         curState = self.CurrentWindowVisualState()
         if curState == WindowVisualState.Minimized:
             self.ShowWindow(ShowWindow.Restore)
@@ -3960,13 +4311,18 @@ class Logger:
 
     @staticmethod
     def SetLogFile(path):
+        """path: str"""
         Logger.FileName = path
 
     @staticmethod
-    def Write(log, consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None, printTruncateLen=0):
+    def Write(log, consoleColor=ConsoleColor.Default, writeToFile=True, printToStdout=True, logFile=None, printTruncateLen=0):
         """
-        consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        if consoleColor == -1, use default color
+        log: any type
+        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
+        writeToFile: bool
+        printToStdout: bool
+        logFile: str, log file path
+        printTruncateLen: int
         """
         if IsPy3:
             if not isinstance(log, str):
@@ -4010,10 +4366,13 @@ class Logger:
                 fout.close()
 
     @staticmethod
-    def WriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
+    def WriteLine(log, consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
         """
-        consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        if consoleColor == -1, use default color
+        log: any type
+        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
+        writeToFile: bool
+        printToStdout: bool
+        logFile: str, log file path
         """
         if IsPy3:
             if not isinstance(log, str):
@@ -4024,8 +4383,15 @@ class Logger:
         Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfulWrite(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
-        """ColorfulWrite('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value"""
+    def ColorfulWrite(log, consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
+        """
+        log: any type
+        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
+        writeToFile: bool
+        printToStdout: bool
+        logFile: str, log file path
+        ColorfulWrite('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorName2Value
+        """
         text = []
         start = 0
         while True:
@@ -4046,15 +4412,25 @@ class Logger:
             Logger.Write(t, c, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfulWriteLine(log, consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
-        """ColorfulWriteLine('Hello <Color=Green>Green</Color> !!!'), color name must in Logger.ColorName2Value"""
+    def ColorfulWriteLine(log, consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
+        """
+        log: any type
+        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
+        writeToFile: bool
+        printToStdout: bool
+        logFile: str, log file path
+        ColorfulWriteLine('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorName2Value
+        """
         Logger.ColorfulWrite(log + Logger.LineSep, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def Log(log = '', consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
+    def Log(log='', consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
         """
-        consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        if consoleColor == -1, use default color
+        log: any type
+        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
+        writeToFile: bool
+        printToStdout: bool
+        logFile: str, log file path
         """
         t = datetime.datetime.now()
         frame = sys._getframe(1)
@@ -4063,10 +4439,14 @@ class Logger:
         Logger.Write(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfulLog(log = '', consoleColor = -1, writeToFile = True, printToStdout = True, logFile = None):
+    def ColorfulLog(log='', consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
         """
-        consoleColor: value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        if consoleColor == -1, use default color
+        log: any type
+        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
+        writeToFile: bool
+        printToStdout: bool
+        logFile: str, log file path
+        ColorfulLog('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorName2Value
         """
         t = datetime.datetime.now()
         frame = sys._getframe(1)
@@ -4081,72 +4461,119 @@ class Logger:
 
 
 def SetGlobalSearchTimeOut(seconds):
+    """seconds: float"""
     global TIME_OUT_SECOND
     TIME_OUT_SECOND = seconds
 
 
 def GetClipboardText():
+    """Return str"""
     return Win32API.GetClipboardText()
 
 
 def SetClipboardText(text):
+    """text: str"""
     Win32API.SetClipboardText(text)
 
 
-def Click(x, y, waitTime = OPERATION_WAIT_TIME):
+def Click(x, y, waitTime=OPERATION_WAIT_TIME):
+    """
+    x: int
+    y: int
+    waitTime: float
+    """
     Win32API.MouseClick(x, y, waitTime)
 
 
-def RightClick(x, y, waitTime = OPERATION_WAIT_TIME):
+def RightClick(x, y, waitTime=OPERATION_WAIT_TIME):
+    """
+    x: int
+    y: int
+    waitTime: float
+    """
     Win32API.MouseRightClick(x, y, waitTime)
 
 
-def MiddleClick(x, y, waitTime = OPERATION_WAIT_TIME):
+def MiddleClick(x, y, waitTime=OPERATION_WAIT_TIME):
+    """
+    x: int
+    y: int
+    waitTime: float
+    """
     Win32API.MouseMiddleClick(x, y, waitTime)
 
 
-def MoveTo(x, y, waitTime = OPERATION_WAIT_TIME):
+def MoveTo(x, y, waitTime=OPERATION_WAIT_TIME):
+    """
+    x: int
+    y: int
+    waitTime: float
+    """
     Win32API.MouseMoveTo(x, y, waitTime)
 
 
-def WheelDown(wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+def WheelDown(wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
+    """
+    wheelTimes: int
+    waitTime: float
+    """
     Win32API.MouseWheelDown(wheelTimes, waitTime)
 
 
-def WheelUp(wheelTimes = 1, waitTime = OPERATION_WAIT_TIME):
+def WheelUp(wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
+    """
+    wheelTimes: int
+    waitTime: float
+    """
     Win32API.MouseWheelUp(wheelTimes, waitTime)
 
 
-def DragDrop(x1, y1, x2, y2, moveSpeed = 1, waitTime = OPERATION_WAIT_TIME):
+def DragDrop(x1, y1, x2, y2, moveSpeed=1, waitTime=OPERATION_WAIT_TIME):
+    """
+    x1: int
+    y1: int
+    x2: int
+    y2: int
+    moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster
+    waitTime: float
+    """
     Win32API.MouseDragDrop(x1, y1, x2, y2, moveSpeed, waitTime)
 
 
-def KeyDown(key, waitTime = OPERATION_WAIT_TIME):
-    """key: a value in class Keys"""
+def KeyDown(key, waitTime=OPERATION_WAIT_TIME):
+    """
+    key: int, a value in class Keys
+    waitTime: float
+    Simulate a key down for key
+    """
     Win32API.KeyDown(key, waitTime)
 
 
-def KeyUp(key, waitTime = OPERATION_WAIT_TIME):
-    """key: a value in class Keys"""
+def KeyUp(key, waitTime=OPERATION_WAIT_TIME):
+    """
+    key: int, a value in class Keys
+    waitTime: float
+    Simulate a key up for key
+    """
     Win32API.KeyUp(key, waitTime)
 
 
-def SendKey(key, waitTime = OPERATION_WAIT_TIME):
+def SendKey(key, waitTime=OPERATION_WAIT_TIME):
     """
+    key: int, a value in class Keys
     Simulate typing a key
-    key: a value in class Keys
-    example: SendKey(uiautomation.Keys.VK_F)
     """
     Win32API.SendKey(key, waitTime)
 
 
-def SendKeys(keys, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
+def SendKeys(keys, interval=0.01, waitTime=OPERATION_WAIT_TIME, debug=False):
     """
-    Simulate typing keys on keyboard
-    keys: str, keys to type
+    text: str, keys to type
     interval: float, seconds between keys
-    debug: bool, if True, print the Keys
-    example:
+    waitTime: float
+    debug: bool, if True, print the keys
+    Simulate typing keys on keyboard
+    Examples:
     {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
     SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
     SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
@@ -4163,22 +4590,30 @@ def SendKeys(keys, interval=0.01, waitTime = OPERATION_WAIT_TIME, debug=False):
 
 
 def WaitForExist(control, timeout):
+    """
+    control: Control or subclasses
+    timeout: float
+    """
     return control.Exists(timeout, 1)
 
 
 def WaitForDisappear(control, timeout):
+    """
+    control: Control or subclasses
+    timeout: float
+    """
     return control.Disappears(timeout, 1)
 
 
-def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSiblingFunc = None, yieldConditionFunc = None, includeTop = False, maxDepth = 0xFFFFFFFF):
+def WalkTree(top, getChildrenFunc=None, getFirstChildFunc=None, getNextSiblingFunc=None, yieldConditionFunc=None, includeTop=False, maxDepth=0xFFFFFFFF):
     """
-    walking a tree not using recursive algorithm
-    if getChildrenFunc is valid, ignore getFirstChildFunc and getNextSiblingFunc
+    Walk a tree not using recursive algorithm
+    If getChildrenFunc is valid, ignore getFirstChildFunc and getNextSiblingFunc
         yield 3 items tuple: (item, depth, remain children count in current depth)
-    if getChildrenFunc is not valid, using getFirstChildFunc and getNextSiblingFunc
+    If getChildrenFunc is not valid, using getFirstChildFunc and getNextSiblingFunc
         yield 2 items tuple: (item, depth)
-    if yieldConditionFunc is not None, only yield items that yieldConditionFunc(item, depth) returns True
-    example:
+    If yieldConditionFunc is not None, only yield items that yieldConditionFunc(item, depth) returns True
+    For example:
     def GetDirChildren(dir):
         if os.path.isdir(dir):
             return [os.path.join(dir, it) for it in os.listdir(dir)]
@@ -4233,11 +4668,16 @@ def WalkTree(top, getChildrenFunc = None, getFirstChildFunc = None, getNextSibli
 
 
 def ControlsAreSame(control1, control2):
-    """return 1 if control1 and control2 are the same control, otherwise return 0"""
+    """
+    control1: Control or subclasses
+    control2: Control or subclasses
+    Return 1 if control1 and control2 are the same control, otherwise return 0
+    """
     return _AutomationClient.instance().dll.CompareElements(control1.Element, control2.Element)
 
 
 def GetRootControl():
+    """Return Control"""
     global _rootControl
     if not _rootControl:
         _rootControl = Control.CreateControlFromElement(_AutomationClient.instance().dll.GetRootElement())
@@ -4245,11 +4685,12 @@ def GetRootControl():
 
 
 def GetFocusedControl():
+    """Return Control"""
     return Control.CreateControlFromElement(_AutomationClient.instance().dll.GetFocusedElement())
 
 
 def GetForegroundControl():
-    """return Foreground Window"""
+    """Return Control"""
     return ControlFromHandle(Win32API.GetForegroundWindow())
     #another implement
     #focusedControl = GetFocusedControl()
@@ -4266,7 +4707,7 @@ def GetForegroundControl():
 
 
 def GetConsoleWindow():
-    """return console window that runs python"""
+    """Return Control, a console window that runs python"""
     title = Win32API.GetConsoleTitle()
     consoleWindow = WindowControl(searchDepth= 1, Name = title)
     if consoleWindow.Exists(0, 0):
@@ -4274,35 +4715,48 @@ def GetConsoleWindow():
 
 
 def ControlFromPoint(x, y):
-    """use IUIAutomation ElementFromPoint x,y, may return 0 if mouse is over cmd's title bar icon"""
+    """
+    Return Control or None
+    Use IUIAutomation ElementFromPoint x,y, may return 0 if mouse is over cmd's title bar icon
+    """
     element = _AutomationClient.instance().dll.ElementFromPoint(x, y)
     return Control.CreateControlFromElement(element)
 
 
 def ControlFromPoint2(x, y):
-    """use Win32API.WindowFromPoint x,y"""
+    """
+    Return Control or None
+    Use Win32API.WindowFromPoint x,y
+    """
     return Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementFromHandle(Win32API.WindowFromPoint(x, y)))
 
 
 def ControlFromCursor():
+    """Return Control"""
     x, y = Win32API.GetCursorPos()
     return ControlFromPoint(x, y)
 
 
 def ControlFromCursor2():
+    """Return Control"""
     x, y = Win32API.GetCursorPos()
     return ControlFromPoint2(x, y)
 
 
 def ControlFromHandle(handle):
+    """
+    handle: int, a Win32 Window's handle
+    Return Control
+    """
     return Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementFromHandle(handle))
 
 
-def WalkControl(control, includeTop = False, maxDepth = 0xFFFFFFFF):
+def WalkControl(control, includeTop=False, maxDepth=0xFFFFFFFF):
     """
     control: Control
-    maxDepth: integer
-    yield 2 items tuple(Control, depth)
+    includeTop: false
+    maxDepth: int
+    Yield 2 items tuple(control: Control, depth: int)
     """
     if includeTop:
         yield control, 0
@@ -4327,10 +4781,10 @@ def WalkControl(control, includeTop = False, maxDepth = 0xFFFFFFFF):
             depth -= 1
 
 
-def LogControl(control, depth = 0, showAllName = True, showMore = False):
+def LogControl(control, depth=0, showAllName=True, showMore=False):
     """
     control: Control
-    depth: integer
+    depth: int
     showAllName: bool
     showMore: bool
     """
@@ -4398,7 +4852,12 @@ def LogControl(control, depth = 0, showAllName = True, showMore = False):
     Logger.Write(Logger.LineSep)
 
 
-def EnumAndLogControlAncestors(control, showAllName = True, showMore = False):
+def EnumAndLogControlAncestors(control, showAllName=True, showMore=False):
+    """
+    control: Control or subclasses
+    showAllName: bool
+    showMore: bool
+    """
     lists = []
     while control:
         lists.insert(0, control)
@@ -4407,24 +4866,25 @@ def EnumAndLogControlAncestors(control, showAllName = True, showMore = False):
         LogControl(control, i, showAllName, showMore)
 
 
-def EnumAndLogControl(control, maxDepth = 0xFFFFFFFF, showAllName = True, showMore = False, startIndent = 0):
+def EnumAndLogControl(control, maxDepth=0xFFFFFFFF, showAllName=True, showMore=False, startIndent=0):
     """
-    control: Control
-    maxDepth: integer
+    control: Control or subclasses
+    maxDepth: int
     showAllName: bool
     showMore: bool
+    startIndent: int
     """
     for c, d in WalkControl(control, True, maxDepth):
         LogControl(c, d + startIndent, showAllName, showMore)
 
 
-def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = False, foundIndex = 1):
+def FindControl(control, compareFunc, maxDepth=0xFFFFFFFF, findFromSelf=False, foundIndex=1):
     """
-    control: Control
-    compareFunc: compare function with parameters (control, depth), should return True or False
-    maxDepth: integer
+    control: Control or subclasses
+    compareFunc: compare function with parameters (control: Control, depth: int), should return True or False
+    maxDepth: int
     findFromSelf: bool
-    foundIndex: integer, value must be greater or equal to 1
+    foundIndex: int, must >= 1
     """
     foundCount = 0
     if not control:
@@ -4437,7 +4897,7 @@ def FindControl(control, compareFunc, maxDepth = 0xFFFFFFFF, findFromSelf = Fals
 
 
 def ShowDesktop():
-    """show the desktop by win + d"""
+    """Show the desktop by pressing win + d"""
     SendKeys('{Win}d')
     time.sleep(1)
     #another implement
@@ -4450,12 +4910,12 @@ def ShowDesktop():
         #time.sleep(1)
 
 
-def RunWithHotKey(keyFunctionDict, stopHotKey = None):
+def RunWithHotKey(keyFunctionDict, stopHotKey=None):
     """
     keyFunctionDict: hotkey, function dict, like {(uiautomation.ModifierKey.MOD_CONTROL, uiautomation.Keys.VK_1) : func}
-    bind function with hotkey, the function will be run or stopped in another thread when the hotkey was pressed
-    uiautomation doesn't support multi thread, so you can't use UI Control in the function
-    you can call another script that uses UI Control
+    Bind function with hotkey, the function will be run or stopped in another thread when the hotkey was pressed.
+    uiautomation doesn't support multi thread, so you can't use UI Control in the function.
+    You can call another script that uses UI Control.
 
     def main(stopEvent):
         n = 0
@@ -4531,10 +4991,10 @@ def RunWithHotKey(keyFunctionDict, stopHotKey = None):
     def threadFunc(function, stopEvent):
         function(stopEvent)
         releaseAllKey()  #need to release keys if some keys were pressed
-    while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), 0, 0, 0) != 0:
+    while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), ctypes.c_void_p(0), 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if msg.wParam in id2HotKey:
-                if msg.lParam&0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam>>16&0x0000FFFF == id2HotKey[msg.wParam][1]:
+                if msg.lParam & 0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam >> 16 & 0x0000FFFF == id2HotKey[msg.wParam][1]:
                     Logger.ColorfulWriteLine('----------hotkey <Color=DarkGreen>{}</Color> pressed----------'.format(id2Name[msg.wParam]), writeToFile = False)
                     if not id2Thread[msg.wParam]:
                         stopEvent.clear()
