@@ -253,7 +253,6 @@ class _AutomationClient:
         ctypes.windll.user32.SetWindowPos.argtypes = (ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint)
         ctypes.windll.user32.GetWindowTextW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_int)
         ctypes.windll.user32.SetWindowTextW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p)
-        ctypes.windll.kernel32.GetConsoleOriginalTitleW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint)
         ctypes.windll.kernel32.GetConsoleTitleW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint)
         ctypes.windll.kernel32.SetConsoleTitleW.argtypes = (ctypes.c_wchar_p, )
         ctypes.windll.kernel32.SetConsoleTextAttribute.argtypes = (ctypes.c_void_p, ctypes.c_ushort)
@@ -269,6 +268,7 @@ class _AutomationClient:
         ctypes.windll.kernel32.Module32FirstW.argtypes = (ctypes.c_void_p, ctypes.POINTER(tagMODULEENTRY32))
         ctypes.windll.kernel32.Process32FirstW.argtypes = (ctypes.c_void_p, ctypes.POINTER(tagPROCESSENTRY32))
         if IsNT6:
+            ctypes.windll.kernel32.GetConsoleOriginalTitleW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint)
             ctypes.windll.kernel32.QueryFullProcessImageNameW.argtypes = (ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.c_wchar_p, ctypes.POINTER(ctypes.wintypes.DWORD))
 
     def __del__(self):
@@ -3135,7 +3135,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         """
         key: int, a value in class Keys
         waitTime: float
-        Make control have focus first and type a key
+        Try to make control have focus first(if it doesn't have focus, you may need to call Click) and type a key
         """
         self.SetFocus()
         Win32API.SendKey(key, waitTime)
@@ -3144,7 +3144,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         """
         keys: str, keys to type, see the docstring of Win32API.SendKeys
         interval: float, seconds between keys
-        Make control have focus first and type keys
+        Try to make control have focus first(if it doesn't have focus, you may need to call Click) and type keys
         """
         self.SetFocus()
         Win32API.SendKeys(keys, interval, waitTime)
