@@ -13,7 +13,7 @@ You can install uiautomation by "pip install uiautomation". After installation, 
 You use this script to traverse UI controls.
 
 Run 'C:\PythonXX\Scripts\automation.py -h' for help.
-Run automate_notepad_py3.py to see a simple demo.
+Run demos\automate_notepad_py3.py to see a simple demo.
 
 If "RuntimeError: Can not get an instance of IUIAutomation" occured when running uiautomation.py,
 You need to install update [KB971513](https://support.microsoft.com/en-us/kb/971513) for your Windows(Mostly Windows XP).
@@ -21,7 +21,7 @@ You can also download it from here [https://github.com/yinkaisheng/WindowsUpdate
 
 On Windows 8/8.1, to automate a Metro App, the app must be in foreground. If a Metro App was switched to background, uiautomation can't fetch its controls' information.
 
-By the way, You'd better run python as administrator. Otherwise uiautomation may fail to enumerate controls under some circumstances.
+By the way, You should run python as administrator. Otherwise uiautomation may fail to enumerate controls under some circumstances.
 
 [Requirements:](https://docs.microsoft.com/zh-cn/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomation)
 
@@ -42,7 +42,46 @@ Understand the arguments of automation.py, and try the following examples
 **automation.py -r -d 1 -t 0**, print desktop(the root of control tree) and it's children(top level windows)  
 **automation.py -t 0 -n -m**, print current active window's controls, show fullname, show more properties
   
-run notepad.exe, run automation.py -t 3, swith to Notepad and wait for 5 seconds  
+Suppose the control tree is  
+  
+root(Name='Desktop', Depth=0)  
+　　window1(Depth=1)  
+　　　　control1-001(Depth=2)  
+　　　　control1-...(Depth=2)  
+　　　　control1-100(Depth=2)  
+　　window2(Name='window2', Depth=1)  
+　　　　control2-1(Depth=2)  
+　　　　　　control2-1-001(Depth=3)  
+　　　　　　control2-1-...(Depth=3)  
+　　　　　　control2-1-100(Depth=3)  
+　　　　control2-2(Depth=2)  
+　　　　control2-3(Depth=2)  
+　　　　control2-4(Name='2-4', Depth=2)  
+　　　　　　editcontrol(Name='myedit1', Depth=3)  
+　　　　　　**editcontrol(Name='myedit2', Depth=3)**  
+
+If you want to find the EditControl whose name is 'myedit2' and type 'hi',  
+you can write the following code:
+```python
+uiautomation.EditControl(searchDepth=3, Name='myedit2').SendKeys('hi')
+```
+But this code run slowly because there are more than 200 controls before myedit2 in the control tree.  
+uiautomation has to traverse more than 200 controls before finding myedit2 if search from root in 3 search depth.  
+The better is:
+```python
+window2 = uiautomation.WindowControl(searchDepth=1, Name='window2') # search 2 times
+sub = window2.Control(searchDepth=1, Name='2-4')    # search 4 times
+edit = sub.EditControl(searchDepth=1, Name='myedit2')   # search 2 times
+edit.SendKeys('hi')
+```
+This code run faster than the former.  
+You can also combine the four lines code into one line.  
+```python
+uiautomation.WindowControl(searchDepth=1, Name='window2').Control(searchDepth=1, Name='2-4').EditControl(searchDepth=1, Name='myedit2').SendKeys('hi')
+```
+  
+Now let's take notepad.exe for an example.  
+Luanch notepad.exe and run automation.py -t 3, then swith to Notepad and wait for 5 seconds  
   
 automation.py will print the controls of Notepad and save them to @AutomationLog.txt:  
   
@@ -61,7 +100,7 @@ ControlType: PaneControl    ClassName: #32769    Name: 桌面    Depth: 0    **(
 　　　　　　ControlType: ButtonControl    ClassName:     Name: 关闭    Depth: 3    **(Close Button)**  
 ...  
 
-run the following code
+Run the following code
 ```python
 # -*- coding: utf-8 -*-
 import subprocess
@@ -70,7 +109,7 @@ import uiautomation as auto
 print(auto.GetRootControl())
 subprocess.Popen('notepad.exe')
 # you should find the top level window first, then find children from the top level window
-notepadWindow = auto.WindowControl(searchDepth = 1, ClassName = 'Notepad')
+notepadWindow = auto.WindowControl(searchDepth=1, ClassName='Notepad')
 print(notepadWindow.Name)
 notepadWindow.SetTopmost(True)
 # find the first EditControl in notepadWindow
@@ -79,14 +118,14 @@ edit.SetValue('Hello')
 edit.SendKeys('{Ctrl}{End}{Enter}World')
 # find the first TitleBarControl in notepadWindow, 
 # then find the second ButtonControl in TitleBarControl, which is the Maximize button
-notepadWindow.TitleBarControl().ButtonControl(foundIndex = 2).Click()
+notepadWindow.TitleBarControl().ButtonControl(foundIndex=2).Click()
 # find the first button in notepadWindow whose Name is '关闭', the close button, the relative depth from Close button to Notepad window is 2
-notepadWindow.ButtonControl(searchDepth = 2, Name = '关闭').Click()
+notepadWindow.ButtonControl(searchDepth=2, Name='关闭').Click()
 # then notepad will popup a window askes you to save or not, press hotkey alt+n not to save
 auto.SendKeys('{Alt}n')
 ```
 automation.GetRootControl() returns the root control(the Desktop window)  
-automation.WindowControl(searchDepth = 1, ClassName = 'Notepad') creates a WindowControl, the parameters specify how to search the control  
+automation.WindowControl(searchDepth=1, ClassName='Notepad') creates a WindowControl, the parameters specify how to search the control  
 the following parameters can be used  
 searchFromControl = None,   
 searchDepth = 0xFFFFFFFF,   
@@ -101,8 +140,8 @@ ControlType
 Depth  
 Compare  
 
-See Control.\_\_init\_\_ for the comments of the parameters  
-See scripts in folder **demos** for more examples  
+See Control.\_\_init\_\_ for the comments of the parameters.  
+See scripts in folder **demos** for more examples.  
 
 **If automation.py can't print the controls you see.
 Maybe the controls were built by DirectUI(or CustomControl), not UI Frameworks supplied by Microsoft.
