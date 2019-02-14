@@ -249,8 +249,11 @@ class _AutomationClient:
         ctypes.windll.user32.GetForegroundWindow.restype = ctypes.c_void_p
         ctypes.windll.user32.BringWindowToTop.argtypes = (ctypes.c_void_p, )
         ctypes.windll.user32.IsIconic.argtypes = (ctypes.c_void_p, )
+        ctypes.windll.user32.IsZoomed.argtypes = (ctypes.c_void_p, )
         ctypes.windll.user32.IsWindowVisible.argtypes = (ctypes.c_void_p, )
         ctypes.windll.user32.SwitchToThisWindow.argtypes = (ctypes.c_void_p, ctypes.c_int)
+        ctypes.windll.user32.GetWindowLongW.argtypes = (ctypes.c_void_p, ctypes.c_int)
+        ctypes.windll.user32.GetWindowLongW.restype = ctypes.c_size_t
         ctypes.windll.user32.ShowWindow.argtypes = (ctypes.c_void_p, ctypes.c_int)
         ctypes.windll.user32.MoveWindow.argtypes = (ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
         ctypes.windll.user32.SetWindowPos.argtypes = (ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint)
@@ -1514,6 +1517,14 @@ class Win32API:
         return ctypes.windll.user32.SwitchToThisWindow(ctypes.c_void_p(hWnd), 1)
 
     @staticmethod
+    def GetWindowLong(hWnd, index):
+        """
+        hWnd: int, handle of a Win32 window
+        index: int
+        """
+        return ctypes.windll.user32.GetWindowLongW(ctypes.c_void_p(hWnd), index)
+
+    @staticmethod
     def IsIconic(hWnd):
         """
         hWnd: int, handle of a Win32 window
@@ -1521,6 +1532,15 @@ class Win32API:
         Determines whether the specified window is minimized
         """
         return ctypes.windll.user32.IsIconic(ctypes.c_void_p(hWnd))
+
+    @staticmethod
+    def IsZoomed(hWnd):
+        """
+        hWnd: int, handle of a Win32 window
+        Return bool
+        Determines whether a window is maximized
+        """
+        return ctypes.windll.user32.IsZoomed(ctypes.c_void_p(hWnd))
 
     @staticmethod
     def IsWindowVisible(hWnd):
@@ -3865,12 +3885,12 @@ class WindowPattern:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
     def CurrentCanMaximize(self):
-        """Return int, 1 or 0"""
+        """Return bool"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.WindowPatternCurrentCanMaximize(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
+            return bool(value)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
@@ -3883,12 +3903,12 @@ class WindowPattern:
             self.SetWindowVisualState(WindowVisualState.Maximized, waitTime)
 
     def CurrentCanMinimize(self):
-        """Return int, 1 or 0"""
+        """Return bool"""
         pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
         if pattern:
             value = _AutomationClient.instance().dll.WindowPatternCurrentCanMinimize(pattern)
             _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
+            return bool(value)
         else:
             Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
 
@@ -4127,37 +4147,53 @@ class PaneControl(Control, DockPattern, ScrollPattern, TransformPattern):
         isTopmost: bool
         Only call this if PaneControl is a top level window
         """
-        hwnd = self.Handle
-        if hwnd:
-            ret = Win32API.SetWindowTopmost(self.Handle, isTopmost)
-            time.sleep(waitTime)
-            return ret
+        ret = Win32API.SetWindowTopmost(self.Handle, isTopmost)
+        time.sleep(waitTime)
+        return ret
+
+    def CurrentIsTopmost(self):
+        """
+        Return bool
+        """
+        GWL_EXSTYLE = -20
+        WS_EX_TOPMOST = 0x00000008
+        return bool(Win32API.GetWindowLong(self.Handle, GWL_EXSTYLE) & WS_EX_TOPMOST)
 
     def SwitchToThisWindow(self, waitTime=OPERATION_WAIT_TIME):
         """
         waitTime: float
         Only call this if PaneControl is a top level window
         """
-        hwnd = self.Handle
-        if hwnd:
-            Win32API.SwitchToThisWindow(hwnd)
-            time.sleep(waitTime)
+        Win32API.SwitchToThisWindow(self.Handle)
+        time.sleep(waitTime)
 
     def Maximize(self, waitTime=OPERATION_WAIT_TIME):
         """
         waitTime: float
         Set window Maximize. Only call this if PaneControl is a top level window
         """
-        if self.Handle:
-            self.ShowWindow(ShowWindow.ShowMaximized, waitTime)
+        self.ShowWindow(ShowWindow.ShowMaximized, waitTime)
+
+    def IsMaximize(self):
+        """
+        Return bool
+        Only call this if PaneControl is a top level window
+        """
+        return bool(Win32API.IsZoomed(self.Handle))
 
     def Minimize(self, waitTime=OPERATION_WAIT_TIME):
         """
         waitTime: float
         Set window Minimize. Only call this if PaneControl is a top level window
         """
-        if self.Handle:
-            self.ShowWindow(ShowWindow.ShowMinimized, waitTime)
+        self.ShowWindow(ShowWindow.ShowMinimized, waitTime)
+
+    def IsMinimize(self):
+        """
+        Return bool
+        Only call this if PaneControl is a top level window
+        """
+        return bool(Win32API.IsIconic(self.Handle))
 
     def Restore(self, waitTime=OPERATION_WAIT_TIME):
         """
@@ -4165,10 +4201,8 @@ class PaneControl(Control, DockPattern, ScrollPattern, TransformPattern):
         Restore window to normal state. Only call this if PaneControl is a top level window.
         Similar to SwitchToThisWindow
         """
-        hwnd = self.Handle
-        if hwnd:
-            Win32API.ShowWindow(hwnd, ShowWindow.Restore)
-            time.sleep(waitTime)
+        Win32API.ShowWindow(self.Handle, ShowWindow.Restore)
+        time.sleep(waitTime)
 
     def SetActive(self, waitTime=OPERATION_WAIT_TIME):
         """
