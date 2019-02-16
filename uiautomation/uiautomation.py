@@ -39,7 +39,8 @@ MAX_MOVE_SECOND = 1  # simulate mouse move or drag max seconds
 TIME_OUT_SECOND = 15
 OPERATION_WAIT_TIME = 0.5
 MAX_PATH = 260
-CHECK_SEARCH_PROPERTY_NAME = True
+DEBUG_SEARCH_TIME = False
+DEBUG_EXIST_DISAPPEAR = False
 
 
 class Point(ctypes.Structure):
@@ -2676,14 +2677,15 @@ class QTPLikeSyntaxSupport():
         return WindowControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
 
 class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
+    ValidKeys = set(['ControlType', 'ClassName', 'AutomationId', 'Name', 'SubName', 'RegexName', 'Depth', 'Compare'])
     def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
         """
         element: int
-        searchFromControl: Control, if is None, search from root control
+        searchFromControl: Control, if is None, search from root control(Desktop)
         searchDepth: int, max search depth from searchFromControl
         foundIndex: int, value must >= 1
         searchWaitTime: float, wait searchWaitTime before every search
-        searchPorpertyDict: a dict that defines how to search, only the following keys are valid
+        searchPorpertyDict: a dict that defines how to search, the following keys can be used
                             ControlType: int, a value in class ControlType
                             ClassName: str or unicode
                             AutomationId: str or unicode
@@ -2745,6 +2747,16 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             if key == 'RegexName':
                 self.regexName = None
 
+    def GetSearchPorpertyStr(self):
+        strs = ['{}: {}'.format(k, ControlTypeNameDict[v] if k == 'ControlType' else repr(v)) for k, v in self.searchPorpertyDict.items()]
+        return '{' + ', '.join(strs) + '}'
+
+    def GetColorfulSearchPorpertyStr(self, keyColor='DarkGreen', valueColor='DarkCyan'):
+        """color: str, color name in ConsoleColor"""
+        strs = ['<Color={}>{}</Color>: <Color={}>{}</Color>'.format(keyColor if k in Control.ValidKeys else 'DarkYellow', k, valueColor,
+                ControlTypeNameDict[v] if k == 'ControlType' else repr(v)) for k, v in self.searchPorpertyDict.items()]
+        return '{' + ', '.join(strs) + '}'
+
     def _CompareFunction(self, control, depth):
         """
         control: Control or subclasses
@@ -2775,11 +2787,9 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             elif 'Compare' == key:
                 if not value(control, depth):
                     return False
-            elif CHECK_SEARCH_PROPERTY_NAME:
-                raise KeyError('unsupported argument: {} in {} constructor'.format(key, self.__class__.__name__))
         return True
 
-    def Exists(self, maxSearchSeconds=5, searchIntervalSeconds=SEARCH_INTERVAL):
+    def Exists(self, maxSearchSeconds=5, searchIntervalSeconds=SEARCH_INTERVAL, printIfNotExist=False):
         """
         maxSearchSeconds: float
         searchIntervalSeconds: float
@@ -2805,41 +2815,57 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         if self._element:
             _AutomationClient.instance().dll.ReleaseElement(self._element)
         self._element = 0
-        start = ProcessTime()
+        startTime = ProcessTime()
         # Use same timeout(s) parameters for resolve all parents
         prev =  self.searchFromControl
         if prev and not prev._element and not prev.Exists(maxSearchSeconds, searchIntervalSeconds):
+            if printIfNotExist or DEBUG_EXIST_DISAPPEAR:
+                Logger.ColorfulWriteLine(self.GetColorfulSearchPorpertyStr() + '<Color=Red> does not exist.</Color>', writeToFile=False)
             return False
+        startTime2 = ProcessTime()
+        if DEBUG_SEARCH_TIME:
+            startDateTime = datetime.datetime.now()
         while True:
             control = FindControl(self.searchFromControl, self._CompareFunction, self.searchDepth, False, self.foundIndex)
             if control:
                 self._element = control.Element
-                control._element = 0 # control will be destroyed, but the element needs to be stroed in self._element
-                #elapsedTime = ProcessTime() - start
-                #Logger.Log('Found time: {:.3f}s, {}'.format(elapsedTime, self))
+                control._element = 0  # control will be destroyed, but the element needs to be stroed in self._element
+                if DEBUG_SEARCH_TIME:
+                    Logger.ColorfulWriteLine('{} TraverseControls: <Color=Cyan>{}</Color>, SearchTime: <Color=Cyan>{:.3f}</Color>s[{} - {}]'.format(
+                        self.GetColorfulSearchPorpertyStr(), control.traverseCount, ProcessTime() - startTime2,
+                        startDateTime.time(), datetime.datetime.now().time()))
                 return True
             else:
-                remain = start + maxSearchSeconds - ProcessTime()
+                remain = startTime + maxSearchSeconds - ProcessTime()
                 if remain > 0:
                     time.sleep(min(remain, searchIntervalSeconds))
                 else:
+                    if printIfNotExist or DEBUG_EXIST_DISAPPEAR:
+                        Logger.ColorfulWriteLine(self.GetColorfulSearchPorpertyStr() + '<Color=Red> does not exist.</Color>', writeToFile=False)
                     return False
 
-    def Disappears(self, maxSearchSeconds=5, searchIntervalSeconds=SEARCH_INTERVAL):
+    def Disappears(self, maxSearchSeconds=5, searchIntervalSeconds=SEARCH_INTERVAL, printIfNotDisappear=False):
         """
         maxSearchSeconds: float
         searchIntervalSeconds: float
         Check if control disappears every searchIntervalSeconds seconds in maxSearchSeconds seconds.
         Return True if control disappears.
         """
+        global DEBUG_EXIST_DISAPPEAR
         start = ProcessTime()
         while True:
-            if not self.Exists(0, 0):
+            temp = DEBUG_EXIST_DISAPPEAR
+            DEBUG_EXIST_DISAPPEAR = False  # do not print for Exists
+            if not self.Exists(0, 0, False):
+                DEBUG_EXIST_DISAPPEAR = temp
                 return True
+            DEBUG_EXIST_DISAPPEAR = temp
             remain = start + maxSearchSeconds - ProcessTime()
             if remain > 0:
                 time.sleep(min(remain, searchIntervalSeconds))
             else:
+                if printIfNotDisappear or DEBUG_EXIST_DISAPPEAR:
+                    Logger.ColorfulWriteLine(self.GetColorfulSearchPorpertyStr() + '<Color=Red> does not disappear.</Color>', writeToFile=False)
                 return False
 
     def Refind(self, maxSearchSeconds=TIME_OUT_SECOND, searchIntervalSeconds=SEARCH_INTERVAL, raiseException=True):
@@ -2848,18 +2874,12 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         searchIntervalSeconds: float
         raiseException: bool
         Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds.
-        Raise an LookupError if timed out
+        Raise a LookupError if raiseException is True and time out
         """
-        if not self.Exists(maxSearchSeconds, searchIntervalSeconds):
+        if not self.Exists(maxSearchSeconds, searchIntervalSeconds, False if raiseException else DEBUG_EXIST_DISAPPEAR):
             if raiseException:
-                info = 'Find Control Time Out: {'
-                for key in self.searchPorpertyDict:
-                    if key == 'ControlType':
-                        info += '{0}: {1}, '.format(key, ControlTypeNameDict[self.searchPorpertyDict[key]])
-                    else:
-                        info += '{0}: {1}, '.format(key, repr(self.searchPorpertyDict[key])) # example Name : 'Notepad'
-                info += '}'
-                raise LookupError(info)
+                Logger.ColorfulWriteLine('<Color=Red>Find Control Time Out: </Color>' + self.GetColorfulSearchPorpertyStr(), writeToFile=False)
+                raise LookupError('Find Control Time Out: ' + self.GetSearchPorpertyStr())
 
     @property
     def Element(self):
@@ -4154,6 +4174,7 @@ class PaneControl(Control, DockPattern, ScrollPattern, TransformPattern):
     def CurrentIsTopmost(self):
         """
         Return bool
+        Only call this if PaneControl is a top level window
         """
         GWL_EXSTYLE = -20
         WS_EX_TOPMOST = 0x00000008
@@ -4615,7 +4636,12 @@ class Logger:
 
 
 def SetGlobalSearchTimeOut(seconds):
-    """seconds: float"""
+    """
+    seconds: float
+    To make this available, you need explicitly import uiautomation:
+    from uiautomation import uiautomation as auto
+    auto.SetGlobalSearchTimeOut(10)
+    """
     global TIME_OUT_SECOND
     TIME_OUT_SECOND = seconds
 
@@ -5043,10 +5069,13 @@ def FindControl(control, compareFunc, maxDepth=0xFFFFFFFF, findFromSelf=False, f
     foundCount = 0
     if not control:
         control = GetRootControl()
+    traverseCount = 0
     for child, depth in WalkControl(control, findFromSelf, maxDepth):
+        traverseCount += 1
         if compareFunc(child, depth):
             foundCount += 1
             if foundCount == foundIndex:
+                child.traverseCount = traverseCount
                 return child
 
 
@@ -5064,7 +5093,7 @@ def ShowDesktop(waitTime=1):
         #time.sleep(1)
 
 
-def RunWithHotKey(keyFunctionDict, stopHotKey=None):
+def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_CONTROL, Keys.VK_D)):
     """
     keyFunctionDict: hotkey, function dict, like {(uiautomation.ModifierKey.MOD_CONTROL, uiautomation.Keys.VK_1) : func}
     Bind function with hotkey, the function will be run or stopped in another thread when the hotkey was pressed.
@@ -5119,25 +5148,28 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None):
         keyName = getKeyName(Keys.__dict__, hotkey[1])
         id2Name[hotKeyId] = str((modName, keyName))
         if ctypes.windll.user32.RegisterHotKey(0, hotKeyId, hotkey[0], hotkey[1]):
-            Logger.ColorfulWriteLine('Register hotkey <Color=DarkGreen>{}</Color> succeed'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register hotkey <Color=DarkGreen>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
         else:
             registed = False
-            Logger.ColorfulWriteLine('Register hotkey <Color=DarkGreen>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register hotkey <Color=DarkGreen>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
         hotKeyId += 1
     if stopHotKey and len(stopHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, stopHotKey[0])
         keyName = getKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
-            Logger.ColorfulWriteLine('Register stop hotkey <Color=Yellow>{}</Color> succeed'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register stop hotkey <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
         else:
             registed = False
-            Logger.ColorfulWriteLine('Register stop hotkey <Color=Yellow>{}</Color> failed, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register stop hotkey <Color=Yellow>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
     if not registed:
         return
-    if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, ModifierKey.MOD_CONTROL, Keys.VK_D):
-        Logger.ColorfulWriteLine('Register <Color=Yellow>Ctrl+D</Color> succeed, for exiting current script', writeToFile=False)
-    else:
-        Logger.ColorfulWriteLine('Register <Color=Yellow>Ctrl+D</Color> failed', writeToFile=False)
+    if exitHotKey and len(exitHotKey) == 2:
+        modName = getModName(ModifierKey.__dict__, exitHotKey[0])
+        keyName = getKeyName(Keys.__dict__, exitHotKey[1])
+        if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, exitHotKey[0], exitHotKey[1]):
+            Logger.ColorfulWriteLine('Register exit hotkey <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
+        else:
+            Logger.ColorfulWriteLine('Register exit hotkey <Color=Yellow>{}</Color> unsuccessfully'.format((modName, keyName)), writeToFile=False)
     from threading import Thread, Event
     funcThread = None
     stopEvent = Event()
@@ -5172,6 +5204,7 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None):
                     for id in id2Thread:
                         id2Thread[id] = None
             elif exitHotKeyId == msg.wParam:
-                if msg.lParam & 0x0000FFFF == ModifierKey.MOD_CONTROL and msg.lParam >> 16 & 0x0000FFFF == Keys.VK_D:
-                    Logger.WriteLine('Ctrl+D pressed. Exit', ConsoleColor.Yellow, False)
+                if msg.lParam & 0x0000FFFF == exitHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == exitHotKey[1]:
+                    Logger.WriteLine('Exit hotkey pressed. Exit', ConsoleColor.Yellow, False)
+                    stopEvent.set()
                     break
