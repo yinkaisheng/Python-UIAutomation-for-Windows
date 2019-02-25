@@ -1669,7 +1669,7 @@ class Win32API:
             flag = SND_NODEFAULT
             if isAsync:
                 flag |= SND_ASYNC
-            if loop:
+            if isLoop:
                 flag |= SND_LOOP
                 flag |= SND_ASYNC
             return ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(filePath), ctypes.c_void_p(0), flag)
@@ -2752,7 +2752,7 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
         return '{' + ', '.join(strs) + '}'
 
     def GetColorfulSearchPorpertyStr(self, keyColor='DarkGreen', valueColor='DarkCyan'):
-        """color: str, color name in ConsoleColor"""
+        """keyColor, valueColor: str, color name in class ConsoleColor"""
         strs = ['<Color={}>{}</Color>: <Color={}>{}</Color>'.format(keyColor if k in Control.ValidKeys else 'DarkYellow', k, valueColor,
                 ControlTypeNameDict[v] if k == 'ControlType' else repr(v)) for k, v in self.searchPorpertyDict.items()]
         return '{' + ', '.join(strs) + '}'
@@ -4981,7 +4981,7 @@ def LogControl(control, depth=0, showAllName=True, showMore=False):
     Logger.Write(control.AutomationId, ConsoleColor.DarkGreen)
     Logger.Write('    Rect: ')
     left, top, right, bottom = control.BoundingRectangle
-    Logger.Write(str(control.BoundingRectangle), ConsoleColor.DarkGreen)
+    Logger.Write('({},{},{},{}){}x{}'.format(left, top, right, bottom, right - left, bottom - top), ConsoleColor.DarkGreen)
     Logger.Write('    Name: ')
     Logger.Write(control.Name, ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
     Logger.Write('    Handle: ')
@@ -5093,17 +5093,38 @@ def ShowDesktop(waitTime=1):
         #time.sleep(1)
 
 
-def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_CONTROL, Keys.VK_D)):
+def WaitHotKeyReleased(hotkey):
+    """hotkey: two int tuple"""
+    mod = {ModifierKey.MOD_ALT: Keys.VK_MENU,
+           ModifierKey.MOD_CONTROL: Keys.VK_CONTROL,
+                 ModifierKey.MOD_SHIFT: Keys.VK_SHIFT,
+                 ModifierKey.MOD_WIN: Keys.VK_LWIN
+           }
+    while True:
+        time.sleep(0.05)
+        if Win32API.IsKeyPressed(hotkey[1]):
+            continue
+        for k, v in mod.items():
+            if k & hotkey[0]:
+                if Win32API.IsKeyPressed(v):
+                    break
+        else:
+            break
+
+
+def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_CONTROL, Keys.VK_D), waitHotKeyReleased=True):
     """
-    keyFunctionDict: hotkey, function dict, like {(uiautomation.ModifierKey.MOD_CONTROL, uiautomation.Keys.VK_1) : func}
-    Bind function with hotkey, the function will be run or stopped in another thread when the hotkey was pressed.
+    keyFunctionDict: hot key function dict, like {(uiautomation.ModifierKey.MOD_CONTROL, uiautomation.Keys.VK_1) : func}
+    stopHotKey: hot key tuple
+    exitHotKey: hot key tuple
+    waitHotKeyReleased: bool, if True, hot key function will be triggered after the hot key is released
+    Bind function with hot key, the function will be run or stopped in another thread when the hot key is pressed.
     uiautomation doesn't support multi thread, so you can't use UI Control in the function.
     You can call another script that uses UI Control.
 
     def main(stopEvent):
-        n = 0
         while True:
-            if stopEvent.is_set(): # must check stopEvent.is_set() if you want to stop when stop hot key was pressed
+            if stopEvent.is_set(): # must check stopEvent.is_set() if you want to stop when stop hot key is pressed
                 break
             print(n)
             n += 1
@@ -5148,63 +5169,65 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
         keyName = getKeyName(Keys.__dict__, hotkey[1])
         id2Name[hotKeyId] = str((modName, keyName))
         if ctypes.windll.user32.RegisterHotKey(0, hotKeyId, hotkey[0], hotkey[1]):
-            Logger.ColorfulWriteLine('Register hotkey <Color=DarkGreen>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register hot key <Color=DarkGreen>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
         else:
             registed = False
-            Logger.ColorfulWriteLine('Register hotkey <Color=DarkGreen>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register hot key <Color=DarkGreen>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
         hotKeyId += 1
     if stopHotKey and len(stopHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, stopHotKey[0])
         keyName = getKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
-            Logger.ColorfulWriteLine('Register stop hotkey <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register stop hot key <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
         else:
             registed = False
-            Logger.ColorfulWriteLine('Register stop hotkey <Color=Yellow>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register stop hot key <Color=Yellow>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
     if not registed:
         return
     if exitHotKey and len(exitHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, exitHotKey[0])
         keyName = getKeyName(Keys.__dict__, exitHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, exitHotKey[0], exitHotKey[1]):
-            Logger.ColorfulWriteLine('Register exit hotkey <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register exit hot key <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
         else:
-            Logger.ColorfulWriteLine('Register exit hotkey <Color=Yellow>{}</Color> unsuccessfully'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfulWriteLine('Register exit hot key <Color=Yellow>{}</Color> unsuccessfully'.format((modName, keyName)), writeToFile=False)
     from threading import Thread, Event
     funcThread = None
     stopEvent = Event()
     msg = MSG()
-    def threadFunc(function, stopEvent):
+    def threadFunc(function, stopEvent, hotkey):
+        if waitHotKeyReleased:
+            WaitHotKeyReleased(hotkey)
         function(stopEvent)
         releaseAllKey()  #need to release keys if some keys were pressed
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), ctypes.c_void_p(0), 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if msg.wParam in id2HotKey:
                 if msg.lParam & 0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam >> 16 & 0x0000FFFF == id2HotKey[msg.wParam][1]:
-                    Logger.ColorfulWriteLine('----------hotkey <Color=DarkGreen>{}</Color> pressed----------'.format(id2Name[msg.wParam]), writeToFile=False)
+                    Logger.ColorfulWriteLine('----------hot key <Color=DarkGreen>{}</Color> pressed----------'.format(id2Name[msg.wParam]), writeToFile=False)
                     if not id2Thread[msg.wParam]:
                         stopEvent.clear()
-                        funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent))
+                        funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam]))
                         funcThread.setDaemon(True)
                         funcThread.start()
                         id2Thread[msg.wParam] = funcThread
                     else:
                         if not id2Thread[msg.wParam].isAlive():
                             stopEvent.clear()
-                            funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent))
+                            funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam]))
                             funcThread.setDaemon(True)
                             funcThread.start()
                             id2Thread[msg.wParam] = funcThread
                         else:
-                            Logger.WriteLine('There is a thread that had already run for hotkey {}'.format(id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile=False)
+                            Logger.WriteLine('There is a thread that is already running for hot key {}'.format(id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile=False)
             elif stopHotKeyId == msg.wParam:
                 if msg.lParam & 0x0000FFFF == stopHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == stopHotKey[1]:
-                    Logger.WriteLine('----------stop hotkey pressed----------', writeToFile=False)
+                    Logger.WriteLine('----------stop hot key pressed----------', writeToFile=False)
                     stopEvent.set()
                     for id in id2Thread:
                         id2Thread[id] = None
             elif exitHotKeyId == msg.wParam:
                 if msg.lParam & 0x0000FFFF == exitHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == exitHotKey[1]:
-                    Logger.WriteLine('Exit hotkey pressed. Exit', ConsoleColor.Yellow, False)
+                    Logger.WriteLine('Exit hot key pressed. Exit', ConsoleColor.Yellow, False)
                     stopEvent.set()
                     break
