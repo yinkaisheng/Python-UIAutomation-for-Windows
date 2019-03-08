@@ -1656,7 +1656,7 @@ class Win32API:
         return isLocked
 
     @staticmethod
-    def PlayWaveFile(filePath=r'C:\Windows\Media\notify.wav', isAsync=True, isLoop=False):
+    def PlayWaveFile(filePath=r'C:\Windows\Media\notify.wav', isAsync=False, isLoop=False):
         """
         filePath: str, if emtpy, stop playing the current sound
         isAsync: bool, if True, the sound is played asynchronously and returns immediately.
@@ -5228,6 +5228,14 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
                         id2Thread[id] = None
             elif exitHotKeyId == msg.wParam:
                 if msg.lParam & 0x0000FFFF == exitHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == exitHotKey[1]:
-                    Logger.WriteLine('Exit hot key pressed. Exit', ConsoleColor.Yellow, False)
                     stopEvent.set()
+                    Logger.WriteLine('Exit hot key pressed. Exit', ConsoleColor.Yellow, False)
                     break
+    while True:
+        for k, v in id2Thread.items():
+            if v and v.isAlive():
+                break
+        else:
+            return
+        time.sleep(0.1)
+
