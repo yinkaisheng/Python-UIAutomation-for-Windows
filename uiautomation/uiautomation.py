@@ -2057,37 +2057,36 @@ class Win32API:
                 i += 1
             if i >= length:
                 break
-        if debug:
-            for i, key in enumerate(printKeys):
-                if key[1] == 'UnicodeChar':
-                    Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(key, interval), writeToFile=False)
-                else:
-                    if i + 1 == len(printKeys):
-                        Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(key, interval), writeToFile=False)
-                    else:
-                        if 'KeyUp'in key[1] and (printKeys[i+1][1] == 'UnicodeChar' or 'KeyDown' in printKeys[i+1][1]):
-                            Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(key, interval), writeToFile=False)
-                        else:
-                            Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>\n'.format(key), writeToFile=False)
-            Logger.Write('\n', writeToFile=False)
+        hotkeyInterval = 0.01
         for i, key in enumerate(keys):
             if key[1] == 'UnicodeChar':
                 _AutomationClient.instance().dll.SendUnicodeChar(ctypes.c_wchar_p(key[0]))
                 time.sleep(interval)
-                # Win32API.PostMessage(GetFocusedControl().Handle, 0x102, -key[0], 0)# UnicodeChar = 0x102
+                if debug:
+                    Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(printKeys[i], interval), writeToFile=False)
             else:
                 scanCode = Win32API.VKtoSC(key[0])
                 Win32API.keybd_event(key[0], scanCode, key[1], 0)
+                if debug:
+                    Logger.Write(printKeys[i], ConsoleColor.DarkGreen, writeToFile=False)
                 if i + 1 == len(keys):
                     time.sleep(interval)
+                    if debug:
+                        Logger.Write(', sleep({})\n'.format(interval), writeToFile=False)
                 else:
                     if key[1] & KeyboardEventFlags.KeyUp:
                         if keys[i+1][1] == 'UnicodeChar' or keys[i+1][1] & KeyboardEventFlags.KeyUp == 0:
                             time.sleep(interval)
+                            if debug:
+                                Logger.Write(', sleep({})\n'.format(interval), writeToFile=False)
                         else:
-                            time.sleep(0.01)  #must sleep for a while, otherwise combined keys may not be caught
+                            time.sleep(hotkeyInterval)  #must sleep for a while, otherwise combined keys may not be caught
+                            if debug:
+                                Logger.Write(', sleep({})\n'.format(hotkeyInterval), writeToFile=False)
                     else:  #KeyboardEventFlags.KeyDown
-                        time.sleep(0.01)
+                        time.sleep(hotkeyInterval)
+                        if debug:
+                            Logger.Write(', sleep({})\n'.format(hotkeyInterval), writeToFile=False)
         #make sure hold keys are not pressed
         #win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
         #ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
@@ -5135,10 +5134,6 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
     uiautomation.RunHotKey({(uiautomation.ModifierKey.MOD_CONTROL, uiautomation.Keys.VK_1) : main}
                         , (uiautomation.ModifierKey.MOD_CONTROL | uiautomation.ModifierKey.MOD_SHIFT, uiautomation.Keys.VK_2))
     """
-    stopHotKeyId = 1
-    exitHotKeyId = 2
-    hotKeyId = 3
-    registed = True
     def getModName(theDict, theValue):
         name = ''
         for key in theDict:
@@ -5157,6 +5152,10 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
                 if Win32API.IsKeyPressed(value):
                     Win32API.ReleaseKey(value)
 
+    stopHotKeyId = 1
+    exitHotKeyId = 2
+    hotKeyId = 3
+    registed = True
     id2HotKey = {}
     id2Function = {}
     id2Thread = {}
@@ -5208,34 +5207,31 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
                     if not id2Thread[msg.wParam]:
                         stopEvent.clear()
                         funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam]))
-                        funcThread.setDaemon(True)
                         funcThread.start()
                         id2Thread[msg.wParam] = funcThread
                     else:
-                        if not id2Thread[msg.wParam].isAlive():
+                        if id2Thread[msg.wParam].is_alive():
+                            Logger.WriteLine('There is a thread that is already running for hot key {}'.format(id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile=False)
+                        else:
+                            id2Thread[msg.wParam].join()
                             stopEvent.clear()
                             funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam]))
-                            funcThread.setDaemon(True)
                             funcThread.start()
                             id2Thread[msg.wParam] = funcThread
-                        else:
-                            Logger.WriteLine('There is a thread that is already running for hot key {}'.format(id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile=False)
             elif stopHotKeyId == msg.wParam:
                 if msg.lParam & 0x0000FFFF == stopHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == stopHotKey[1]:
                     Logger.WriteLine('----------stop hot key pressed----------', writeToFile=False)
                     stopEvent.set()
-                    for id in id2Thread:
-                        id2Thread[id] = None
+                    for id_ in id2Thread:
+                        if id2Thread[id_]:
+                            id2Thread[id_].join()
+                            id2Thread[id_] = None
             elif exitHotKeyId == msg.wParam:
                 if msg.lParam & 0x0000FFFF == exitHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == exitHotKey[1]:
                     stopEvent.set()
                     Logger.WriteLine('Exit hot key pressed. Exit', ConsoleColor.Yellow, False)
                     break
-    while True:
-        for k, v in id2Thread.items():
-            if v and v.isAlive():
-                break
-        else:
-            return
-        time.sleep(0.1)
+    for id_, thread in id2Thread.items():
+        if thread:
+            thread.join()
 
