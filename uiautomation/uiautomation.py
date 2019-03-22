@@ -17,7 +17,6 @@ import sys
 import time
 import datetime
 import re
-import codecs
 from typing import Any, Callable, Iterable    #need pip install typing for Python3.4 or lower
 import ctypes
 import ctypes.wintypes
@@ -7229,14 +7228,14 @@ def WalkTree(top, getChildren: Callable = None, getFirstChild: Callable = None, 
         yield 3 items tuple: (treeNode, depth, remain children count in current depth).
     If getChildren is not valid, using getFirstChild and getNextSibling,
         yield 2 items tuple: (treeNode, depth).
-    If condition is not None, only yield tree nodes that condition(treeNode, depth)->bool returns True.
+    If yieldCondition is not None, only yield tree nodes that yieldCondition(treeNode, depth)->bool returns True.
 
     For example:
     def GetDirChildren(dir_):
         if os.path.isdir(dir_):
             return [os.path.join(dir_, it) for it in os.listdir(dir_)]
-    for it, depth, count in WalkTree('D:\\', getChildren= GetDirChildren):
-        print(it, depth, count)
+    for it, depth, leftCount in WalkTree('D:\\', getChildren= GetDirChildren):
+        print(it, depth, leftCount)
     """
     if maxDepth <= 0:
         return
