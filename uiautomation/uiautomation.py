@@ -3585,7 +3585,7 @@ class LegacyIAccessiblePattern():
         Return str, the Microsoft Active Accessibility name property of the element.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentname
         """
-        return self.pattern.CurrentName
+        return self.pattern.CurrentName or ''
 
     @property
     def Role(self) -> int:
@@ -5399,7 +5399,7 @@ class Control():
         Call IUIAutomationElement::get_CurrentName.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentname
         """
-        return self.Element.CurrentName
+        return self.Element.CurrentName or ''
 
     @property
     def NativeWindowHandle(self) -> str:
@@ -6303,7 +6303,7 @@ class ComboBoxControl(Control):
                     listItemControl.Click(waitTime=waitTime)
                     find = True
         if not find:
-            Logger.ColorfulWriteLine('Can\'t find <Color=Cyan>{}</Color> in ComboBoxControl or it does not support selection.'.format(itemName), ConsoleColor.Yellow)
+            Logger.ColorfullyWriteLine('Can\'t find <Color=Cyan>{}</Color> in ComboBoxControl or it does not support selection.'.format(itemName), ConsoleColor.Yellow)
             if expandCollapsePattern:
                 expandCollapsePattern.Collapse(waitTime)
             else:
