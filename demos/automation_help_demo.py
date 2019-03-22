@@ -41,7 +41,7 @@ def DemoCN():
     optionWindow.ButtonControl(AutomationId = '1').Click()
     cmdWindow.SetActive()
     rect = cmdWindow.BoundingRectangle
-    auto.DragDrop(rect.left + 50, rect.top + 10, 50, 10)
+    auto.DragDrop(rect.left + 50, rect.top + 10, 50, 30)
 
     thisWindow.SetActive()
     auto.Logger.ColorfullyWrite('我将运行<Color=Cyan>记事本</Color>并输入<Color=Cyan>Hello!!!</Color>\n\n')
@@ -50,7 +50,7 @@ def DemoCN():
     subprocess.Popen('notepad')
     notepadWindow = auto.WindowControl(searchDepth = 1, ClassName = 'Notepad')
     cx, cy = auto.GetScreenSize()
-    notepadWindow.MoveWindow(cx // 2, 0, cx // 2, cy // 2)
+    notepadWindow.MoveWindow(cx // 2, 20, cx // 2, cy // 2)
     time.sleep(0.5)
     notepadWindow.EditControl().SendKeys('Hello!!!', 0.05)
     time.sleep(1)
@@ -129,7 +129,7 @@ def DemoEN():
     subprocess.Popen('notepad')
     notepadWindow = auto.WindowControl(searchDepth = 1, ClassName = 'Notepad')
     cx, cy = auto.GetScreenSize()
-    notepadWindow.MoveWindow(cx // 2, 0, cx // 2, cy // 2)
+    notepadWindow.MoveWindow(cx // 2, 20, cx // 2, cy // 2)
     time.sleep(0.5)
     notepadWindow.EditControl().SendKeys('Hello!!!', 0.05)
     time.sleep(1)
