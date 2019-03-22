@@ -11,7 +11,7 @@ This means that the code can be freely copied and distributed, and costs nothing
 uiautomation1.x supports py2, py3 and doesn't depend on any third package.
 
 uiautomation2.0+ only supports py3 and depends on comtypes and typing(Python3.5+ built-in).  
-uiautomation2.0+ is not forward compatible with 1.x. See [API changes](API changes.txt).
+uiautomation2.0+ is not forward compatible with 1.x. See [API changes](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/blob/master/API%20changes.txt).
 
 You can install uiautomation by "pip install uiautomation". After installation, a automation.py that calls uiautomation will be in 'C:\PythonXX\Scripts\'.
 You use this script to traverse UI controls.
@@ -192,7 +192,7 @@ Batch rename pdf bookmark
 
 
 Microsoft Word
-![Word](images/Word.png)
+![Word](images/word.png)
 
 
 Qt5
