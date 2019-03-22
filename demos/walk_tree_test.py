@@ -15,7 +15,7 @@ def WalkDesktop():
         return control.GetNextSiblingControl()
 
     desktop = automation.GetRootControl()
-    for control, depth in automation.WalkTree(desktop, getFirstChildFunc=GetFirstChild, getNextSiblingFunc=GetNextSibling, includeTop=True, maxDepth= 1):
+    for control, depth in automation.WalkTree(desktop, getFirstChild=GetFirstChild, getNextSibling=GetNextSibling, includeTop=True, maxDepth=2):
         print(' ' * depth * 4 + str(control))
 
 def WalkQueens(queenCount = 8):
@@ -46,11 +46,11 @@ def WalkQueens(queenCount = 8):
         return places
 
     count = 0
-    for queens, depth, remain in automation.WalkTree([], GetNextQueens, yieldConditionFunc= lambda c, d: d == queenCount):
+    for queens, depth, remain in automation.WalkTree([], GetNextQueens, yieldCondition=lambda c, d: d == queenCount):
         count += 1
         automation.Logger.WriteLine(count, automation.ConsoleColor.Cyan)
         for x in queens:
-            automation.Logger.ColorfulWriteLine('o ' * x + '<Color=Cyan>x </Color>' + 'o ' * (queenCount - x - 1))
+            automation.Logger.ColorfullyWriteLine('o ' * x + '<Color=Cyan>x </Color>' + 'o ' * (queenCount - x - 1))
 
 def WalkPermutations(uniqueItems):
     def NextPermutations(aTuple):
@@ -65,12 +65,12 @@ def WalkPermutations(uniqueItems):
 
     n = len(uniqueItems)
     count = 0
-    for (left, permutation), depth, remain in automation.WalkTree((uniqueItems, []), NextPermutations, yieldConditionFunc= lambda c, d: d == n):
+    for (left, permutation), depth, remain in automation.WalkTree((uniqueItems, []), NextPermutations, yieldCondition=lambda c, d: d == n):
         count += 1
         print(count, permutation)
 
 def main():
-    automation.Logger.WriteLine('\nwalk desktop for only one depth', automation.ConsoleColor.Cyan)
+    automation.Logger.WriteLine('\nwalk desktop for 2 depth', automation.ConsoleColor.Cyan)
     time.sleep(1)
     WalkDesktop()
     automation.Logger.WriteLine('\nwalk 8 queens', automation.ConsoleColor.Cyan)
