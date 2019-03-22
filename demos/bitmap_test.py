@@ -6,26 +6,25 @@ import time
 import subprocess
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-import uiautomation as automation
-
+import uiautomation as auto
 
 def main():
     width = 500
     height = 500
-    cmdWindow = automation.GetConsoleWindow()
-    automation.Logger.WriteLine('create a transparent image')
-    bitmap = automation.Bitmap(width, height)
+    cmdWindow = auto.GetConsoleWindow()
+    auto.Logger.WriteLine('create a transparent image')
+    bitmap = auto.Bitmap(width, height)
     bitmap.ToFile('image_transparent.png')
 
     cmdWindow.SetActive()
-    automation.Logger.WriteLine('create a blue image')
+    auto.Logger.WriteLine('create a blue image')
     start = time.time()
     for x in range(width):
         for y in range(height):
             argb = 0x0000FF | ((255 * x // 500) << 24)
             bitmap.SetPixelColor(x, y, argb)
     cost = time.time() - start
-    automation.Logger.WriteLine('write {}x{} image by SetPixelColor cost {:.3f}s'.format(width, height, cost))
+    auto.Logger.WriteLine('write {}x{} image by SetPixelColor cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_blue.png')
 
     start = time.time()
@@ -33,23 +32,27 @@ def main():
         for y in range(height):
             bitmap.GetPixelColor(x, y)
     cost = time.time() - start
-    automation.Logger.WriteLine('read {}x{} image by GetPixelColor cost {:.3f}s'.format(width, height, cost))
+    auto.Logger.WriteLine('read {}x{} image by GetPixelColor cost {:.3f}s'.format(width, height, cost))
 
-    start = time.time()
     argb = [(0xFF0000 | (0x0000FF * y // height) | ((255 * x // width) << 24)) for x in range(width) for y in range(height)]
-    bitmap.SetPixelColorsHorizontally(0, 0, argb)
+    start = time.time()
+    bitmap.SetPixelColorsOfRect(0, 0, width, height, argb)
     cost = time.time() - start
-    automation.Logger.WriteLine('write {}x{} image by SetPixelColorsHorizontally cost {:.3f}s'.format(width, height, cost))
+    auto.Logger.WriteLine('write {}x{} image by SetPixelColorsOfRect cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_red.png')
 
     start = time.time()
-    bitmap.GetAllPixelColors()
+    colors = bitmap.GetAllPixelColors()
     cost = time.time() - start
-    automation.Logger.WriteLine('read {}x{} image by GetAllPixelColors cost {:.3f}s'.format(width, height, cost))
+    auto.Logger.WriteLine('read {}x{} image by GetAllPixelColors cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_red.png')
     bitmap.ToFile('image_red.jpg')
 
-    subprocess.Popen('image_red.png', shell = True)
+    subprocess.Popen('image_red.png', shell=True)
+
+    root = auto.GetRootControl()
+    bitmap = root.ToBitmap(0, 0, 400, 400)
+    bitmap.ToFile('desk_part.png')
 
 
 if __name__ == '__main__':

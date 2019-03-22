@@ -3,13 +3,11 @@
 import sys
 import time
 
-from uiautomation import (Win32API, Logger, ControlFromCursor, GetRootControl, GetFocusedControl,
-                            LogControl, EnumAndLogControlAncestors, EnumAndLogControl, ConsoleColor)
-from uiautomation import VERSION
+import uiautomation as auto
 
 
 def usage():
-    Logger.ColorfulWrite("""usage
+    auto.Logger.ColorfullyWrite("""usage
 <Color=Cyan>-h</Color>      show command <Color=Cyan>help</Color>
 <Color=Cyan>-t</Color>      delay <Color=Cyan>time</Color>, default 3 seconds, begin to enumerate after Value seconds, this must be an integer
         you can delay a few seconds and make a window active so automation can enumerate the active window
@@ -18,8 +16,8 @@ def usage():
 <Color=Cyan>-f</Color>      enumerate from <Color=Cyan>focused</Color> control, if it is null, enumerate from foreground window
 <Color=Cyan>-c</Color>      enumerate the control under <Color=Cyan>cursor</Color>, if depth is < 0, enumerate from its ancestor up to depth
 <Color=Cyan>-a</Color>      show <Color=Cyan>ancestors</Color> of the control under cursor
-<Color=Cyan>-n</Color>      show control full <Color=Cyan>name, value</Color>, default show the first 30 characters, but don't truncate in log file
-<Color=Cyan>-m</Color>      show <Color=Cyan>more</Color> properties
+<Color=Cyan>-n</Color>      show control full <Color=Cyan>name</Color>, if it is null, show first 30 characters of control's name in console,
+        allways show full name in log file @AutomationLog.txt
 
 if <Color=Red>UnicodeError</Color> or <Color=Red>LookupError</Color> occurred when printing,
 try to change the active code page of console window by using <Color=Cyan>chcp</Color> or see the log file <Color=Cyan>@AutomationLog.txt</Color>
@@ -31,19 +29,15 @@ examples:
 automation.py -t3
 automation.py -t3 -r -d1 -m -n
 automation.py -c -t3
-automation.py -c -t3 -n -d-1
 
 """, writeToFile=False)
 
 
 def main():
-    # if not IsPy3 and sys.getdefaultencoding() == 'ascii':
-    # reload(sys)
-    # sys.setdefaultencoding('utf-8')
     import getopt
-    Logger.Write('UIAutomation {} (Python {}.{}.{}, {} bit)\n'.format(VERSION, sys.version_info.major, sys.version_info.minor, sys.version_info.micro, 64 if sys.maxsize > 0xFFFFFFFF else 32))
-    options, args = getopt.getopt(sys.argv[1:], 'hrfcamnd:t:',
-                                  ['help', 'root', 'focus', 'cursor', 'ancestor', 'showMore', 'showAllName', 'depth=',
+    auto.Logger.Write('UIAutomation {} (Python {}.{}.{}, {} bit)\n'.format(auto.VERSION, sys.version_info.major, sys.version_info.minor, sys.version_info.micro, 64 if sys.maxsize > 0xFFFFFFFF else 32))
+    options, args = getopt.getopt(sys.argv[1:], 'hrfcand:t:',
+                                  ['help', 'root', 'focus', 'cursor', 'ancestor', 'showAllName', 'depth=',
                                    'time='])
     root = False
     focus = False
@@ -51,7 +45,6 @@ def main():
     ancestor = False
     foreground = True
     showAllName = False
-    showMore = False
     depth = 0xFFFFFFFF
     seconds = 3
     for (o, v) in options:
@@ -72,38 +65,36 @@ def main():
             foreground = False
         elif o in ('-n', '-showAllName'):
             showAllName = True
-        elif o in ('-m', '-showMore'):
-            showMore = True
         elif o in ('-d', '-depth'):
             depth = int(v)
         elif o in ('-t', '-time'):
             seconds = int(v)
     if seconds > 0:
-        Logger.Write('please wait for {0} seconds\n\n'.format(seconds), writeToFile = False)
+        auto.Logger.Write('please wait for {0} seconds\n\n'.format(seconds), writeToFile=False)
         time.sleep(seconds)
-    Logger.Log('Starts, Current Cursor Position: {}'.format(Win32API.GetCursorPos()))
+    auto.Logger.Log('Starts, Current Cursor Position: {}'.format(auto.GetCursorPos()))
     control = None
     if root:
-        control = GetRootControl()
+        control = auto.GetRootControl()
     if focus:
-        control = GetFocusedControl()
+        control = auto.GetFocusedControl()
     if cursor:
-        control = ControlFromCursor()
+        control = auto.ControlFromCursor()
         if depth < 0:
             while depth < 0 and control:
                 control = control.GetParentControl()
                 depth += 1
             depth = 0xFFFFFFFF
     if ancestor:
-        control = ControlFromCursor()
+        control = auto.ControlFromCursor()
         if control:
-            EnumAndLogControlAncestors(control, showAllName, showMore)
+            auto.EnumAndLogControlAncestors(control, showAllName)
         else:
-            Logger.Write('IUIAutomation returns null element under cursor\n', ConsoleColor.Yellow)
+            auto.Logger.Write('IUIAutomation returns null element under cursor\n', auto.ConsoleColor.Yellow)
     else:
         indent = 0
         if not control:
-            control = GetFocusedControl()
+            control = auto.GetFocusedControl()
             controlList = []
             while control:
                 controlList.insert(0, control)
@@ -114,9 +105,9 @@ def main():
                 control = controlList[1]
                 if foreground:
                     indent = 1
-                    LogControl(controlList[0], 0, showAllName, showMore)
-        EnumAndLogControl(control, depth, showAllName, showMore, startIndent = indent)
-    Logger.Log('Ends\n')
+                    auto.LogControl(controlList[0], 0, showAllName)
+        auto.EnumAndLogControl(control, depth, showAllName, startDepth=indent)
+    auto.Logger.Log('Ends\n')
 
 if __name__ == '__main__':
     main()

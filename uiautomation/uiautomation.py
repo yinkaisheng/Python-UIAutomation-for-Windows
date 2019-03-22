@@ -1,6 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 """
+uiautomation for Python 3.
 Author: yinkaisheng@live.com
 Source: https://github.com/yinkaisheng/Python-UIAutomation-for-Windows
 
@@ -16,46 +17,33 @@ import sys
 import time
 import datetime
 import re
+import codecs
+from typing import Any, Callable, Iterable    #need pip install typing for Python3.4 or lower
 import ctypes
 import ctypes.wintypes
-import msvcrt
+import comtypes #need pip install comtypes
+import comtypes.client
 
-IsNT6 = os.sys.getwindowsversion().major >= 6
-IsPy3 = sys.version_info[0] >= 3
-if not IsPy3:
-    import codecs
-
-if sys.version_info[:2] >= (3, 3):
-    ProcessTime = time.perf_counter  # this returns nearly 0 when first call it if python version <= 3.6
-else:
-    # On Windows, time.clock returns wall-clock seconds elapsed since the first call to this function
-    ProcessTime = time.clock
-ProcessTime()  # need to call it once
 
 AUTHOR_MAIL = 'yinkaisheng@live.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
 SEARCH_INTERVAL = 0.5  # search control interval seconds
 MAX_MOVE_SECOND = 1  # simulate mouse move or drag max seconds
-TIME_OUT_SECOND = 15
+TIME_OUT_SECOND = 10
 OPERATION_WAIT_TIME = 0.5
 MAX_PATH = 260
 DEBUG_SEARCH_TIME = False
 DEBUG_EXIST_DISAPPEAR = False
+S_OK = 0
 
+IsNT6orHigher = os.sys.getwindowsversion().major >= 6
+ProcessTime = time.perf_counter  #this returns nearly 0 when first call it if python version <= 3.6
+ProcessTime()  # need to call it once if python version <= 3.6
 
-class Point(ctypes.Structure):
-    _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
-
-
-class MSG(ctypes.Structure):
-    _fields_ = [
-        ("hwnd", ctypes.c_void_p),
-        ("message", ctypes.c_uint),
-        ("wParam", ctypes.c_uint),
-        ("lParam", ctypes.c_long),
-        ("time", ctypes.c_uint),
-        ("pt", Point)
-    ]
+#add methods width, height, __str__ to ctypes.wintypes.RECT
+ctypes.wintypes.RECT.width = lambda self: self.right - self.left
+ctypes.wintypes.RECT.height = lambda self: self.bottom - self.top
+ctypes.wintypes.RECT.__str__ = lambda self: '({},{},{},{})[{}x{}]'.format(self.left, self.top, self.right, self.bottom, self.width(), self.height())
 
 
 class _AutomationClient:
@@ -63,189 +51,42 @@ class _AutomationClient:
 
     @classmethod
     def instance(cls):
-        """Singleton instance (this prevents creation on import)."""
+        """Singleton instance (this prevents com creation on import)."""
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
 
     def __init__(self):
-        bin_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
-        os.environ["PATH"] = bin_path + os.pathsep + os.environ["PATH"]
-
-        if sys.maxsize > 0xFFFFFFFF:
-            if sys.version_info[:2] >= (3, 5):
-                self.dll = ctypes.cdll.UIAutomationClient_VC140_X64
-            elif sys.version_info[:2] >= (3, 3):
-                self.dll = ctypes.cdll.UIAutomationClient_VC100_X64
-            else:
-                self.dll = ctypes.cdll.UIAutomationClient_VC90_X64
-        else:
-            if sys.version_info[:2] >= (3, 5):
-                self.dll = ctypes.cdll.UIAutomationClient_VC140_X86
-            elif sys.version_info[:2] >= (3, 3):
-                self.dll = ctypes.cdll.UIAutomationClient_VC100_X86
-            else:
-                self.dll = ctypes.cdll.UIAutomationClient_VC90_X86
-
-        self.InitFunctionType()
-
-        if not self.dll.InitInstance():
-            raise RuntimeError('Can not get an instance of IUIAutomation.\nYou may need to install Windows Update KB971513.\nhttps://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation')
-
-    def InitFunctionType(self):
-        self.dll.GetAutomationObject.restype = ctypes.c_size_t
-        self.dll.GetRawTreeWalker.restype = ctypes.c_size_t
-        self.dll.ElementAddRef.argtypes = (ctypes.c_size_t, )
-        self.dll.CompareElements.argtypes = (ctypes.c_size_t, ctypes.c_size_t)
-        self.dll.ReleaseElement.argtypes = (ctypes.c_size_t, )
-        self.dll.ReleaseElementArray.argtypes = (ctypes.c_size_t, )
-        self.dll.GetRootElement.restype = ctypes.c_size_t
-        self.dll.GetFocusedElement.restype = ctypes.c_size_t
-        self.dll.ElementFromPoint.restype = ctypes.c_size_t
-        self.dll.ElementFromHandle.argtypes = (ctypes.c_size_t, )
-        self.dll.ElementFromHandle.restype = ctypes.c_size_t
-        self.dll.GetElementName.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementName.restype = ctypes.c_size_t
-        self.dll.GetElementControlTypeName.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementControlTypeName.restype = ctypes.c_size_t
-        self.dll.GetElementClassName.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementClassName.restype = ctypes.c_size_t
-        self.dll.GetElementAutomationId.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementAutomationId.restype = ctypes.c_size_t
-        self.dll.GetElementProcessId.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementControlType.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementLocalizedControlType.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementLocalizedControlType.restype = ctypes.c_size_t
-        self.dll.GetElementIsEnabled.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementHasKeyboardFocus.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementIsKeyboardFocusable.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementIsOffscreen.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementHandle.argtypes = (ctypes.c_size_t, )
-        self.dll.GetElementHandle.restype = ctypes.c_size_t
-        self.dll.SetElementFocus.argtypes = (ctypes.c_size_t, )
-        self.dll.GetParentElement.argtypes = (ctypes.c_size_t, )
-        self.dll.GetParentElement.restype = ctypes.c_size_t
-        self.dll.GetNextSiblingElement.argtypes = (ctypes.c_size_t, )
-        self.dll.GetNextSiblingElement.restype = ctypes.c_size_t
-        self.dll.GetPreviousSiblingElement.argtypes = (ctypes.c_size_t, )
-        self.dll.GetPreviousSiblingElement.restype = ctypes.c_size_t
-        self.dll.GetFirstChildElement.argtypes = (ctypes.c_size_t, )
-        self.dll.GetFirstChildElement.restype = ctypes.c_size_t
-        self.dll.GetLastChildElement.argtypes = (ctypes.c_size_t, )
-        self.dll.GetLastChildElement.restype = ctypes.c_size_t
-        self.dll.ElementArrayGetLength.argtypes = (ctypes.c_size_t, )
-        self.dll.ElementArrayGetElement.argtypes = (ctypes.c_size_t, ctypes.c_int)
-        self.dll.ElementArrayGetElement.restype = ctypes.c_size_t
-        self.dll.GetElementPattern.argtypes = (ctypes.c_size_t, ctypes.c_int)
-        self.dll.GetElementPattern.restype = ctypes.c_size_t
-        self.dll.ReleasePattern.argtypes = (ctypes.c_size_t, )
-        self.dll.InvokePatternInvoke.argtypes = (ctypes.c_size_t, )
-        self.dll.TogglePatternToggle.argtypes = (ctypes.c_size_t, )
-        self.dll.TogglePatternCurrentToggleState.argtypes = (ctypes.c_size_t, )
-        self.dll.ExpandCollapsePatternExpand.argtypes = (ctypes.c_size_t, )
-        self.dll.ExpandCollapsePatternCollapse.argtypes = (ctypes.c_size_t, )
-        self.dll.ExpandCollapsePatternCurrentExpandCollapseState.argtypes = (ctypes.c_size_t, )
-        self.dll.ValuePatternCurrentValue.argtypes = (ctypes.c_size_t, )
-        self.dll.ValuePatternCurrentValue.restype = ctypes.c_size_t
-        self.dll.ValuePatternSetValue.argtypes = (ctypes.c_size_t, ctypes.c_wchar_p)
-        self.dll.ValuePatternCurrentIsReadOnly.argtypes = (ctypes.c_size_t, )
-        self.dll.ScrollItemPatternScrollIntoView.argtypes = (ctypes.c_size_t, )
-        self.dll.ScrollPatternCurrentHorizontallyScrollable.argtypes = (ctypes.c_size_t, )
-        self.dll.ScrollPatternCurrentHorizontalViewSize.argtypes = (ctypes.c_size_t, )
-        self.dll.ScrollPatternCurrentHorizontalScrollPercent.argtypes = (ctypes.c_size_t, )
-        self.dll.ScrollPatternCurrentVerticallyScrollable.argtypes = (ctypes.c_size_t, )
-        self.dll.ScrollPatternCurrentVerticalViewSize.argtypes = (ctypes.c_size_t, )
-        self.dll.ScrollPatternCurrentVerticalScrollPercent.argtypes = (ctypes.c_size_t, )
-        self.dll.ScrollPatternSetScrollPercent.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
-        self.dll.SelectionPatternGetCurrentSelection.argtypes = (ctypes.c_size_t, )
-        self.dll.SelectionPatternGetCurrentSelection.restype = ctypes.c_size_t
-        self.dll.SelectionItemPatternSelect.argtypes = (ctypes.c_size_t, )
-        self.dll.SelectionItemPatternAddToSelection.argtypes = (ctypes.c_size_t, )
-        self.dll.SelectionItemPatternRemoveFromSelection.argtypes = (ctypes.c_size_t, )
-        self.dll.SelectionItemPatternCurrentIsSelected.argtypes = (ctypes.c_size_t, )
-        self.dll.RangeValuePatternCurrentValue.argtypes = (ctypes.c_size_t, )
-        self.dll.RangeValuePatternSetValue.argtypes = (ctypes.c_size_t, ctypes.c_int)
-        self.dll.RangeValuePatternCurrentMaximum.argtypes = (ctypes.c_size_t, )
-        self.dll.RangeValuePatternCurrentMinimum.argtypes = (ctypes.c_size_t, )
-        self.dll.WindowPatternCurrentWindowVisualState.argtypes = (ctypes.c_size_t, )
-        self.dll.WindowPatternSetWindowVisualState.argtypes = (ctypes.c_size_t, ctypes.c_int)
-        self.dll.WindowPatternCurrentCanMaximize.argtypes = (ctypes.c_size_t, )
-        self.dll.WindowPatternCurrentCanMinimize.argtypes = (ctypes.c_size_t, )
-        self.dll.WindowPatternCurrentIsModal.argtypes = (ctypes.c_size_t, )
-        self.dll.WindowPatternCurrentIsTopmost.argtypes = (ctypes.c_size_t, )
-        self.dll.WindowPatternClose.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternSelect.argtypes = (ctypes.c_size_t, ctypes.c_long)
-        self.dll.LegacyIAccessiblePatternDoDefaultAction.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternSetValue.argtypes = (ctypes.c_size_t, ctypes.c_wchar_p)
-        self.dll.LegacyIAccessiblePatternCurrentChildId.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternCurrentName.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternCurrentName.restype = ctypes.c_size_t
-        self.dll.LegacyIAccessiblePatternCurrentValue.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternCurrentValue.restype = ctypes.c_size_t
-        self.dll.LegacyIAccessiblePatternCurrentDescription.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternCurrentDescription.restype = ctypes.c_size_t
-        self.dll.LegacyIAccessiblePatternCurrentRole.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternCurrentState.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternCurrentHelp.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternCurrentHelp.restype = ctypes.c_size_t
-        self.dll.LegacyIAccessiblePatternCurrentKeyboardShortcut.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternCurrentKeyboardShortcut.restype = ctypes.c_size_t
-        self.dll.LegacyIAccessiblePatternGetCurrentSelection.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternGetCurrentSelection.restype = ctypes.c_size_t
-        self.dll.LegacyIAccessiblePatternCurrentDefaultAction.argtypes = (ctypes.c_size_t, )
-        self.dll.LegacyIAccessiblePatternCurrentDefaultAction.restype = ctypes.c_size_t
-        self.dll.GridPatternGetItem.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
-        self.dll.GridPatternGetItem.restype = ctypes.c_size_t
-        self.dll.GridPatternCurrentRowCount.argtypes = (ctypes.c_size_t, )
-        self.dll.GridPatternCurrentColumnCount.argtypes = (ctypes.c_size_t, )
-        self.dll.TablePatternCurrentRowHeaders.argtypes = (ctypes.c_size_t, )
-        self.dll.TablePatternCurrentRowHeaders.restype = ctypes.c_size_t
-        self.dll.TablePatternCurrentColumnHeaders.argtypes = (ctypes.c_size_t, )
-        self.dll.TablePatternCurrentColumnHeaders.restype = ctypes.c_size_t
-        self.dll.TablePatternCurrentRowOrColumnMajor.argtypes = (ctypes.c_size_t, )
-        self.dll.TableItemPatternCurrentRowHeaderItems.argtypes = (ctypes.c_size_t, )
-        self.dll.TableItemPatternCurrentRowHeaderItems.restype = ctypes.c_size_t
-        self.dll.TableItemPatternCurrentColumnHeaderItems.argtypes = (ctypes.c_size_t, )
-        self.dll.TableItemPatternCurrentColumnHeaderItems.restype = ctypes.c_size_t
-        self.dll.GridItemPatternCurrentContainingGrid.argtypes = (ctypes.c_size_t, )
-        self.dll.GridItemPatternCurrentContainingGrid.restype = ctypes.c_size_t
-        self.dll.GridItemPatternCurrentRow.argtypes = (ctypes.c_size_t, )
-        self.dll.GridItemPatternCurrentColumn.argtypes = (ctypes.c_size_t, )
-        self.dll.GridItemPatternCurrentRowSpan.argtypes = (ctypes.c_size_t, )
-        self.dll.GridItemPatternCurrentColumnSpan.argtypes = (ctypes.c_size_t, )
-        self.dll.TransformPatternMove.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
-        self.dll.TransformPatternResize.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
-        self.dll.TransformPatternRotate.argtypes = (ctypes.c_size_t, ctypes.c_int)
-        self.dll.BitmapCreate.restype = ctypes.c_size_t
-        self.dll.BitmapFromWindow.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
-        self.dll.BitmapFromWindow.restype = ctypes.c_size_t
-        self.dll.BitmapFromFile.restype = ctypes.c_size_t
-        self.dll.BitmapToFile.argtypes = (ctypes.c_size_t, ctypes.c_wchar_p, ctypes.c_wchar_p)
-        self.dll.BitmapRelease.argtypes = (ctypes.c_size_t, )
-        self.dll.BitmapGetWidthAndHeight.argtypes = (ctypes.c_size_t, )
-        self.dll.BitmapGetPixel.argtypes = (ctypes.c_size_t, ctypes.c_uint, ctypes.c_uint)
-        self.dll.BitmapSetPixel.argtypes = (ctypes.c_size_t, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint)
-
-        # Windows dll
+        try:
+            self.UIAutomationCore = comtypes.client.GetModule("UIAutomationCore.dll")
+            self.IUIAutomation = comtypes.client.CreateObject("{ff48dba4-60ef-4201-aa87-54103eef594e}", interface=self.UIAutomationCore.IUIAutomation)
+            self.ViewWalker = self.IUIAutomation.RawViewWalker
+            #self.ViewWalker = self.IUIAutomation.ControlViewWalker
+        except OSError as ex:
+            Logger.WriteLine('Can not load UIAutomationCore.dll.\nYou may need to install Windows Update KB971513.\nhttps://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation', ConsoleColor.Yellow)
+            raise ex
+        #Windows dll
         ctypes.cdll.msvcrt.wcsncpy.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_size_t)
         ctypes.windll.winmm.PlaySoundW.argtypes = (ctypes.c_wchar_p, ctypes.c_void_p, ctypes.c_uint)
-        ctypes.windll.OleAut32.SysFreeString.argtypes = (ctypes.c_wchar_p, )
+        #ctypes.windll.OleAut32.SysFreeString.argtypes = (ctypes.c_wchar_p, )
         ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
         ctypes.windll.user32.GetWindowDC.argtypes = (ctypes.c_void_p, )
         ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
         ctypes.windll.user32.ReleaseDC.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
         ctypes.windll.user32.OpenDesktopW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_int, ctypes.c_uint)
         ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
-        ctypes.windll.user32.WindowFromPoint.argtypes = (Point, )
+        ctypes.windll.user32.WindowFromPoint.argtypes = (ctypes.wintypes.POINT, )
         ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
         ctypes.windll.user32.SwitchDesktop.argtypes = (ctypes.c_void_p, )
         ctypes.windll.user32.CloseDesktop.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.user32.GetMessageW.argtypes = (ctypes.POINTER(MSG), ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint)
+        ctypes.windll.user32.GetMessageW.argtypes = (ctypes.POINTER(ctypes.wintypes.MSG), ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint)
         ctypes.windll.user32.SetClipboardData.argtypes = (ctypes.c_uint, ctypes.c_void_p)
-        ctypes.windll.user32.PostMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_long)
-        ctypes.windll.user32.SendMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_long)
-        ctypes.windll.user32.GetCursorPos.argtypes = (ctypes.POINTER(Point), )
+        ctypes.windll.user32.PostMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.wintypes.WPARAM, ctypes.wintypes.LPARAM)
+        ctypes.windll.user32.SendMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.wintypes.WPARAM, ctypes.wintypes.LPARAM)
+        ctypes.windll.user32.SendMessageW.restype = ctypes.wintypes.LONG
+        ctypes.windll.user32.GetCursorPos.argtypes = (ctypes.POINTER(ctypes.wintypes.POINT), )
         ctypes.windll.user32.MessageBoxW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint)
+        ctypes.windll.user32.GetAncestor.argtypes = (ctypes.c_void_p, ctypes.c_int)
         ctypes.windll.user32.SetForegroundWindow.argtypes = (ctypes.c_void_p, )
         ctypes.windll.user32.GetForegroundWindow.restype = ctypes.c_void_p
         ctypes.windll.user32.BringWindowToTop.argtypes = (ctypes.c_void_p, )
@@ -254,7 +95,7 @@ class _AutomationClient:
         ctypes.windll.user32.IsWindowVisible.argtypes = (ctypes.c_void_p, )
         ctypes.windll.user32.SwitchToThisWindow.argtypes = (ctypes.c_void_p, ctypes.c_int)
         ctypes.windll.user32.GetWindowLongW.argtypes = (ctypes.c_void_p, ctypes.c_int)
-        ctypes.windll.user32.GetWindowLongW.restype = ctypes.c_size_t
+        ctypes.windll.user32.GetWindowLongW.restype = ctypes.wintypes.LONG
         ctypes.windll.user32.ShowWindow.argtypes = (ctypes.c_void_p, ctypes.c_int)
         ctypes.windll.user32.MoveWindow.argtypes = (ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
         ctypes.windll.user32.SetWindowPos.argtypes = (ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint)
@@ -272,382 +113,1128 @@ class _AutomationClient:
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CloseHandle.argtypes = (ctypes.c_void_p, )
         ctypes.windll.kernel32.TerminateProcess.argtypes = (ctypes.c_void_p, ctypes.c_uint)
-        ctypes.windll.kernel32.Module32FirstW.argtypes = (ctypes.c_void_p, ctypes.POINTER(tagMODULEENTRY32))
-        ctypes.windll.kernel32.Process32FirstW.argtypes = (ctypes.c_void_p, ctypes.POINTER(tagPROCESSENTRY32))
-        if IsNT6:
+        if IsNT6orHigher:
             ctypes.windll.kernel32.GetConsoleOriginalTitleW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint)
-            ctypes.windll.kernel32.QueryFullProcessImageNameW.argtypes = (ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.c_wchar_p, ctypes.POINTER(ctypes.wintypes.DWORD))
-
-    def __del__(self):
-        self.dll.ReleaseInstance()
 
 
-_rootControl = None
+class _DllClient:
+    _instance = None
+
+    @classmethod
+    def instance(cls):
+        """Singleton instance (this prevents com creation on import)."""
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def __init__(self):
+        binPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
+        os.environ["PATH"] = binPath + os.pathsep + os.environ["PATH"]
+        load = False
+        if sys.maxsize > 0xFFFFFFFF:
+            try:
+                self.dll = ctypes.cdll.UIAutomationClient_VC140_X64
+                load = True
+            except OSError as ex:
+                pass
+            if not load:
+                try:
+                    self.dll = ctypes.cdll.UIAutomationClient_VC100_X64
+                    load = True
+                except OSError as ex:
+                    pass
+        else:
+            try:
+                self.dll = ctypes.cdll.UIAutomationClient_VC140_X86
+                load = True
+            except OSError as ex:
+                pass
+            if not load:
+                try:
+                    self.dll = ctypes.cdll.UIAutomationClient_VC100_X86
+                    load = True
+                except OSError as ex:
+                    pass
+        if load:
+            self.dll.BitmapCreate.restype = ctypes.c_size_t
+            self.dll.BitmapFromWindow.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
+            self.dll.BitmapFromWindow.restype = ctypes.c_size_t
+            self.dll.BitmapFromFile.argtypes = (ctypes.c_wchar_p, )
+            self.dll.BitmapFromFile.restype = ctypes.c_size_t
+            self.dll.BitmapToFile.argtypes = (ctypes.c_size_t, ctypes.c_wchar_p, ctypes.c_wchar_p)
+            self.dll.BitmapRelease.argtypes = (ctypes.c_size_t, )
+            self.dll.BitmapGetWidthAndHeight.argtypes = (ctypes.c_size_t, )
+            self.dll.BitmapGetPixel.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
+            self.dll.BitmapSetPixel.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_uint)
+        else:
+            Logger.WriteLine('Can not load dll.\nFunctionalities related to Bitmap are not available.\nYou may need to install Microsoft Visual C++ 2010/2015 Redistributable Package.', ConsoleColor.Yellow)
 
 
 class ControlType:
-    """This class defines the values of control type"""
-    AppBarControl = 0xc378
-    ButtonControl = 0xc350
-    CalendarControl = 0xc351
-    CheckBoxControl = 0xc352
-    ComboBoxControl = 0xc353
-    CustomControl = 0xc369
-    DataGridControl = 0xc36c
-    DataItemControl = 0xc36d
-    DocumentControl = 0xc36e
-    EditControl = 0xc354
-    GroupControl = 0xc36a
-    HeaderControl = 0xc372
-    HeaderItemControl = 0xc373
-    HyperlinkControl = 0xc355
-    ImageControl = 0xc356
-    ListControl = 0xc358
-    ListItemControl = 0xc357
-    MenuBarControl = 0xc35a
-    MenuControl = 0xc359
-    MenuItemControl = 0xc35b
-    PaneControl = 0xc371
-    ProgressBarControl = 0xc35c
-    RadioButtonControl = 0xc35d
-    ScrollBarControl = 0xc35e
-    SemanticZoomControl = 0xc377
-    SeparatorControl = 0xc376
-    SliderControl = 0xc35f
-    SpinnerControl = 0xc360
-    SplitButtonControl = 0xc36f
-    StatusBarControl = 0xc361
-    TabControl = 0xc362
-    TabItemControl = 0xc363
-    TableControl = 0xc374
-    TextControl = 0xc364
-    ThumbControl = 0xc36b
-    TitleBarControl = 0xc375
-    ToolBarControl = 0xc365
-    ToolTipControl = 0xc366
-    TreeControl = 0xc367
-    TreeItemControl = 0xc368
-    WindowControl = 0xc370
+    """
+    ControlType from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-controltype-ids
+    """
+    AppBarControl = 50040
+    ButtonControl = 50000
+    CalendarControl = 50001
+    CheckBoxControl = 50002
+    ComboBoxControl = 50003
+    CustomControl = 50025
+    DataGridControl = 50028
+    DataItemControl = 50029
+    DocumentControl = 50030
+    EditControl = 50004
+    GroupControl = 50026
+    HeaderControl = 50034
+    HeaderItemControl = 50035
+    HyperlinkControl = 50005
+    ImageControl = 50006
+    ListControl = 50008
+    ListItemControl = 50007
+    MenuBarControl = 50010
+    MenuControl = 50009
+    MenuItemControl = 50011
+    PaneControl = 50033
+    ProgressBarControl = 50012
+    RadioButtonControl = 50013
+    ScrollBarControl = 50014
+    SemanticZoomControl = 50039
+    SeparatorControl = 50038
+    SliderControl = 50015
+    SpinnerControl = 50016
+    SplitButtonControl = 50031
+    StatusBarControl = 50017
+    TabControl = 50018
+    TabItemControl = 50019
+    TableControl = 50036
+    TextControl = 50020
+    ThumbControl = 50027
+    TitleBarControl = 50037
+    ToolBarControl = 50021
+    ToolTipControl = 50022
+    TreeControl = 50023
+    TreeItemControl = 50024
+    WindowControl = 50032
 
 
-ControlTypeNameDict = {
-    ControlType.AppBarControl : 'AppBarControl',
-    ControlType.ButtonControl : 'ButtonControl',
-    ControlType.CalendarControl : 'CalendarControl',
-    ControlType.CheckBoxControl : 'CheckBoxControl',
-    ControlType.ComboBoxControl : 'ComboBoxControl',
-    ControlType.CustomControl : 'CustomControl',
-    ControlType.DataGridControl : 'DataGridControl',
-    ControlType.DataItemControl : 'DataItemControl',
-    ControlType.DocumentControl : 'DocumentControl',
-    ControlType.EditControl : 'EditControl',
-    ControlType.GroupControl : 'GroupControl',
-    ControlType.HeaderControl : 'HeaderControl',
-    ControlType.HeaderItemControl : 'HeaderItemControl',
-    ControlType.HyperlinkControl : 'HyperlinkControl',
-    ControlType.ImageControl : 'ImageControl',
-    ControlType.ListControl : 'ListControl',
-    ControlType.ListItemControl : 'ListItemControl',
-    ControlType.MenuBarControl : 'MenuBarControl',
-    ControlType.MenuControl : 'MenuControl',
-    ControlType.MenuItemControl : 'MenuItemControl',
-    ControlType.PaneControl : 'PaneControl',
-    ControlType.ProgressBarControl : 'ProgressBarControl',
-    ControlType.RadioButtonControl : 'RadioButtonControl',
-    ControlType.ScrollBarControl : 'ScrollBarControl',
-    ControlType.SemanticZoomControl : 'SemanticZoomControl',
-    ControlType.SeparatorControl : 'SeparatorControl',
-    ControlType.SliderControl : 'SliderControl',
-    ControlType.SpinnerControl : 'SpinnerControl',
-    ControlType.SplitButtonControl : 'SplitButtonControl',
-    ControlType.StatusBarControl : 'StatusBarControl',
-    ControlType.TabControl : 'TabControl',
-    ControlType.TabItemControl : 'TabItemControl',
-    ControlType.TableControl : 'TableControl',
-    ControlType.TextControl : 'TextControl',
-    ControlType.ThumbControl : 'ThumbControl',
-    ControlType.TitleBarControl : 'TitleBarControl',
-    ControlType.ToolBarControl : 'ToolBarControl',
-    ControlType.ToolTipControl : 'ToolTipControl',
-    ControlType.TreeControl : 'TreeControl',
-    ControlType.TreeItemControl : 'TreeItemControl',
-    ControlType.WindowControl : 'WindowControl',
-    }
+ControlTypeNames = {
+    ControlType.AppBarControl: 'AppBarControl',
+    ControlType.ButtonControl: 'ButtonControl',
+    ControlType.CalendarControl: 'CalendarControl',
+    ControlType.CheckBoxControl: 'CheckBoxControl',
+    ControlType.ComboBoxControl: 'ComboBoxControl',
+    ControlType.CustomControl: 'CustomControl',
+    ControlType.DataGridControl: 'DataGridControl',
+    ControlType.DataItemControl: 'DataItemControl',
+    ControlType.DocumentControl: 'DocumentControl',
+    ControlType.EditControl: 'EditControl',
+    ControlType.GroupControl: 'GroupControl',
+    ControlType.HeaderControl: 'HeaderControl',
+    ControlType.HeaderItemControl: 'HeaderItemControl',
+    ControlType.HyperlinkControl: 'HyperlinkControl',
+    ControlType.ImageControl: 'ImageControl',
+    ControlType.ListControl: 'ListControl',
+    ControlType.ListItemControl: 'ListItemControl',
+    ControlType.MenuBarControl: 'MenuBarControl',
+    ControlType.MenuControl: 'MenuControl',
+    ControlType.MenuItemControl: 'MenuItemControl',
+    ControlType.PaneControl: 'PaneControl',
+    ControlType.ProgressBarControl: 'ProgressBarControl',
+    ControlType.RadioButtonControl: 'RadioButtonControl',
+    ControlType.ScrollBarControl: 'ScrollBarControl',
+    ControlType.SemanticZoomControl: 'SemanticZoomControl',
+    ControlType.SeparatorControl: 'SeparatorControl',
+    ControlType.SliderControl: 'SliderControl',
+    ControlType.SpinnerControl: 'SpinnerControl',
+    ControlType.SplitButtonControl: 'SplitButtonControl',
+    ControlType.StatusBarControl: 'StatusBarControl',
+    ControlType.TabControl: 'TabControl',
+    ControlType.TabItemControl: 'TabItemControl',
+    ControlType.TableControl: 'TableControl',
+    ControlType.TextControl: 'TextControl',
+    ControlType.ThumbControl: 'ThumbControl',
+    ControlType.TitleBarControl: 'TitleBarControl',
+    ControlType.ToolBarControl: 'ToolBarControl',
+    ControlType.ToolTipControl: 'ToolTipControl',
+    ControlType.TreeControl: 'TreeControl',
+    ControlType.TreeItemControl: 'TreeItemControl',
+    ControlType.WindowControl: 'WindowControl',
+}
 
 
-class PatternId():
-    """This class defines the values of pattern id"""
-    UIA_AnnotationPatternId = 0x2727
-    UIA_DockPatternId = 0x271b
-    UIA_DragPatternId = 0x272e
-    UIA_DropTargetPatternId = 0x272f
-    UIA_ExpandCollapsePatternId = 0x2715
-    UIA_GridItemPatternId = 0x2717
-    UIA_GridPatternId = 0x2716
-    UIA_InvokePatternId = 0x2710
-    UIA_ItemContainerPatternId = 0x2723
-    UIA_LegacyIAccessiblePatternId = 0x2722
-    UIA_MultipleViewPatternId = 0x2718
-    UIA_ObjectModelPatternId = 0x2726
-    UIA_RangeValuePatternId = 0x2713
-    UIA_ScrollItemPatternId = 0x2721
-    UIA_ScrollPatternId = 0x2714
-    UIA_SelectionItemPatternId = 0x271a
-    UIA_SelectionPatternId = 0x2711
-    UIA_SpreadsheetItemPatternId = 0x272b
-    UIA_SpreadsheetPatternId = 0x272a
-    UIA_StylesPatternId = 0x2729
-    UIA_SynchronizedInputPatternId = 0x2725
-    UIA_TableItemPatternId = 0x271d
-    UIA_TablePatternId = 0x271c
-    UIA_TextChildPatternId = 0x272d
-    UIA_TextPattern2Id = 0x2728
-    UIA_TextPatternId = 0x271e
-    UIA_TogglePatternId = 0x271f
-    UIA_TransformPattern2Id = 0x272c
-    UIA_TransformPatternId = 0x2720
-    UIA_ValuePatternId = 0x2712
-    UIA_VirtualizedItemPatternId = 0x2724
-    UIA_WindowPatternId = 0x2719
+class PatternId:
+    """
+    PatternId from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-controlpattern-ids
+    """
+    AnnotationPattern = 10023
+    CustomNavigationPattern = 10033
+    DockPattern = 10011
+    DragPattern = 10030
+    DropTargetPattern = 10031
+    ExpandCollapsePattern = 10005
+    GridItemPattern = 10007
+    GridPattern = 10006
+    InvokePattern = 10000
+    ItemContainerPattern = 10019
+    LegacyIAccessiblePattern = 10018
+    MultipleViewPattern = 10008
+    ObjectModelPattern = 10022
+    RangeValuePattern = 10003
+    ScrollItemPattern = 10017
+    ScrollPattern = 10004
+    SelectionItemPattern = 10010
+    SelectionPattern = 10001
+    SpreadsheetItemPattern = 10027
+    SpreadsheetPattern = 10026
+    StylesPattern = 10025
+    SynchronizedInputPattern = 10021
+    TableItemPattern = 10013
+    TablePattern = 10012
+    TextChildPattern = 10029
+    TextEditPattern = 10032
+    TextPattern = 10014
+    TextPattern2 = 10024
+    TogglePattern = 10015
+    TransformPattern = 10016
+    TransformPattern2 = 10028
+    ValuePattern = 10002
+    VirtualizedItemPattern = 10020
+    WindowPattern = 10009
 
 
-PatternDict = {
-    PatternId.UIA_DockPatternId : 'DockPattern',
-    PatternId.UIA_ExpandCollapsePatternId : 'ExpandCollapsePattern',
-    PatternId.UIA_GridItemPatternId : 'GridItemPattern',
-    PatternId.UIA_GridPatternId : 'GridPattern',
-    PatternId.UIA_InvokePatternId : 'InvokePattern',
-    PatternId.UIA_ItemContainerPatternId : 'ItemContainerPattern',
-    PatternId.UIA_LegacyIAccessiblePatternId : 'LegacyIAccessiblePattern',
-    PatternId.UIA_MultipleViewPatternId : 'MultipleViewPattern',
-    PatternId.UIA_RangeValuePatternId : 'RangeValuePattern',
-    PatternId.UIA_ScrollItemPatternId : 'ScrollItemPattern',
-    PatternId.UIA_ScrollPatternId : 'ScrollPattern',
-    PatternId.UIA_SelectionItemPatternId : 'SelectionItemPattern',
-    PatternId.UIA_SelectionPatternId : 'SelectionPattern',
-    PatternId.UIA_SynchronizedInputPatternId : 'SynchronizedInputPattern',
-    PatternId.UIA_TableItemPatternId : 'TableItemPattern',
-    PatternId.UIA_TablePatternId : 'TablePattern',
-    PatternId.UIA_TextPatternId : 'TextPattern',
-    PatternId.UIA_TogglePatternId : 'TogglePattern',
-    PatternId.UIA_TransformPatternId : 'TransformPattern',
-    PatternId.UIA_ValuePatternId : 'ValuePattern',
-    PatternId.UIA_VirtualizedItemPatternId : 'VirtualizedItemPattern',
-    PatternId.UIA_WindowPatternId : 'WindowPattern'}
+PatternIdNames = {
+    PatternId.AnnotationPattern: 'AnnotationPattern',
+    PatternId.CustomNavigationPattern: 'CustomNavigationPattern',
+    PatternId.DockPattern: 'DockPattern',
+    PatternId.DragPattern: 'DragPattern',
+    PatternId.DropTargetPattern: 'DropTargetPattern',
+    PatternId.ExpandCollapsePattern: 'ExpandCollapsePattern',
+    PatternId.GridItemPattern: 'GridItemPattern',
+    PatternId.GridPattern: 'GridPattern',
+    PatternId.InvokePattern: 'InvokePattern',
+    PatternId.ItemContainerPattern: 'ItemContainerPattern',
+    PatternId.LegacyIAccessiblePattern: 'LegacyIAccessiblePattern',
+    PatternId.MultipleViewPattern: 'MultipleViewPattern',
+    PatternId.ObjectModelPattern: 'ObjectModelPattern',
+    PatternId.RangeValuePattern: 'RangeValuePattern',
+    PatternId.ScrollItemPattern: 'ScrollItemPattern',
+    PatternId.ScrollPattern: 'ScrollPattern',
+    PatternId.SelectionItemPattern: 'SelectionItemPattern',
+    PatternId.SelectionPattern: 'SelectionPattern',
+    PatternId.SpreadsheetItemPattern: 'SpreadsheetItemPattern',
+    PatternId.SpreadsheetPattern: 'SpreadsheetPattern',
+    PatternId.StylesPattern: 'StylesPattern',
+    PatternId.SynchronizedInputPattern: 'SynchronizedInputPattern',
+    PatternId.TableItemPattern: 'TableItemPattern',
+    PatternId.TablePattern: 'TablePattern',
+    PatternId.TextChildPattern: 'TextChildPattern',
+    PatternId.TextEditPattern: 'TextEditPattern',
+    PatternId.TextPattern: 'TextPattern',
+    PatternId.TextPattern2: 'TextPattern2Id',
+    PatternId.TogglePattern: 'TogglePattern',
+    PatternId.TransformPattern: 'TransformPattern',
+    PatternId.TransformPattern2: 'TransformPattern2Id',
+    PatternId.ValuePattern: 'ValuePattern',
+    PatternId.VirtualizedItemPattern: 'VirtualizedItemPattern',
+    PatternId.WindowPattern: 'WindowPattern',
+}
+
+
+class PropertyId:
+    """
+    PropertyId from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-automation-element-propids
+    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-control-pattern-propids
+    """
+    AcceleratorKeyProperty = 30006
+    AccessKeyProperty = 30007
+    AnnotationAnnotationTypeIdProperty = 30113
+    AnnotationAnnotationTypeNameProperty = 30114
+    AnnotationAuthorProperty = 30115
+    AnnotationDateTimeProperty = 30116
+    AnnotationObjectsProperty = 30156
+    AnnotationTargetProperty = 30117
+    AnnotationTypesProperty = 30155
+    AriaPropertiesProperty = 30102
+    AriaRoleProperty = 30101
+    AutomationIdProperty = 30011
+    BoundingRectangleProperty = 30001
+    CenterPointProperty = 30165
+    ClassNameProperty = 30012
+    ClickablePointProperty = 30014
+    ControlTypeProperty = 30003
+    ControllerForProperty = 30104
+    CultureProperty = 30015
+    DescribedByProperty = 30105
+    DockDockPositionProperty = 30069
+    DragDropEffectProperty = 30139
+    DragDropEffectsProperty = 30140
+    DragGrabbedItemsProperty = 30144
+    DragIsGrabbedProperty = 30138
+    DropTargetDropTargetEffectProperty = 30142
+    DropTargetDropTargetEffectsProperty = 30143
+    ExpandCollapseExpandCollapseStateProperty = 30070
+    FillColorProperty = 30160
+    FillTypeProperty = 30162
+    FlowsFromProperty = 30148
+    FlowsToProperty = 30106
+    FrameworkIdProperty = 30024
+    FullDescriptionProperty = 30159
+    GridColumnCountProperty = 30063
+    GridItemColumnProperty = 30065
+    GridItemColumnSpanProperty = 30067
+    GridItemContainingGridProperty = 30068
+    GridItemRowProperty = 30064
+    GridItemRowSpanProperty = 30066
+    GridRowCountProperty = 30062
+    HasKeyboardFocusProperty = 30008
+    HelpTextProperty = 30013
+    IsAnnotationPatternAvailableProperty = 30118
+    IsContentElementProperty = 30017
+    IsControlElementProperty = 30016
+    IsCustomNavigationPatternAvailableProperty = 30151
+    IsDataValidForFormProperty = 30103
+    IsDockPatternAvailableProperty = 30027
+    IsDragPatternAvailableProperty = 30137
+    IsDropTargetPatternAvailableProperty = 30141
+    IsEnabledProperty = 30010
+    IsExpandCollapsePatternAvailableProperty = 30028
+    IsGridItemPatternAvailableProperty = 30029
+    IsGridPatternAvailableProperty = 30030
+    IsInvokePatternAvailableProperty = 30031
+    IsItemContainerPatternAvailableProperty = 30108
+    IsKeyboardFocusableProperty = 30009
+    IsLegacyIAccessiblePatternAvailableProperty = 30090
+    IsMultipleViewPatternAvailableProperty = 30032
+    IsObjectModelPatternAvailableProperty = 30112
+    IsOffscreenProperty = 30022
+    IsPasswordProperty = 30019
+    IsPeripheralProperty = 30150
+    IsRangeValuePatternAvailableProperty = 30033
+    IsRequiredForFormProperty = 30025
+    IsScrollItemPatternAvailableProperty = 30035
+    IsScrollPatternAvailableProperty = 30034
+    IsSelectionItemPatternAvailableProperty = 30036
+    IsSelectionPattern2AvailableProperty = 30168
+    IsSelectionPatternAvailableProperty = 30037
+    IsSpreadsheetItemPatternAvailableProperty = 30132
+    IsSpreadsheetPatternAvailableProperty = 30128
+    IsStylesPatternAvailableProperty = 30127
+    IsSynchronizedInputPatternAvailableProperty = 30110
+    IsTableItemPatternAvailableProperty = 30039
+    IsTablePatternAvailableProperty = 30038
+    IsTextChildPatternAvailableProperty = 30136
+    IsTextEditPatternAvailableProperty = 30149
+    IsTextPattern2AvailableProperty = 30119
+    IsTextPatternAvailableProperty = 30040
+    IsTogglePatternAvailableProperty = 30041
+    IsTransformPattern2AvailableProperty = 30134
+    IsTransformPatternAvailableProperty = 30042
+    IsValuePatternAvailableProperty = 30043
+    IsVirtualizedItemPatternAvailableProperty = 30109
+    IsWindowPatternAvailableProperty = 30044
+    ItemStatusProperty = 30026
+    ItemTypeProperty = 30021
+    LabeledByProperty = 30018
+    LandmarkTypeProperty = 30157
+    LegacyIAccessibleChildIdProperty = 30091
+    LegacyIAccessibleDefaultActionProperty = 30100
+    LegacyIAccessibleDescriptionProperty = 30094
+    LegacyIAccessibleHelpProperty = 30097
+    LegacyIAccessibleKeyboardShortcutProperty = 30098
+    LegacyIAccessibleNameProperty = 30092
+    LegacyIAccessibleRoleProperty = 30095
+    LegacyIAccessibleSelectionProperty = 30099
+    LegacyIAccessibleStateProperty = 30096
+    LegacyIAccessibleValueProperty = 30093
+    LevelProperty = 30154
+    LiveSettingProperty = 30135
+    LocalizedControlTypeProperty = 30004
+    LocalizedLandmarkTypeProperty = 30158
+    MultipleViewCurrentViewProperty = 30071
+    MultipleViewSupportedViewsProperty = 30072
+    NameProperty = 30005
+    NativeWindowHandleProperty = 30020
+    OptimizeForVisualContentProperty = 30111
+    OrientationProperty = 30023
+    OutlineColorProperty = 30161
+    OutlineThicknessProperty = 30164
+    PositionInSetProperty = 30152
+    ProcessIdProperty = 30002
+    ProviderDescriptionProperty = 30107
+    RangeValueIsReadOnlyProperty = 30048
+    RangeValueLargeChangeProperty = 30051
+    RangeValueMaximumProperty = 30050
+    RangeValueMinimumProperty = 30049
+    RangeValueSmallChangeProperty = 30052
+    RangeValueValueProperty = 30047
+    RotationProperty = 30166
+    RuntimeIdProperty = 30000
+    ScrollHorizontalScrollPercentProperty = 30053
+    ScrollHorizontalViewSizeProperty = 30054
+    ScrollHorizontallyScrollableProperty = 30057
+    ScrollVerticalScrollPercentProperty = 30055
+    ScrollVerticalViewSizeProperty = 30056
+    ScrollVerticallyScrollableProperty = 30058
+    Selection2CurrentSelectedItemProperty = 30171
+    Selection2FirstSelectedItemProperty = 30169
+    Selection2ItemCountProperty = 30172
+    Selection2LastSelectedItemProperty = 30170
+    SelectionCanSelectMultipleProperty = 30060
+    SelectionIsSelectionRequiredProperty = 30061
+    SelectionItemIsSelectedProperty = 30079
+    SelectionItemSelectionContainerProperty = 30080
+    SelectionSelectionProperty = 30059
+    SizeOfSetProperty = 30153
+    SizeProperty = 30167
+    SpreadsheetItemAnnotationObjectsProperty = 30130
+    SpreadsheetItemAnnotationTypesProperty = 30131
+    SpreadsheetItemFormulaProperty = 30129
+    StylesExtendedPropertiesProperty = 30126
+    StylesFillColorProperty = 30122
+    StylesFillPatternColorProperty = 30125
+    StylesFillPatternStyleProperty = 30123
+    StylesShapeProperty = 30124
+    StylesStyleIdProperty = 30120
+    StylesStyleNameProperty = 30121
+    TableColumnHeadersProperty = 30082
+    TableItemColumnHeaderItemsProperty = 30085
+    TableItemRowHeaderItemsProperty = 30084
+    TableRowHeadersProperty = 30081
+    TableRowOrColumnMajorProperty = 30083
+    ToggleToggleStateProperty = 30086
+    Transform2CanZoomProperty = 30133
+    Transform2ZoomLevelProperty = 30145
+    Transform2ZoomMaximumProperty = 30147
+    Transform2ZoomMinimumProperty = 30146
+    TransformCanMoveProperty = 30087
+    TransformCanResizeProperty = 30088
+    TransformCanRotateProperty = 30089
+    ValueIsReadOnlyProperty = 30046
+    ValueValueProperty = 30045
+    VisualEffectsProperty = 30163
+    WindowCanMaximizeProperty = 30073
+    WindowCanMinimizeProperty = 30074
+    WindowIsModalProperty = 30077
+    WindowIsTopmostProperty = 30078
+    WindowWindowInteractionStateProperty = 30076
+    WindowWindowVisualStateProperty = 30075
+
+
+PropertyIdNames = {
+    PropertyId.AcceleratorKeyProperty: 'AcceleratorKeyProperty',
+    PropertyId.AccessKeyProperty: 'AccessKeyProperty',
+    PropertyId.AnnotationAnnotationTypeIdProperty: 'AnnotationAnnotationTypeIdProperty',
+    PropertyId.AnnotationAnnotationTypeNameProperty: 'AnnotationAnnotationTypeNameProperty',
+    PropertyId.AnnotationAuthorProperty: 'AnnotationAuthorProperty',
+    PropertyId.AnnotationDateTimeProperty: 'AnnotationDateTimeProperty',
+    PropertyId.AnnotationObjectsProperty: 'AnnotationObjectsProperty',
+    PropertyId.AnnotationTargetProperty: 'AnnotationTargetProperty',
+    PropertyId.AnnotationTypesProperty: 'AnnotationTypesProperty',
+    PropertyId.AriaPropertiesProperty: 'AriaPropertiesProperty',
+    PropertyId.AriaRoleProperty: 'AriaRoleProperty',
+    PropertyId.AutomationIdProperty: 'AutomationIdProperty',
+    PropertyId.BoundingRectangleProperty: 'BoundingRectangleProperty',
+    PropertyId.CenterPointProperty: 'CenterPointProperty',
+    PropertyId.ClassNameProperty: 'ClassNameProperty',
+    PropertyId.ClickablePointProperty: 'ClickablePointProperty',
+    PropertyId.ControlTypeProperty: 'ControlTypeProperty',
+    PropertyId.ControllerForProperty: 'ControllerForProperty',
+    PropertyId.CultureProperty: 'CultureProperty',
+    PropertyId.DescribedByProperty: 'DescribedByProperty',
+    PropertyId.DockDockPositionProperty: 'DockDockPositionProperty',
+    PropertyId.DragDropEffectProperty: 'DragDropEffectProperty',
+    PropertyId.DragDropEffectsProperty: 'DragDropEffectsProperty',
+    PropertyId.DragGrabbedItemsProperty: 'DragGrabbedItemsProperty',
+    PropertyId.DragIsGrabbedProperty: 'DragIsGrabbedProperty',
+    PropertyId.DropTargetDropTargetEffectProperty: 'DropTargetDropTargetEffectProperty',
+    PropertyId.DropTargetDropTargetEffectsProperty: 'DropTargetDropTargetEffectsProperty',
+    PropertyId.ExpandCollapseExpandCollapseStateProperty: 'ExpandCollapseExpandCollapseStateProperty',
+    PropertyId.FillColorProperty: 'FillColorProperty',
+    PropertyId.FillTypeProperty: 'FillTypeProperty',
+    PropertyId.FlowsFromProperty: 'FlowsFromProperty',
+    PropertyId.FlowsToProperty: 'FlowsToProperty',
+    PropertyId.FrameworkIdProperty: 'FrameworkIdProperty',
+    PropertyId.FullDescriptionProperty: 'FullDescriptionProperty',
+    PropertyId.GridColumnCountProperty: 'GridColumnCountProperty',
+    PropertyId.GridItemColumnProperty: 'GridItemColumnProperty',
+    PropertyId.GridItemColumnSpanProperty: 'GridItemColumnSpanProperty',
+    PropertyId.GridItemContainingGridProperty: 'GridItemContainingGridProperty',
+    PropertyId.GridItemRowProperty: 'GridItemRowProperty',
+    PropertyId.GridItemRowSpanProperty: 'GridItemRowSpanProperty',
+    PropertyId.GridRowCountProperty: 'GridRowCountProperty',
+    PropertyId.HasKeyboardFocusProperty: 'HasKeyboardFocusProperty',
+    PropertyId.HelpTextProperty: 'HelpTextProperty',
+    PropertyId.IsAnnotationPatternAvailableProperty: 'IsAnnotationPatternAvailableProperty',
+    PropertyId.IsContentElementProperty: 'IsContentElementProperty',
+    PropertyId.IsControlElementProperty: 'IsControlElementProperty',
+    PropertyId.IsCustomNavigationPatternAvailableProperty: 'IsCustomNavigationPatternAvailableProperty',
+    PropertyId.IsDataValidForFormProperty: 'IsDataValidForFormProperty',
+    PropertyId.IsDockPatternAvailableProperty: 'IsDockPatternAvailableProperty',
+    PropertyId.IsDragPatternAvailableProperty: 'IsDragPatternAvailableProperty',
+    PropertyId.IsDropTargetPatternAvailableProperty: 'IsDropTargetPatternAvailableProperty',
+    PropertyId.IsEnabledProperty: 'IsEnabledProperty',
+    PropertyId.IsExpandCollapsePatternAvailableProperty: 'IsExpandCollapsePatternAvailableProperty',
+    PropertyId.IsGridItemPatternAvailableProperty: 'IsGridItemPatternAvailableProperty',
+    PropertyId.IsGridPatternAvailableProperty: 'IsGridPatternAvailableProperty',
+    PropertyId.IsInvokePatternAvailableProperty: 'IsInvokePatternAvailableProperty',
+    PropertyId.IsItemContainerPatternAvailableProperty: 'IsItemContainerPatternAvailableProperty',
+    PropertyId.IsKeyboardFocusableProperty: 'IsKeyboardFocusableProperty',
+    PropertyId.IsLegacyIAccessiblePatternAvailableProperty: 'IsLegacyIAccessiblePatternAvailableProperty',
+    PropertyId.IsMultipleViewPatternAvailableProperty: 'IsMultipleViewPatternAvailableProperty',
+    PropertyId.IsObjectModelPatternAvailableProperty: 'IsObjectModelPatternAvailableProperty',
+    PropertyId.IsOffscreenProperty: 'IsOffscreenProperty',
+    PropertyId.IsPasswordProperty: 'IsPasswordProperty',
+    PropertyId.IsPeripheralProperty: 'IsPeripheralProperty',
+    PropertyId.IsRangeValuePatternAvailableProperty: 'IsRangeValuePatternAvailableProperty',
+    PropertyId.IsRequiredForFormProperty: 'IsRequiredForFormProperty',
+    PropertyId.IsScrollItemPatternAvailableProperty: 'IsScrollItemPatternAvailableProperty',
+    PropertyId.IsScrollPatternAvailableProperty: 'IsScrollPatternAvailableProperty',
+    PropertyId.IsSelectionItemPatternAvailableProperty: 'IsSelectionItemPatternAvailableProperty',
+    PropertyId.IsSelectionPattern2AvailableProperty: 'IsSelectionPattern2AvailableProperty',
+    PropertyId.IsSelectionPatternAvailableProperty: 'IsSelectionPatternAvailableProperty',
+    PropertyId.IsSpreadsheetItemPatternAvailableProperty: 'IsSpreadsheetItemPatternAvailableProperty',
+    PropertyId.IsSpreadsheetPatternAvailableProperty: 'IsSpreadsheetPatternAvailableProperty',
+    PropertyId.IsStylesPatternAvailableProperty: 'IsStylesPatternAvailableProperty',
+    PropertyId.IsSynchronizedInputPatternAvailableProperty: 'IsSynchronizedInputPatternAvailableProperty',
+    PropertyId.IsTableItemPatternAvailableProperty: 'IsTableItemPatternAvailableProperty',
+    PropertyId.IsTablePatternAvailableProperty: 'IsTablePatternAvailableProperty',
+    PropertyId.IsTextChildPatternAvailableProperty: 'IsTextChildPatternAvailableProperty',
+    PropertyId.IsTextEditPatternAvailableProperty: 'IsTextEditPatternAvailableProperty',
+    PropertyId.IsTextPattern2AvailableProperty: 'IsTextPattern2AvailableProperty',
+    PropertyId.IsTextPatternAvailableProperty: 'IsTextPatternAvailableProperty',
+    PropertyId.IsTogglePatternAvailableProperty: 'IsTogglePatternAvailableProperty',
+    PropertyId.IsTransformPattern2AvailableProperty: 'IsTransformPattern2AvailableProperty',
+    PropertyId.IsTransformPatternAvailableProperty: 'IsTransformPatternAvailableProperty',
+    PropertyId.IsValuePatternAvailableProperty: 'IsValuePatternAvailableProperty',
+    PropertyId.IsVirtualizedItemPatternAvailableProperty: 'IsVirtualizedItemPatternAvailableProperty',
+    PropertyId.IsWindowPatternAvailableProperty: 'IsWindowPatternAvailableProperty',
+    PropertyId.ItemStatusProperty: 'ItemStatusProperty',
+    PropertyId.ItemTypeProperty: 'ItemTypeProperty',
+    PropertyId.LabeledByProperty: 'LabeledByProperty',
+    PropertyId.LandmarkTypeProperty: 'LandmarkTypeProperty',
+    PropertyId.LegacyIAccessibleChildIdProperty: 'LegacyIAccessibleChildIdProperty',
+    PropertyId.LegacyIAccessibleDefaultActionProperty: 'LegacyIAccessibleDefaultActionProperty',
+    PropertyId.LegacyIAccessibleDescriptionProperty: 'LegacyIAccessibleDescriptionProperty',
+    PropertyId.LegacyIAccessibleHelpProperty: 'LegacyIAccessibleHelpProperty',
+    PropertyId.LegacyIAccessibleKeyboardShortcutProperty: 'LegacyIAccessibleKeyboardShortcutProperty',
+    PropertyId.LegacyIAccessibleNameProperty: 'LegacyIAccessibleNameProperty',
+    PropertyId.LegacyIAccessibleRoleProperty: 'LegacyIAccessibleRoleProperty',
+    PropertyId.LegacyIAccessibleSelectionProperty: 'LegacyIAccessibleSelectionProperty',
+    PropertyId.LegacyIAccessibleStateProperty: 'LegacyIAccessibleStateProperty',
+    PropertyId.LegacyIAccessibleValueProperty: 'LegacyIAccessibleValueProperty',
+    PropertyId.LevelProperty: 'LevelProperty',
+    PropertyId.LiveSettingProperty: 'LiveSettingProperty',
+    PropertyId.LocalizedControlTypeProperty: 'LocalizedControlTypeProperty',
+    PropertyId.LocalizedLandmarkTypeProperty: 'LocalizedLandmarkTypeProperty',
+    PropertyId.MultipleViewCurrentViewProperty: 'MultipleViewCurrentViewProperty',
+    PropertyId.MultipleViewSupportedViewsProperty: 'MultipleViewSupportedViewsProperty',
+    PropertyId.NameProperty: 'NameProperty',
+    PropertyId.NativeWindowHandleProperty: 'NativeWindowHandleProperty',
+    PropertyId.OptimizeForVisualContentProperty: 'OptimizeForVisualContentProperty',
+    PropertyId.OrientationProperty: 'OrientationProperty',
+    PropertyId.OutlineColorProperty: 'OutlineColorProperty',
+    PropertyId.OutlineThicknessProperty: 'OutlineThicknessProperty',
+    PropertyId.PositionInSetProperty: 'PositionInSetProperty',
+    PropertyId.ProcessIdProperty: 'ProcessIdProperty',
+    PropertyId.ProviderDescriptionProperty: 'ProviderDescriptionProperty',
+    PropertyId.RangeValueIsReadOnlyProperty: 'RangeValueIsReadOnlyProperty',
+    PropertyId.RangeValueLargeChangeProperty: 'RangeValueLargeChangeProperty',
+    PropertyId.RangeValueMaximumProperty: 'RangeValueMaximumProperty',
+    PropertyId.RangeValueMinimumProperty: 'RangeValueMinimumProperty',
+    PropertyId.RangeValueSmallChangeProperty: 'RangeValueSmallChangeProperty',
+    PropertyId.RangeValueValueProperty: 'RangeValueValueProperty',
+    PropertyId.RotationProperty: 'RotationProperty',
+    PropertyId.RuntimeIdProperty: 'RuntimeIdProperty',
+    PropertyId.ScrollHorizontalScrollPercentProperty: 'ScrollHorizontalScrollPercentProperty',
+    PropertyId.ScrollHorizontalViewSizeProperty: 'ScrollHorizontalViewSizeProperty',
+    PropertyId.ScrollHorizontallyScrollableProperty: 'ScrollHorizontallyScrollableProperty',
+    PropertyId.ScrollVerticalScrollPercentProperty: 'ScrollVerticalScrollPercentProperty',
+    PropertyId.ScrollVerticalViewSizeProperty: 'ScrollVerticalViewSizeProperty',
+    PropertyId.ScrollVerticallyScrollableProperty: 'ScrollVerticallyScrollableProperty',
+    PropertyId.Selection2CurrentSelectedItemProperty: 'Selection2CurrentSelectedItemProperty',
+    PropertyId.Selection2FirstSelectedItemProperty: 'Selection2FirstSelectedItemProperty',
+    PropertyId.Selection2ItemCountProperty: 'Selection2ItemCountProperty',
+    PropertyId.Selection2LastSelectedItemProperty: 'Selection2LastSelectedItemProperty',
+    PropertyId.SelectionCanSelectMultipleProperty: 'SelectionCanSelectMultipleProperty',
+    PropertyId.SelectionIsSelectionRequiredProperty: 'SelectionIsSelectionRequiredProperty',
+    PropertyId.SelectionItemIsSelectedProperty: 'SelectionItemIsSelectedProperty',
+    PropertyId.SelectionItemSelectionContainerProperty: 'SelectionItemSelectionContainerProperty',
+    PropertyId.SelectionSelectionProperty: 'SelectionSelectionProperty',
+    PropertyId.SizeOfSetProperty: 'SizeOfSetProperty',
+    PropertyId.SizeProperty: 'SizeProperty',
+    PropertyId.SpreadsheetItemAnnotationObjectsProperty: 'SpreadsheetItemAnnotationObjectsProperty',
+    PropertyId.SpreadsheetItemAnnotationTypesProperty: 'SpreadsheetItemAnnotationTypesProperty',
+    PropertyId.SpreadsheetItemFormulaProperty: 'SpreadsheetItemFormulaProperty',
+    PropertyId.StylesExtendedPropertiesProperty: 'StylesExtendedPropertiesProperty',
+    PropertyId.StylesFillColorProperty: 'StylesFillColorProperty',
+    PropertyId.StylesFillPatternColorProperty: 'StylesFillPatternColorProperty',
+    PropertyId.StylesFillPatternStyleProperty: 'StylesFillPatternStyleProperty',
+    PropertyId.StylesShapeProperty: 'StylesShapeProperty',
+    PropertyId.StylesStyleIdProperty: 'StylesStyleIdProperty',
+    PropertyId.StylesStyleNameProperty: 'StylesStyleNameProperty',
+    PropertyId.TableColumnHeadersProperty: 'TableColumnHeadersProperty',
+    PropertyId.TableItemColumnHeaderItemsProperty: 'TableItemColumnHeaderItemsProperty',
+    PropertyId.TableItemRowHeaderItemsProperty: 'TableItemRowHeaderItemsProperty',
+    PropertyId.TableRowHeadersProperty: 'TableRowHeadersProperty',
+    PropertyId.TableRowOrColumnMajorProperty: 'TableRowOrColumnMajorProperty',
+    PropertyId.ToggleToggleStateProperty: 'ToggleToggleStateProperty',
+    PropertyId.Transform2CanZoomProperty: 'Transform2CanZoomProperty',
+    PropertyId.Transform2ZoomLevelProperty: 'Transform2ZoomLevelProperty',
+    PropertyId.Transform2ZoomMaximumProperty: 'Transform2ZoomMaximumProperty',
+    PropertyId.Transform2ZoomMinimumProperty: 'Transform2ZoomMinimumProperty',
+    PropertyId.TransformCanMoveProperty: 'TransformCanMoveProperty',
+    PropertyId.TransformCanResizeProperty: 'TransformCanResizeProperty',
+    PropertyId.TransformCanRotateProperty: 'TransformCanRotateProperty',
+    PropertyId.ValueIsReadOnlyProperty: 'ValueIsReadOnlyProperty',
+    PropertyId.ValueValueProperty: 'ValueValueProperty',
+    PropertyId.VisualEffectsProperty: 'VisualEffectsProperty',
+    PropertyId.WindowCanMaximizeProperty: 'WindowCanMaximizeProperty',
+    PropertyId.WindowCanMinimizeProperty: 'WindowCanMinimizeProperty',
+    PropertyId.WindowIsModalProperty: 'WindowIsModalProperty',
+    PropertyId.WindowIsTopmostProperty: 'WindowIsTopmostProperty',
+    PropertyId.WindowWindowInteractionStateProperty: 'WindowWindowInteractionStateProperty',
+    PropertyId.WindowWindowVisualStateProperty: 'WindowWindowVisualStateProperty',
+}
 
 
 class AccessibleRole:
-    """This class defines the values of Accessible Role"""
-    SystemTitleBar = 0x1
-    SystemMenuBar = 0x2
-    SystemScrollBar = 0x3
-    SystemGrip = 0x4
-    SystemSound = 0x5
-    SystemCursor = 0x6
-    SystemCaret = 0x7
-    SystemAlert = 0x8
-    SystemWindow = 0x9
-    SystemClient = 0xa
-    SystemMenuPopup = 0xb
-    SystemMenuItem = 0xc
-    SystemToolTip = 0xd
-    SystemApplication = 0xe
-    SystemDocument = 0xf
-    SystemPane = 0x10
-    SystemChart = 0x11
-    SystemDialog = 0x12
-    SystemBorder = 0x13
-    SystemGrouping = 0x14
-    SystemSeparator = 0x15
-    SystemToolbar = 0x16
-    SystemStatusBar = 0x17
-    SystemTable = 0x18
-    SystemColumnHeader = 0x19
-    SystemRowHeader = 0x1a
-    SystemColumn = 0x1b
-    SystemRow = 0x1c
-    SystemCell = 0x1d
-    SystemLink = 0x1e
-    SystemHelpBalloon = 0x1f
-    SystemCharacter = 0x20
-    SystemList = 0x21
-    SystemListItem = 0x22
-    SystemOutline = 0x23
-    SystemOutlineItem = 0x24
-    SystemPageTab = 0x25
-    SystemPropertyPage = 0x26
-    SystemIndicator = 0x27
-    SystemGraphic = 0x28
-    SystemStaticText = 0x29
-    SystemText = 0x2a
-    SystemPushButton = 0x2b
-    SystemCheckButton = 0x2c
-    SystemRadioButton = 0x2d
-    SystemComboBox = 0x2e
-    SystemDropList = 0x2f
-    SystemProgressBar = 0x30
-    SystemDial = 0x31
-    SystemHotkeyField = 0x32
-    SystemSlider = 0x33
-    SystemSpinButton = 0x34
-    SystemDiagram = 0x35
-    SystemAnimation = 0x36
-    SystemEquation = 0x37
-    SystemButtonDropDown = 0x38
-    SystemButtonMenu = 0x39
-    SystemButtonDropDownGrid = 0x3a
-    SystemWhiteSpace = 0x3b
-    SystemPageTabList = 0x3c
-    SystemClock = 0x3d
-    SystemSplitButton = 0x3e
-    SystemIpAddress = 0x3f
-    SystemOutlineButton = 0x40
+    """
+    AccessibleRole from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.accessiblerole?view=netframework-4.8
+    """
+    TitleBar = 0x1
+    MenuBar = 0x2
+    ScrollBar = 0x3
+    Grip = 0x4
+    Sound = 0x5
+    Cursor = 0x6
+    Caret = 0x7
+    Alert = 0x8
+    Window = 0x9
+    Client = 0xa
+    MenuPopup = 0xb
+    MenuItem = 0xc
+    ToolTip = 0xd
+    Application = 0xe
+    Document = 0xf
+    Pane = 0x10
+    Chart = 0x11
+    Dialog = 0x12
+    Border = 0x13
+    Grouping = 0x14
+    Separator = 0x15
+    Toolbar = 0x16
+    StatusBar = 0x17
+    Table = 0x18
+    ColumnHeader = 0x19
+    RowHeader = 0x1a
+    Column = 0x1b
+    Row = 0x1c
+    Cell = 0x1d
+    Link = 0x1e
+    HelpBalloon = 0x1f
+    Character = 0x20
+    List = 0x21
+    ListItem = 0x22
+    Outline = 0x23
+    OutlineItem = 0x24
+    PageTab = 0x25
+    PropertyPage = 0x26
+    Indicator = 0x27
+    Graphic = 0x28
+    StaticText = 0x29
+    Text = 0x2a
+    PushButton = 0x2b
+    CheckButton = 0x2c
+    RadioButton = 0x2d
+    ComboBox = 0x2e
+    DropList = 0x2f
+    ProgressBar = 0x30
+    Dial = 0x31
+    HotkeyField = 0x32
+    Slider = 0x33
+    SpinButton = 0x34
+    Diagram = 0x35
+    Animation = 0x36
+    Equation = 0x37
+    ButtonDropDown = 0x38
+    ButtonMenu = 0x39
+    ButtonDropDownGrid = 0x3a
+    WhiteSpace = 0x3b
+    PageTabList = 0x3c
+    Clock = 0x3d
+    SplitButton = 0x3e
+    IpAddress = 0x3f
+    OutlineButton = 0x40
 
 
 class AccessibleState():
-    SystemNormal = 0
-    SystemUnavailable = 0x1
-    SystemSelected = 0x2
-    SystemFocused = 0x4
-    SystemPressed = 0x8
-    SystemChecked = 0x10
-    SystemMixed = 0x20
-    SystemIndeterminate = 0x20
-    SystemReadOnly = 0x40
-    SystemHotTracked = 0x80
-    SystemDefault = 0x100
-    SystemExpanded = 0x200
-    SystemCollapsed = 0x400
-    SystemBusy = 0x800
-    SystemFloating = 0x1000
-    SystemMarqueed = 0x2000
-    SystemAnimated = 0x4000
-    SystemInvisible = 0x8000
-    SystemOffscreen = 0x10000
-    SystemSizeable = 0x20000
-    SystemMoveable = 0x40000
-    SystemSelfVoicing = 0x80000
-    SystemFocusable = 0x100000
-    SystemSelectable = 0x200000
-    SystemLinked = 0x400000
-    SystemTraversed = 0x800000
-    SystemMultiSelectable = 0x1000000
-    SystemExtSelectable = 0x2000000
-    SystemAlertLow = 0x4000000
-    SystemAlertMedium = 0x8000000
-    SystemAlertHigh = 0x10000000
-    SystemProtected = 0x20000000
-    SystemValid = 0x7fffffff
-    SystemHasPopup = 0x40000000
+    """
+    AccessibleState from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.accessiblestates?view=netframework-4.8
+    """
+    Normal = 0
+    Unavailable = 0x1
+    Selected = 0x2
+    Focused = 0x4
+    Pressed = 0x8
+    Checked = 0x10
+    Mixed = 0x20
+    Indeterminate = 0x20
+    ReadOnly = 0x40
+    HotTracked = 0x80
+    Default = 0x100
+    Expanded = 0x200
+    Collapsed = 0x400
+    Busy = 0x800
+    Floating = 0x1000
+    Marqueed = 0x2000
+    Animated = 0x4000
+    Invisible = 0x8000
+    Offscreen = 0x10000
+    Sizeable = 0x20000
+    Moveable = 0x40000
+    SelfVoicing = 0x80000
+    Focusable = 0x100000
+    Selectable = 0x200000
+    Linked = 0x400000
+    Traversed = 0x800000
+    MultiSelectable = 0x1000000
+    ExtSelectable = 0x2000000
+    AlertLow = 0x4000000
+    AlertMedium = 0x8000000
+    AlertHigh = 0x10000000
+    Protected = 0x20000000
+    Valid = 0x7fffffff
+    HasPopup = 0x40000000
 
 
-class AccessibleSelectFlag:
-    FlagNone = 0
-    FlagTakeFocus = 0x1
-    FlagTakeSelection = 0x2
-    FlagExtendSelection = 0x4
-    FlagAddSelection = 0x8
-    FlagRemoveSelection = 0x10
-    FlagValid = 0x1f
+class AccessibleSelection:
+    """
+    AccessibleSelection from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.accessibleselection?view=netframework-4.8
+    """
+    None_ = 0
+    TakeFocus = 0x1
+    TakeSelection = 0x2
+    ExtendSelection = 0x4
+    AddSelection = 0x8
+    RemoveSelection = 0x10
+
+
+class AnnotationType:
+    """
+    AnnotationType from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-annotation-type-identifiers
+    """
+    AdvancedProofingIssue = 60020
+    Author = 60019
+    CircularReferenceError = 60022
+    Comment = 60003
+    ConflictingChange = 60018
+    DataValidationError = 60021
+    DeletionChange = 60012
+    EditingLockedChange = 60016
+    Endnote = 60009
+    ExternalChange = 60017
+    Footer = 60007
+    Footnote = 60010
+    FormatChange = 60014
+    FormulaError = 60004
+    GrammarError = 60002
+    Header = 60006
+    Highlighted = 60008
+    InsertionChange = 60011
+    Mathematics = 60023
+    MoveChange = 60013
+    SpellingError = 60001
+    TrackChanges = 60005
+    Unknown = 60000
+    UnsyncedChange = 60015
+
+
+class NavigateDirection:
+    """
+    NavigateDirection from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-navigatedirection
+    """
+    Parent = 0
+    NextSibling = 1
+    PreviousSibling = 2
+    FirstChild = 3
+    LastChild = 4
+
+
+class DockPosition:
+    """
+    DockPosition from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-dockposition
+    """
+    Top = 0
+    Left = 1
+    Bottom = 2
+    Right = 3
+    Fill = 4
+    None_ = 5
+
+
+class ScrollAmount:
+    """
+    DockPosition from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-scrollamount
+    """
+    LargeDecrement = 0
+    SmallDecrement = 1
+    NoAmount = 2
+    LargeIncrement = 3
+    SmallIncrement = 4
+
+
+class StyleId:
+    """
+    DockPosition from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-style-identifiers
+    """
+    Custom = 70000
+    Heading1 = 70001
+    Heading2 = 70002
+    Heading3 = 70003
+    Heading4 = 70004
+    Heading5 = 70005
+    Heading6 = 70006
+    Heading7 = 70007
+    Heading8 = 70008
+    Heading9 = 70009
+    Title = 70010
+    Subtitle = 70011
+    Normal = 70012
+    Emphasis = 70013
+    Quote = 70014
+    BulletedList = 70015
+    NumberedList = 70016
 
 
 class RowOrColumnMajor:
+    """
+    RowOrColumnMajor from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-roworcolumnmajor
+    """
     RowMajor = 0
     ColumnMajor = 1
     Indeterminate = 2
 
 
-class Coord(ctypes.Structure):
-    _fields_ = [('X', ctypes.c_short), ('Y', ctypes.c_short)]
+class ExpandCollapseState:
+    """
+    ExpandCollapseState from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-expandcollapsestate
+    """
+    Collapsed = 0
+    Expanded = 1
+    PartiallyExpanded = 2
+    LeafNode = 3
 
 
-class SmallRect(ctypes.Structure):
-    _fields_ = [('Left', ctypes.c_short),
-               ('Top', ctypes.c_short),
-               ('Right', ctypes.c_short),
-               ('Bottom', ctypes.c_short),
-              ]
+class OrientationType:
+    """
+    OrientationType from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-orientationtype
+    """
+    None_ = 0
+    Horizontal = 1
+    Vertical = 2
 
 
-class Rect(ctypes.Structure):
-    _fields_ = [('left', ctypes.c_int),
-               ('top', ctypes.c_int),
-               ('right', ctypes.c_int),
-               ('bottom', ctypes.c_int),
-              ]
+class ToggleState:
+    """
+    ToggleState from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-togglestate
+    """
+    Off = 0
+    On = 1
+    Indeterminate = 2
 
 
-class ConsoleScreenBufferInfo(ctypes.Structure):
-    _fields_ = [
-        ('dwSize', Coord),
-        ('dwCursorPosition', Coord),
-        ('wAttributes', ctypes.c_uint),
-        ('srWindow', SmallRect),
-        ('dwMaximumWindowSize', Coord),
-    ]
+class TextPatternRangeEndpoint:
+    """
+    TextPatternRangeEndpoint from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-textpatternrangeendpoint
+    """
+    Start = 0
+    End = 1
+
+class TextAttributeId:
+    """
+    TextPatternRangeEndpoint from IUIAutomation.
+    Refer https://docs.microsoft.com/zh-cn/windows/desktop/WinAuto/uiauto-textattribute-ids
+    """
+    AfterParagraphSpacingAttribute = 40042
+    AnimationStyleAttribute = 40000
+    AnnotationObjectsAttribute = 40032
+    AnnotationTypesAttribute = 40031
+    BackgroundColorAttribute = 40001
+    BeforeParagraphSpacingAttribute = 40041
+    BulletStyleAttribute = 40002
+    CapStyleAttribute = 40003
+    CaretBidiModeAttribute = 40039
+    CaretPositionAttribute = 40038
+    CultureAttribute = 40004
+    FontNameAttribute = 40005
+    FontSizeAttribute = 40006
+    FontWeightAttribute = 40007
+    ForegroundColorAttribute = 40008
+    HorizontalTextAlignmentAttribute = 40009
+    IndentationFirstLineAttribute = 40010
+    IndentationLeadingAttribute = 40011
+    IndentationTrailingAttribute = 40012
+    IsActiveAttribute = 40036
+    IsHiddenAttribute = 40013
+    IsItalicAttribute = 40014
+    IsReadOnlyAttribute = 40015
+    IsSubscriptAttribute = 40016
+    IsSuperscriptAttribute = 40017
+    LineSpacingAttribute = 40040
+    LinkAttribute = 40035
+    MarginBottomAttribute = 40018
+    MarginLeadingAttribute = 40019
+    MarginTopAttribute = 40020
+    MarginTrailingAttribute = 40021
+    OutlineStylesAttribute = 40022
+    OverlineColorAttribute = 40023
+    OverlineStyleAttribute = 40024
+    SayAsInterpretAsAttribute = 40043
+    SelectionActiveEndAttribute = 40037
+    StrikethroughColorAttribute = 40025
+    StrikethroughStyleAttribute = 40026
+    StyleIdAttribute = 40034
+    StyleNameAttribute = 40033
+    TabsAttribute = 40027
+    TextFlowDirectionsAttribute = 40028
+    UnderlineColorAttribute = 40029
+    UnderlineStyleAttribute = 40030
 
 
-class tagPROCESSENTRY32(ctypes.Structure):
-    _fields_ = [
-        ('dwSize',              ctypes.wintypes.DWORD),
-        ('cntUsage',            ctypes.wintypes.DWORD),
-        ('th32ProcessID',       ctypes.wintypes.DWORD),
-        ('th32DefaultHeapID',   ctypes.POINTER(ctypes.wintypes.ULONG)),
-        ('th32ModuleID',        ctypes.wintypes.DWORD),
-        ('cntThreads',          ctypes.wintypes.DWORD),
-        ('th32ParentProcessID', ctypes.wintypes.DWORD),
-        ('pcPriClassBase',      ctypes.wintypes.LONG),
-        ('dwFlags',             ctypes.wintypes.DWORD),
-        ('szExeFile',           ctypes.c_wchar * MAX_PATH)
-    ]
+class TextUnit:
+    """
+    TextUnit from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-textunit
+    """
+    Character = 0
+    Format = 1
+    Word = 2
+    Line = 3
+    Paragraph = 4
+    Page = 5
+    Document = 6
 
 
-class tagMODULEENTRY32(ctypes.Structure):
-    _fields_ = [
-        ('dwSize',              ctypes.wintypes.DWORD),
-        ('th32ModuleID',        ctypes.wintypes.DWORD),
-        ('th32ProcessID',       ctypes.wintypes.DWORD),
-        ('GlblcntUsage',        ctypes.POINTER(ctypes.wintypes.DWORD)),
-        ('ProccntUsage',        ctypes.wintypes.DWORD),
-        ('modBaseAddr',         ctypes.POINTER(ctypes.wintypes.BYTE)),
-        ('modBaseSize',         ctypes.wintypes.DWORD),
-        ('hModule',             ctypes.c_void_p),
-        ('szModule',            ctypes.c_wchar * 256),
-        ('szExeFile',           ctypes.c_wchar * MAX_PATH)
-    ]
+class ZoomUnit:
+    """
+    ZoomUnit from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-zoomunit
+    """
+    NoAmount = 0
+    LargeDecrement = 1
+    SmallDecrement = 2
+    LargeIncrement = 3
+    SmallIncrement = 4
 
 
-class MouseEventFlags():
-    """This class defines the MouseEventFlags from Win32"""
-    Absolute = 0x8000
+class WindowInteractionState:
+    """
+    WindowInteractionState from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-windowinteractionstate
+    """
+    Running = 0
+    Closing = 1
+    ReadyForUserInteraction = 2
+    BlockedByModalWindow = 3
+    NotResponding = 4
+
+
+class WindowVisualState:
+    """
+    WindowVisualState from IUIAutomation.
+    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-windowvisualstate
+    """
+    Normal = 0
+    Maximized = 1
+    Minimized = 2
+
+
+class ConsoleColor:
+    """ConsoleColor from Win32."""
+    Default = -1
+    Black = 0
+    DarkBlue = 1
+    DarkGreen = 2
+    DarkCyan = 3
+    DarkRed = 4
+    DarkMagenta = 5
+    DarkYellow = 6
+    Gray = 7
+    DarkGray = 8
+    Blue = 9
+    Green = 10
+    Cyan = 11
+    Red = 12
+    Magenta = 13
+    Yellow = 14
+    White = 15
+
+
+class GAFlag:
+    """GAFlag from Win32."""
+    Parent = 1
+    Root = 2
+    RootOwner = 3
+
+
+class MouseEventFlag:
+    """MouseEventFlag from Win32."""
+    Move = 0x0001
     LeftDown = 0x0002
     LeftUp = 0x0004
-    MiddleDown = 0x0020
-    MiddleUp = 0x0040
-    Move = 0x0001
     RightDown = 0x0008
     RightUp = 0x0010
+    MiddleDown = 0x0020
+    MiddleUp = 0x0040
+    XDown = 0x0080
+    XUp = 0x0100
     Wheel = 0x0800
     HWheel = 0x1000
+    MoveNoCoalesce = 0x2000
+    VirtualDesk = 0x4000
+    Absolute = 0x8000
 
 
-class KeyboardEventFlags:
-    """This class defines the KeyboardEventFlags from Win32"""
+class KeyboardEventFlag:
+    """KeyboardEventFlag from Win32."""
     KeyDown = 0x0000
     ExtendedKey = 0x0001
     KeyUp = 0x0002
+    KeyUnicode = 0x0004
+    KeyScanCode = 0x0008
+
+
+class InputType:
+    """InputType from Win32"""
+    Mouse = 0
+    Keyboard = 1
+    Hardware = 2
 
 
 class ModifierKey:
-    MOD_ALT = 0x0001
-    MOD_CONTROL = 0x0002
-    MOD_SHIFT = 0x0004
-    MOD_WIN = 0x0008
-    MOD_NOREPEAT = 0x4000
+    """ModifierKey from Win32."""
+    Alt = 0x0001
+    Control = 0x0002
+    Shift = 0x0004
+    Win = 0x0008
+    NoRepeat = 0x4000
+
+
+class SW:
+    """ShowWindow params from Win32."""
+    Hide = 0
+    ShowNormal = 1
+    Normal = 1
+    ShowMinimized = 2
+    ShowMaximized = 3
+    Maximize = 3
+    ShowNoActivate = 4
+    Show = 5
+    Minimize = 6
+    ShowMinNoActive = 7
+    ShowNa = 8
+    Restore = 9
+    ShowDefault = 10
+    ForceMinimize = 11
+    Max = 11
+
+
+class SWP:
+    """SetWindowPos params from Win32."""
+    HWND_Top = 0
+    HWND_Bottom = 1
+    HWND_Topmost = -1
+    HWND_NoTopmost = -2
+    SWP_NoSize = 0x0001
+    SWP_NoMove = 0x0002
+    SWP_NoZOrder = 0x0004
+    SWP_NoRedraw = 0x0008
+    SWP_NoActivate = 0x0010
+    SWP_FrameChanged = 0x0020  # The frame changed: send WM_NCCALCSIZE
+    SWP_ShowWindow = 0x0040
+    SWP_HideWindow = 0x0080
+    SWP_NoCopyBits = 0x0100
+    SWP_NoOwnerZOrder = 0x0200  # Don't do owner Z ordering
+    SWP_NoSendChanging = 0x0400  # Don't send WM_WINDOWPOSCHANGING
+    SWP_DrawFrame = SWP_FrameChanged
+    SWP_NoReposition = SWP_NoOwnerZOrder
+    SWP_DeferErase = 0x2000
+    SWP_AsyncWindowPos = 0x4000
+
+
+class MB:
+    """MessageBox flags from Win32."""
+    Ok = 0x00000000
+    OkCancel = 0x00000001
+    AbortRetryIgnore = 0x00000002
+    YesNoCancel = 0x00000003
+    YesNo = 0x00000004
+    RetryCancel = 0x00000005
+    CancelTryContinue = 0x00000006
+    IconHand = 0x00000010
+    IconQuestion = 0x00000020
+    IconExclamation = 0x00000030
+    IconAsterisk = 0x00000040
+    UserIcon = 0x00000080
+    IconWarning = 0x00000030
+    IconError = 0x00000010
+    IconInformation = 0x00000040
+    IconStop = 0x00000010
+    DefButton1 = 0x00000000
+    DefButton2 = 0x00000100
+    DefButton3 = 0x00000200
+    DefButton4 = 0x00000300
+    ApplModal = 0x00000000
+    SystemModal = 0x00001000
+    TaskModal = 0x00002000
+    Help = 0x00004000 # help button
+    NoFocus = 0x00008000
+    SetForeground = 0x00010000
+    DefaultDesktopOnly = 0x00020000
+    Topmost = 0x00040000
+    Right = 0x00080000
+    RtlReading = 0x00100000
+    ServiceNotification = 0x00200000
+    ServiceNotificationNT3X = 0x00040000
+
+    TypeMask = 0x0000000f
+    IconMask = 0x000000f0
+    DefMask = 0x00000f00
+    ModeMask = 0x00003000
+    MiscMask = 0x0000c000
+
+    IdOk = 1
+    IdCancel = 2
+    IdAbort = 3
+    IdRetry = 4
+    IdIgnore = 5
+    IdYes = 6
+    IdNo = 7
+    IdClose = 8
+    IdHelp = 9
+    IdTryAgain = 10
+    IdContinue = 11
+    IdTimeout = 32000
 
 
 class Keys:
-    """This class defines the Key Code from Win32"""
+    """Key codes from Win32."""
     VK_LBUTTON = 0x01                       #Left mouse button
     VK_RBUTTON = 0x02                       #Right mouse button
     VK_CANCEL = 0x03                        #Control-break processing
@@ -826,1369 +1413,1466 @@ class Keys:
     VK_OEM_CLEAR = 0xFE                     #Clear key
 
 
-class ConsoleColor():
-    """This class defines the values of color for printing on console window"""
-    Default = -1
-    Black = 0
-    DarkBlue = 1
-    DarkGreen = 2
-    DarkCyan = 3
-    DarkRed = 4
-    DarkMagenta = 5
-    DarkYellow = 6
-    Gray = 7
-    DarkGray = 8
-    Blue = 9
-    Green = 10
-    Cyan = 11
-    Red = 12
-    Magenta = 13
-    Yellow = 14
-    White = 15
+SpecialKeyNames = {
+    'LBUTTON': Keys.VK_LBUTTON,                        #Left mouse button
+    'RBUTTON': Keys.VK_RBUTTON,                        #Right mouse button
+    'CANCEL': Keys.VK_CANCEL,                          #Control-break processing
+    'MBUTTON': Keys.VK_MBUTTON,                        #Middle mouse button (three-button mouse)
+    'XBUTTON1': Keys.VK_XBUTTON1,                      #X1 mouse button
+    'XBUTTON2': Keys.VK_XBUTTON2,                      #X2 mouse button
+    'BACK': Keys.VK_BACK,                              #BACKSPACE key
+    'TAB': Keys.VK_TAB,                                #TAB key
+    'CLEAR': Keys.VK_CLEAR,                            #CLEAR key
+    'RETURN': Keys.VK_RETURN,                          #ENTER key
+    'ENTER': Keys.VK_RETURN,                           #ENTER key
+    'SHIFT': Keys.VK_SHIFT,                            #SHIFT key
+    'CTRL': Keys.VK_CONTROL,                           #CTRL key
+    'CONTROL': Keys.VK_CONTROL,                        #CTRL key
+    'ALT': Keys.VK_MENU,                               #ALT key
+    'PAUSE': Keys.VK_PAUSE,                            #PAUSE key
+    'CAPITAL': Keys.VK_CAPITAL,                        #CAPS LOCK key
+    'KANA': Keys.VK_KANA,                              #IME Kana mode
+    'HANGUEL': Keys.VK_HANGUEL,                        #IME Hanguel mode (maintained for compatibility; use VK_HANGUL)
+    'HANGUL': Keys.VK_HANGUL,                          #IME Hangul mode
+    'JUNJA': Keys.VK_JUNJA,                            #IME Junja mode
+    'FINAL': Keys.VK_FINAL,                            #IME final mode
+    'HANJA': Keys.VK_HANJA,                            #IME Hanja mode
+    'KANJI': Keys.VK_KANJI,                            #IME Kanji mode
+    'ESC': Keys.VK_ESCAPE,                             #ESC key
+    'ESCAPE': Keys.VK_ESCAPE,                          #ESC key
+    'CONVERT': Keys.VK_CONVERT,                        #IME convert
+    'NONCONVERT': Keys.VK_NONCONVERT,                  #IME nonconvert
+    'ACCEPT': Keys.VK_ACCEPT,                          #IME accept
+    'MODECHANGE': Keys.VK_MODECHANGE,                  #IME mode change request
+    'SPACE': Keys.VK_SPACE,                            #SPACEBAR
+    'PRIOR': Keys.VK_PRIOR,                            #PAGE UP key
+    'PAGEUP': Keys.VK_PRIOR,                           #PAGE UP key
+    'NEXT': Keys.VK_NEXT,                              #PAGE DOWN key
+    'PAGEDOWN': Keys.VK_NEXT,                           #PAGE DOWN key
+    'END': Keys.VK_END,                                #END key
+    'HOME': Keys.VK_HOME,                              #HOME key
+    'LEFT': Keys.VK_LEFT,                              #LEFT ARROW key
+    'UP': Keys.VK_UP,                                  #UP ARROW key
+    'RIGHT': Keys.VK_RIGHT,                            #RIGHT ARROW key
+    'DOWN': Keys.VK_DOWN,                              #DOWN ARROW key
+    'SELECT': Keys.VK_SELECT,                          #SELECT key
+    'PRINT': Keys.VK_PRINT,                            #PRINT key
+    'EXECUTE': Keys.VK_EXECUTE,                        #EXECUTE key
+    'SNAPSHOT': Keys.VK_SNAPSHOT,                      #PRINT SCREEN key
+    'PRINTSCREEN': Keys.VK_SNAPSHOT,                    #PRINT SCREEN key
+    'INSERT': Keys.VK_INSERT,                          #INS key
+    'INS': Keys.VK_INSERT,                             #INS key
+    'DELETE': Keys.VK_DELETE,                          #DEL key
+    'DEL': Keys.VK_DELETE,                             #DEL key
+    'HELP': Keys.VK_HELP,                              #HELP key
+    'WIN': Keys.VK_LWIN,                               #Left Windows key (Natural keyboard)
+    'LWIN': Keys.VK_LWIN,                              #Left Windows key (Natural keyboard)
+    'RWIN': Keys.VK_RWIN,                              #Right Windows key (Natural keyboard)
+    'APPS': Keys.VK_APPS,                              #Applications key (Natural keyboard)
+    'SLEEP': Keys.VK_SLEEP,                            #Computer Sleep key
+    'NUMPAD0': Keys.VK_NUMPAD0,                        #Numeric keypad 0 key
+    'NUMPAD1': Keys.VK_NUMPAD1,                        #Numeric keypad 1 key
+    'NUMPAD2': Keys.VK_NUMPAD2,                        #Numeric keypad 2 key
+    'NUMPAD3': Keys.VK_NUMPAD3,                        #Numeric keypad 3 key
+    'NUMPAD4': Keys.VK_NUMPAD4,                        #Numeric keypad 4 key
+    'NUMPAD5': Keys.VK_NUMPAD5,                        #Numeric keypad 5 key
+    'NUMPAD6': Keys.VK_NUMPAD6,                        #Numeric keypad 6 key
+    'NUMPAD7': Keys.VK_NUMPAD7,                        #Numeric keypad 7 key
+    'NUMPAD8': Keys.VK_NUMPAD8,                        #Numeric keypad 8 key
+    'NUMPAD9': Keys.VK_NUMPAD9,                        #Numeric keypad 9 key
+    'MULTIPLY': Keys.VK_MULTIPLY,                      #Multiply key
+    'ADD': Keys.VK_ADD,                                #Add key
+    'SEPARATOR': Keys.VK_SEPARATOR,                    #Separator key
+    'SUBTRACT': Keys.VK_SUBTRACT,                      #Subtract key
+    'DECIMAL': Keys.VK_DECIMAL,                        #Decimal key
+    'DIVIDE': Keys.VK_DIVIDE,                          #Divide key
+    'F1': Keys.VK_F1,                                  #F1 key
+    'F2': Keys.VK_F2,                                  #F2 key
+    'F3': Keys.VK_F3,                                  #F3 key
+    'F4': Keys.VK_F4,                                  #F4 key
+    'F5': Keys.VK_F5,                                  #F5 key
+    'F6': Keys.VK_F6,                                  #F6 key
+    'F7': Keys.VK_F7,                                  #F7 key
+    'F8': Keys.VK_F8,                                  #F8 key
+    'F9': Keys.VK_F9,                                  #F9 key
+    'F10': Keys.VK_F10,                                #F10 key
+    'F11': Keys.VK_F11,                                #F11 key
+    'F12': Keys.VK_F12,                                #F12 key
+    'F13': Keys.VK_F13,                                #F13 key
+    'F14': Keys.VK_F14,                                #F14 key
+    'F15': Keys.VK_F15,                                #F15 key
+    'F16': Keys.VK_F16,                                #F16 key
+    'F17': Keys.VK_F17,                                #F17 key
+    'F18': Keys.VK_F18,                                #F18 key
+    'F19': Keys.VK_F19,                                #F19 key
+    'F20': Keys.VK_F20,                                #F20 key
+    'F21': Keys.VK_F21,                                #F21 key
+    'F22': Keys.VK_F22,                                #F22 key
+    'F23': Keys.VK_F23,                                #F23 key
+    'F24': Keys.VK_F24,                                #F24 key
+    'NUMLOCK': Keys.VK_NUMLOCK,                        #NUM LOCK key
+    'SCROLL': Keys.VK_SCROLL,                          #SCROLL LOCK key
+    'LSHIFT': Keys.VK_LSHIFT,                          #Left SHIFT key
+    'RSHIFT': Keys.VK_RSHIFT,                          #Right SHIFT key
+    'LCONTROL': Keys.VK_LCONTROL,                      #Left CONTROL key
+    'LCTRL': Keys.VK_LCONTROL,                         #Left CONTROL key
+    'RCONTROL': Keys.VK_RCONTROL,                      #Right CONTROL key
+    'RCTRL': Keys.VK_RCONTROL,                         #Right CONTROL key
+    'LALT': Keys.VK_LMENU,                             #Left MENU key
+    'RALT': Keys.VK_RMENU,                             #Right MENU key
+    'BROWSER_BACK': Keys.VK_BROWSER_BACK,              #Browser Back key
+    'BROWSER_FORWARD': Keys.VK_BROWSER_FORWARD,        #Browser Forward key
+    'BROWSER_REFRESH': Keys.VK_BROWSER_REFRESH,        #Browser Refresh key
+    'BROWSER_STOP': Keys.VK_BROWSER_STOP,              #Browser Stop key
+    'BROWSER_SEARCH': Keys.VK_BROWSER_SEARCH,          #Browser Search key
+    'BROWSER_FAVORITES': Keys.VK_BROWSER_FAVORITES,    #Browser Favorites key
+    'BROWSER_HOME': Keys.VK_BROWSER_HOME,              #Browser Start and Home key
+    'VOLUME_MUTE': Keys.VK_VOLUME_MUTE,                #Volume Mute key
+    'VOLUME_DOWN': Keys.VK_VOLUME_DOWN,                #Volume Down key
+    'VOLUME_UP': Keys.VK_VOLUME_UP,                    #Volume Up key
+    'MEDIA_NEXT_TRACK': Keys.VK_MEDIA_NEXT_TRACK,      #Next Track key
+    'MEDIA_PREV_TRACK': Keys.VK_MEDIA_PREV_TRACK,      #Previous Track key
+    'MEDIA_STOP': Keys.VK_MEDIA_STOP,                  #Stop Media key
+    'MEDIA_PLAY_PAUSE': Keys.VK_MEDIA_PLAY_PAUSE,      #Play/Pause Media key
+    'LAUNCH_MAIL': Keys.VK_LAUNCH_MAIL,                #Start Mail key
+    'LAUNCH_MEDIA_SELECT': Keys.VK_LAUNCH_MEDIA_SELECT,#Select Media key
+    'LAUNCH_APP1': Keys.VK_LAUNCH_APP1,                #Start Application 1 key
+    'LAUNCH_APP2': Keys.VK_LAUNCH_APP2,                #Start Application 2 key
+    'OEM_1': Keys.VK_OEM_1,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the ';:' key
+    'OEM_PLUS': Keys.VK_OEM_PLUS,                      #For any country/region, the '+' key
+    'OEM_COMMA': Keys.VK_OEM_COMMA,                    #For any country/region, the ',' key
+    'OEM_MINUS': Keys.VK_OEM_MINUS,                    #For any country/region, the '-' key
+    'OEM_PERIOD': Keys.VK_OEM_PERIOD,                  #For any country/region, the '.' key
+    'OEM_2': Keys.VK_OEM_2,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '/?' key
+    'OEM_3': Keys.VK_OEM_3,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '`~' key
+    'OEM_4': Keys.VK_OEM_4,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '[{' key
+    'OEM_5': Keys.VK_OEM_5,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '\|' key
+    'OEM_6': Keys.VK_OEM_6,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the ']}' key
+    'OEM_7': Keys.VK_OEM_7,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the 'single-quote/double-quote' key
+    'OEM_8': Keys.VK_OEM_8,                            #Used for miscellaneous characters; it can vary by keyboard.
+    'OEM_102': Keys.VK_OEM_102,                        #Either the angle bracket key or the backslash key on the RT 102-key keyboard
+    'PROCESSKEY': Keys.VK_PROCESSKEY,                  #IME PROCESS key
+    'PACKET': Keys.VK_PACKET,                          #Used to pass Unicode characters as if they were keystrokes. The VK_PACKET key is the low word of a 32-bit Virtual Key value used for non-keyboard input methods. For more information, see Remark in KEYBDINPUT, SendInput, WM_KEYDOWN, and WM_KeyUp
+    'ATTN': Keys.VK_ATTN,                              #Attn key
+    'CRSEL': Keys.VK_CRSEL,                            #CrSel key
+    'EXSEL': Keys.VK_EXSEL,                            #ExSel key
+    'EREOF': Keys.VK_EREOF,                            #Erase EOF key
+    'PLAY': Keys.VK_PLAY,                              #Play key
+    'ZOOM': Keys.VK_ZOOM,                              #Zoom key
+    'NONAME': Keys.VK_NONAME,                          #Reserved
+    'PA1': Keys.VK_PA1,                                #PA1 key
+    'OEM_CLEAR': Keys.VK_OEM_CLEAR,                    #Clear key
+}
 
 
-class ExpandCollapseState:
-    Collapsed = 0
-    Expanded = 1
-    PartiallyExpanded = 2
-    LeafNode = 3
+CharacterCodes = {
+    '0': Keys.VK_0,                             #0 key
+    '1': Keys.VK_1,                             #1 key
+    '2': Keys.VK_2,                             #2 key
+    '3': Keys.VK_3,                             #3 key
+    '4': Keys.VK_4,                             #4 key
+    '5': Keys.VK_5,                             #5 key
+    '6': Keys.VK_6,                             #6 key
+    '7': Keys.VK_7,                             #7 key
+    '8': Keys.VK_8,                             #8 key
+    '9': Keys.VK_9,                             #9 key
+    'a': Keys.VK_A,                             #A key
+    'A': Keys.VK_A,                             #A key
+    'b': Keys.VK_B,                             #B key
+    'B': Keys.VK_B,                             #B key
+    'c': Keys.VK_C,                             #C key
+    'C': Keys.VK_C,                             #C key
+    'd': Keys.VK_D,                             #D key
+    'D': Keys.VK_D,                             #D key
+    'e': Keys.VK_E,                             #E key
+    'E': Keys.VK_E,                             #E key
+    'f': Keys.VK_F,                             #F key
+    'F': Keys.VK_F,                             #F key
+    'g': Keys.VK_G,                             #G key
+    'G': Keys.VK_G,                             #G key
+    'h': Keys.VK_H,                             #H key
+    'H': Keys.VK_H,                             #H key
+    'i': Keys.VK_I,                             #I key
+    'I': Keys.VK_I,                             #I key
+    'j': Keys.VK_J,                             #J key
+    'J': Keys.VK_J,                             #J key
+    'k': Keys.VK_K,                             #K key
+    'K': Keys.VK_K,                             #K key
+    'l': Keys.VK_L,                             #L key
+    'L': Keys.VK_L,                             #L key
+    'm': Keys.VK_M,                             #M key
+    'M': Keys.VK_M,                             #M key
+    'n': Keys.VK_N,                             #N key
+    'N': Keys.VK_N,                             #N key
+    'o': Keys.VK_O,                             #O key
+    'O': Keys.VK_O,                             #O key
+    'p': Keys.VK_P,                             #P key
+    'P': Keys.VK_P,                             #P key
+    'q': Keys.VK_Q,                             #Q key
+    'Q': Keys.VK_Q,                             #Q key
+    'r': Keys.VK_R,                             #R key
+    'R': Keys.VK_R,                             #R key
+    's': Keys.VK_S,                             #S key
+    'S': Keys.VK_S,                             #S key
+    't': Keys.VK_T,                             #T key
+    'T': Keys.VK_T,                             #T key
+    'u': Keys.VK_U,                             #U key
+    'U': Keys.VK_U,                             #U key
+    'v': Keys.VK_V,                             #V key
+    'V': Keys.VK_V,                             #V key
+    'w': Keys.VK_W,                             #W key
+    'W': Keys.VK_W,                             #W key
+    'x': Keys.VK_X,                             #X key
+    'X': Keys.VK_X,                             #X key
+    'y': Keys.VK_Y,                             #Y key
+    'Y': Keys.VK_Y,                             #Y key
+    'z': Keys.VK_Z,                             #Z key
+    'Z': Keys.VK_Z,                             #Z key
+    ' ': Keys.VK_SPACE,                         #Space key
+    '`': Keys.VK_OEM_3,                         #` key
+    #'~' : Keys.VK_OEM_3,                         #~ key
+    '-': Keys.VK_OEM_MINUS,                     #- key
+    #'_' : Keys.VK_OEM_MINUS,                     #_ key
+    '=': Keys.VK_OEM_PLUS,                      #= key
+    #'+' : Keys.VK_OEM_PLUS,                      #+ key
+    '[': Keys.VK_OEM_4,                         #[ key
+    #'{' : Keys.VK_OEM_4,                         #{ key
+    ']': Keys.VK_OEM_6,                         #] key
+    #'}' : Keys.VK_OEM_6,                         #} key
+    '\\': Keys.VK_OEM_5,                        #\ key
+    #'|' : Keys.VK_OEM_5,                         #| key
+    ';': Keys.VK_OEM_1,                         #; key
+    #':' : Keys.VK_OEM_1,                         #: key
+    '\'': Keys.VK_OEM_7,                        #' key
+    #'"' : Keys.VK_OEM_7,                         #" key
+    ',': Keys.VK_OEM_COMMA,                     #, key
+    #'<' : Keys.VK_OEM_COMMA,                     #< key
+    '.': Keys.VK_OEM_PERIOD,                    #. key
+    #'>' : Keys.VK_OEM_PERIOD,                    #> key
+    '/': Keys.VK_OEM_2,                         #/ key
+    #'?' : Keys.VK_OEM_2,                         #? key
+}
 
 
-class ToggleState:
-    Off = 0
-    On = 1
-    Indeterminate = 2
+class ConsoleScreenBufferInfo(ctypes.Structure):
+    _fields_ = [
+        ('dwSize', ctypes.wintypes._COORD),
+        ('dwCursorPosition', ctypes.wintypes._COORD),
+        ('wAttributes', ctypes.c_uint),
+        ('srWindow', ctypes.wintypes.SMALL_RECT),
+        ('dwMaximumWindowSize', ctypes.wintypes._COORD),
+    ]
 
 
-class WindowVisualState:
-    Normal = 0
-    Maximized = 1
-    Minimized = 2
+class MOUSEINPUT(ctypes.Structure):
+    _fields_ = (('dx', ctypes.wintypes.LONG),
+                ('dy', ctypes.wintypes.LONG),
+                ('mouseData', ctypes.wintypes.DWORD),
+                ('dwFlags', ctypes.wintypes.DWORD),
+                ('time', ctypes.wintypes.DWORD),
+                ('dwExtraInfo', ctypes.wintypes.PULONG))
+
+class KEYBDINPUT(ctypes.Structure):
+    _fields_ = (('wVk', ctypes.wintypes.WORD),
+                ('wScan', ctypes.wintypes.WORD),
+                ('dwFlags', ctypes.wintypes.DWORD),
+                ('time', ctypes.wintypes.DWORD),
+                ('dwExtraInfo', ctypes.wintypes.PULONG))
+
+class HARDWAREINPUT(ctypes.Structure):
+    _fields_ = (('uMsg', ctypes.wintypes.DWORD),
+                ('wParamL', ctypes.wintypes.WORD),
+                ('wParamH', ctypes.wintypes.WORD))
+
+class _INPUTUnion(ctypes.Union):
+    _fields_ = (('mi', MOUSEINPUT),
+                ('ki', KEYBDINPUT),
+                ('hi', HARDWAREINPUT))
+
+class INPUT(ctypes.Structure):
+    _fields_ = (('type', ctypes.wintypes.DWORD),
+                ('union', _INPUTUnion))
 
 
-class ShowWindow:
-    Hide = 0
-    ShowNormal = 1
-    Normal = 1
-    ShowMinimized = 2
-    ShowMaximized = 3
-    Maximize = 3
-    ShowNoActivate = 4
-    Show = 5
-    Minimize = 6
-    ShowMinNoActive = 7
-    ShowNa = 8
-    Restore = 9
-    ShowDefault = 10
-    ForceMinimize = 11
-    Max = 11
+_StdOutputHandle = -11
+_ConsoleOutputHandle = None
+_DefaultConsoleColor = None
 
 
-class SWP:
-    HWND_TOP = 0
-    HWND_BOTTOM = 1
-    HWND_TOPMOST = -1
-    HWND_NOTOPMOST = -2
-    SWP_NOSIZE = 0x0001
-    SWP_NOMOVE = 0x0002
-    SWP_NOZORDER = 0x0004
-    SWP_NOREDRAW = 0x0008
-    SWP_NOACTIVATE = 0x0010
-    SWP_FRAMECHANGED = 0x0020  # The frame changed: send WM_NCCALCSIZE
-    SWP_SHOWWINDOW = 0x0040
-    SWP_HIDEWINDOW = 0x0080
-    SWP_NOCOPYBITS = 0x0100
-    SWP_NOOWNERZORDER = 0x0200  # Don't do owner Z ordering
-    SWP_NOSENDCHANGING = 0x0400  # Don't send WM_WINDOWPOSCHANGING
-    SWP_DRAWFRAME = SWP_FRAMECHANGED
-    SWP_NOREPOSITION = SWP_NOOWNERZORDER
-    SWP_DEFERERASE = 0x2000
-    SWP_ASYNCWINDOWPOS = 0x4000
-
-
-class MB:
-    OK = 0x00000000
-    OKCANCEL = 0x00000001
-    ABORTRETRYIGNORE = 0x00000002
-    YESNOCANCEL = 0x00000003
-    YESNO = 0x00000004
-    RETRYCANCEL = 0x00000005
-    CANCELTRYCONTINUE = 0x00000006
-    ICONHAND = 0x00000010
-    ICONQUESTION = 0x00000020
-    ICONEXCLAMATION = 0x00000030
-    ICONASTERISK = 0x00000040
-    USERICON = 0x00000080
-    ICONWARNING = 0x00000030
-    ICONERROR = 0x00000010
-    ICONINFORMATION = 0x00000040
-    ICONSTOP = 0x00000010
-    DEFBUTTON1 = 0x00000000
-    DEFBUTTON2 = 0x00000100
-    DEFBUTTON3 = 0x00000200
-    DEFBUTTON4 = 0x00000300
-    APPLMODAL = 0x00000000
-    SYSTEMMODAL = 0x00001000
-    TASKMODAL = 0x00002000
-    HELP = 0x00004000 # Help Button
-    NOFOCUS = 0x00008000
-    SETFOREGROUND = 0x00010000
-    DEFAULT_DESKTOP_ONLY = 0x00020000
-    TOPMOST = 0x00040000
-    RIGHT = 0x00080000
-    RTLREADING = 0x00100000
-    SERVICE_NOTIFICATION = 0x00200000
-    SERVICE_NOTIFICATION = 0x00040000
-    SERVICE_NOTIFICATION_NT3X = 0x00040000
-
-    TYPEMASK = 0x0000000F
-    ICONMASK = 0x000000F0
-    DEFMASK = 0x00000F00
-    MODEMASK = 0x00003000
-    MISCMASK = 0x0000C000
-
-    IDOK = 1
-    IDCANCEL = 2
-    IDABORT = 3
-    IDRETRY = 4
-    IDIGNORE = 5
-    IDYES = 6
-    IDNO = 7
-    IDCLOSE = 8
-    IDHELP = 9
-    IDTRYAGAIN = 10
-    IDCONTINUE = 11
-    IDTIMEOUT = 32000
-
-
-class Win32API:
-    """Some native methods for python calling"""
-    StdOutputHandle = -11
-    ConsoleOutputHandle = None
-    DefaultColor = None
-    SpecialKeyDict = {
-        'LBUTTON' : Keys.VK_LBUTTON,                        #Left mouse button
-        'RBUTTON' : Keys.VK_RBUTTON,                        #Right mouse button
-        'CANCEL' : Keys.VK_CANCEL,                          #Control-break processing
-        'MBUTTON' : Keys.VK_MBUTTON,                        #Middle mouse button (three-button mouse)
-        'XBUTTON1' : Keys.VK_XBUTTON1,                      #X1 mouse button
-        'XBUTTON2' : Keys.VK_XBUTTON2,                      #X2 mouse button
-        'BACK' : Keys.VK_BACK,                              #BACKSPACE key
-        'TAB' : Keys.VK_TAB,                                #TAB key
-        'CLEAR' : Keys.VK_CLEAR,                            #CLEAR key
-        'RETURN' : Keys.VK_RETURN,                          #ENTER key
-        'ENTER' : Keys.VK_RETURN,                           #ENTER key
-        'SHIFT' : Keys.VK_SHIFT,                            #SHIFT key
-        'CTRL' : Keys.VK_CONTROL,                           #CTRL key
-        'CONTROL' : Keys.VK_CONTROL,                        #CTRL key
-        'ALT' : Keys.VK_MENU,                               #ALT key
-        'PAUSE' : Keys.VK_PAUSE,                            #PAUSE key
-        'CAPITAL' : Keys.VK_CAPITAL,                        #CAPS LOCK key
-        'KANA' : Keys.VK_KANA,                              #IME Kana mode
-        'HANGUEL' : Keys.VK_HANGUEL,                        #IME Hanguel mode (maintained for compatibility; use VK_HANGUL)
-        'HANGUL' : Keys.VK_HANGUL,                          #IME Hangul mode
-        'JUNJA' : Keys.VK_JUNJA,                            #IME Junja mode
-        'FINAL' : Keys.VK_FINAL,                            #IME final mode
-        'HANJA' : Keys.VK_HANJA,                            #IME Hanja mode
-        'KANJI' : Keys.VK_KANJI,                            #IME Kanji mode
-        'ESC' : Keys.VK_ESCAPE,                             #ESC key
-        'ESCAPE' : Keys.VK_ESCAPE,                          #ESC key
-        'CONVERT' : Keys.VK_CONVERT,                        #IME convert
-        'NONCONVERT' : Keys.VK_NONCONVERT,                  #IME nonconvert
-        'ACCEPT' : Keys.VK_ACCEPT,                          #IME accept
-        'MODECHANGE' : Keys.VK_MODECHANGE,                  #IME mode change request
-        'SPACE' : Keys.VK_SPACE,                            #SPACEBAR
-        'PRIOR' : Keys.VK_PRIOR,                            #PAGE UP key
-        'PAGEUP' : Keys.VK_PRIOR,                           #PAGE UP key
-        'NEXT' : Keys.VK_NEXT,                              #PAGE DOWN key
-        'PAGEDOWN': Keys.VK_NEXT,                           #PAGE DOWN key
-        'END' : Keys.VK_END,                                #END key
-        'HOME' : Keys.VK_HOME,                              #HOME key
-        'LEFT' : Keys.VK_LEFT,                              #LEFT ARROW key
-        'UP' : Keys.VK_UP,                                  #UP ARROW key
-        'RIGHT' : Keys.VK_RIGHT,                            #RIGHT ARROW key
-        'DOWN' : Keys.VK_DOWN,                              #DOWN ARROW key
-        'SELECT' : Keys.VK_SELECT,                          #SELECT key
-        'PRINT' : Keys.VK_PRINT,                            #PRINT key
-        'EXECUTE' : Keys.VK_EXECUTE,                        #EXECUTE key
-        'SNAPSHOT' : Keys.VK_SNAPSHOT,                      #PRINT SCREEN key
-        'PRINTSCREEN': Keys.VK_SNAPSHOT,                    #PRINT SCREEN key
-        'INSERT' : Keys.VK_INSERT,                          #INS key
-        'INS' : Keys.VK_INSERT,                             #INS key
-        'DELETE' : Keys.VK_DELETE,                          #DEL key
-        'DEL' : Keys.VK_DELETE,                             #DEL key
-        'HELP' : Keys.VK_HELP,                              #HELP key
-        'WIN' : Keys.VK_LWIN,                               #Left Windows key (Natural keyboard)
-        'LWIN' : Keys.VK_LWIN,                              #Left Windows key (Natural keyboard)
-        'RWIN' : Keys.VK_RWIN,                              #Right Windows key (Natural keyboard)
-        'APPS' : Keys.VK_APPS,                              #Applications key (Natural keyboard)
-        'SLEEP' : Keys.VK_SLEEP,                            #Computer Sleep key
-        'NUMPAD0' : Keys.VK_NUMPAD0,                        #Numeric keypad 0 key
-        'NUMPAD1' : Keys.VK_NUMPAD1,                        #Numeric keypad 1 key
-        'NUMPAD2' : Keys.VK_NUMPAD2,                        #Numeric keypad 2 key
-        'NUMPAD3' : Keys.VK_NUMPAD3,                        #Numeric keypad 3 key
-        'NUMPAD4' : Keys.VK_NUMPAD4,                        #Numeric keypad 4 key
-        'NUMPAD5' : Keys.VK_NUMPAD5,                        #Numeric keypad 5 key
-        'NUMPAD6' : Keys.VK_NUMPAD6,                        #Numeric keypad 6 key
-        'NUMPAD7' : Keys.VK_NUMPAD7,                        #Numeric keypad 7 key
-        'NUMPAD8' : Keys.VK_NUMPAD8,                        #Numeric keypad 8 key
-        'NUMPAD9' : Keys.VK_NUMPAD9,                        #Numeric keypad 9 key
-        'MULTIPLY' : Keys.VK_MULTIPLY,                      #Multiply key
-        'ADD' : Keys.VK_ADD,                                #Add key
-        'SEPARATOR' : Keys.VK_SEPARATOR,                    #Separator key
-        'SUBTRACT' : Keys.VK_SUBTRACT,                      #Subtract key
-        'DECIMAL' : Keys.VK_DECIMAL,                        #Decimal key
-        'DIVIDE' : Keys.VK_DIVIDE,                          #Divide key
-        'F1' : Keys.VK_F1,                                  #F1 key
-        'F2' : Keys.VK_F2,                                  #F2 key
-        'F3' : Keys.VK_F3,                                  #F3 key
-        'F4' : Keys.VK_F4,                                  #F4 key
-        'F5' : Keys.VK_F5,                                  #F5 key
-        'F6' : Keys.VK_F6,                                  #F6 key
-        'F7' : Keys.VK_F7,                                  #F7 key
-        'F8' : Keys.VK_F8,                                  #F8 key
-        'F9' : Keys.VK_F9,                                  #F9 key
-        'F10' : Keys.VK_F10,                                #F10 key
-        'F11' : Keys.VK_F11,                                #F11 key
-        'F12' : Keys.VK_F12,                                #F12 key
-        'F13' : Keys.VK_F13,                                #F13 key
-        'F14' : Keys.VK_F14,                                #F14 key
-        'F15' : Keys.VK_F15,                                #F15 key
-        'F16' : Keys.VK_F16,                                #F16 key
-        'F17' : Keys.VK_F17,                                #F17 key
-        'F18' : Keys.VK_F18,                                #F18 key
-        'F19' : Keys.VK_F19,                                #F19 key
-        'F20' : Keys.VK_F20,                                #F20 key
-        'F21' : Keys.VK_F21,                                #F21 key
-        'F22' : Keys.VK_F22,                                #F22 key
-        'F23' : Keys.VK_F23,                                #F23 key
-        'F24' : Keys.VK_F24,                                #F24 key
-        'NUMLOCK' : Keys.VK_NUMLOCK,                        #NUM LOCK key
-        'SCROLL' : Keys.VK_SCROLL,                          #SCROLL LOCK key
-        'LSHIFT' : Keys.VK_LSHIFT,                          #Left SHIFT key
-        'RSHIFT' : Keys.VK_RSHIFT,                          #Right SHIFT key
-        'LCONTROL' : Keys.VK_LCONTROL,                      #Left CONTROL key
-        'LCTRL' : Keys.VK_LCONTROL,                         #Left CONTROL key
-        'RCONTROL' : Keys.VK_RCONTROL,                      #Right CONTROL key
-        'RCTRL' : Keys.VK_RCONTROL,                         #Right CONTROL key
-        'LALT' : Keys.VK_LMENU,                             #Left MENU key
-        'RALT' : Keys.VK_RMENU,                             #Right MENU key
-        'BROWSER_BACK' : Keys.VK_BROWSER_BACK,              #Browser Back key
-        'BROWSER_FORWARD' : Keys.VK_BROWSER_FORWARD,        #Browser Forward key
-        'BROWSER_REFRESH' : Keys.VK_BROWSER_REFRESH,        #Browser Refresh key
-        'BROWSER_STOP' : Keys.VK_BROWSER_STOP,              #Browser Stop key
-        'BROWSER_SEARCH' : Keys.VK_BROWSER_SEARCH,          #Browser Search key
-        'BROWSER_FAVORITES' : Keys.VK_BROWSER_FAVORITES,    #Browser Favorites key
-        'BROWSER_HOME' : Keys.VK_BROWSER_HOME,              #Browser Start and Home key
-        'VOLUME_MUTE' : Keys.VK_VOLUME_MUTE,                #Volume Mute key
-        'VOLUME_DOWN' : Keys.VK_VOLUME_DOWN,                #Volume Down key
-        'VOLUME_UP' : Keys.VK_VOLUME_UP,                    #Volume Up key
-        'MEDIA_NEXT_TRACK' : Keys.VK_MEDIA_NEXT_TRACK,      #Next Track key
-        'MEDIA_PREV_TRACK' : Keys.VK_MEDIA_PREV_TRACK,      #Previous Track key
-        'MEDIA_STOP' : Keys.VK_MEDIA_STOP,                  #Stop Media key
-        'MEDIA_PLAY_PAUSE' : Keys.VK_MEDIA_PLAY_PAUSE,      #Play/Pause Media key
-        'LAUNCH_MAIL' : Keys.VK_LAUNCH_MAIL,                #Start Mail key
-        'LAUNCH_MEDIA_SELECT' : Keys.VK_LAUNCH_MEDIA_SELECT,#Select Media key
-        'LAUNCH_APP1' : Keys.VK_LAUNCH_APP1,                #Start Application 1 key
-        'LAUNCH_APP2' : Keys.VK_LAUNCH_APP2,                #Start Application 2 key
-        'OEM_1' : Keys.VK_OEM_1,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the ';:' key
-        'OEM_PLUS' : Keys.VK_OEM_PLUS,                      #For any country/region, the '+' key
-        'OEM_COMMA' : Keys.VK_OEM_COMMA,                    #For any country/region, the ',' key
-        'OEM_MINUS' : Keys.VK_OEM_MINUS,                    #For any country/region, the '-' key
-        'OEM_PERIOD' : Keys.VK_OEM_PERIOD,                  #For any country/region, the '.' key
-        'OEM_2' : Keys.VK_OEM_2,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '/?' key
-        'OEM_3' : Keys.VK_OEM_3,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '`~' key
-        'OEM_4' : Keys.VK_OEM_4,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '[{' key
-        'OEM_5' : Keys.VK_OEM_5,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the '\|' key
-        'OEM_6' : Keys.VK_OEM_6,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the ']}' key
-        'OEM_7' : Keys.VK_OEM_7,                            #Used for miscellaneous characters; it can vary by keyboard.For the US standard keyboard, the 'single-quote/double-quote' key
-        'OEM_8' : Keys.VK_OEM_8,                            #Used for miscellaneous characters; it can vary by keyboard.
-        'OEM_102' : Keys.VK_OEM_102,                        #Either the angle bracket key or the backslash key on the RT 102-key keyboard
-        'PROCESSKEY' : Keys.VK_PROCESSKEY,                  #IME PROCESS key
-        'PACKET' : Keys.VK_PACKET,                          #Used to pass Unicode characters as if they were keystrokes. The VK_PACKET key is the low word of a 32-bit Virtual Key value used for non-keyboard input methods. For more information, see Remark in KEYBDINPUT, SendInput, WM_KEYDOWN, and WM_KeyUp
-        'ATTN' : Keys.VK_ATTN,                              #Attn key
-        'CRSEL' : Keys.VK_CRSEL,                            #CrSel key
-        'EXSEL' : Keys.VK_EXSEL,                            #ExSel key
-        'EREOF' : Keys.VK_EREOF,                            #Erase EOF key
-        'PLAY' : Keys.VK_PLAY,                              #Play key
-        'ZOOM' : Keys.VK_ZOOM,                              #Zoom key
-        'NONAME' : Keys.VK_NONAME,                          #Reserved
-        'PA1' : Keys.VK_PA1,                                #PA1 key
-        'OEM_CLEAR' : Keys.VK_OEM_CLEAR,                    #Clear key
-        }
-    CharacterDict = {
-        '0' : Keys.VK_0,                             #0 key
-        '1' : Keys.VK_1,                             #1 key
-        '2' : Keys.VK_2,                             #2 key
-        '3' : Keys.VK_3,                             #3 key
-        '4' : Keys.VK_4,                             #4 key
-        '5' : Keys.VK_5,                             #5 key
-        '6' : Keys.VK_6,                             #6 key
-        '7' : Keys.VK_7,                             #7 key
-        '8' : Keys.VK_8,                             #8 key
-        '9' : Keys.VK_9,                             #9 key
-        'a' : Keys.VK_A,                             #A key
-        'A' : Keys.VK_A,                             #A key
-        'b' : Keys.VK_B,                             #B key
-        'B' : Keys.VK_B,                             #B key
-        'c' : Keys.VK_C,                             #C key
-        'C' : Keys.VK_C,                             #C key
-        'd' : Keys.VK_D,                             #D key
-        'D' : Keys.VK_D,                             #D key
-        'e' : Keys.VK_E,                             #E key
-        'E' : Keys.VK_E,                             #E key
-        'f' : Keys.VK_F,                             #F key
-        'F' : Keys.VK_F,                             #F key
-        'g' : Keys.VK_G,                             #G key
-        'G' : Keys.VK_G,                             #G key
-        'h' : Keys.VK_H,                             #H key
-        'H' : Keys.VK_H,                             #H key
-        'i' : Keys.VK_I,                             #I key
-        'I' : Keys.VK_I,                             #I key
-        'j' : Keys.VK_J,                             #J key
-        'J' : Keys.VK_J,                             #J key
-        'k' : Keys.VK_K,                             #K key
-        'K' : Keys.VK_K,                             #K key
-        'l' : Keys.VK_L,                             #L key
-        'L' : Keys.VK_L,                             #L key
-        'm' : Keys.VK_M,                             #M key
-        'M' : Keys.VK_M,                             #M key
-        'n' : Keys.VK_N,                             #N key
-        'N' : Keys.VK_N,                             #N key
-        'o' : Keys.VK_O,                             #O key
-        'O' : Keys.VK_O,                             #O key
-        'p' : Keys.VK_P,                             #P key
-        'P' : Keys.VK_P,                             #P key
-        'q' : Keys.VK_Q,                             #Q key
-        'Q' : Keys.VK_Q,                             #Q key
-        'r' : Keys.VK_R,                             #R key
-        'R' : Keys.VK_R,                             #R key
-        's' : Keys.VK_S,                             #S key
-        'S' : Keys.VK_S,                             #S key
-        't' : Keys.VK_T,                             #T key
-        'T' : Keys.VK_T,                             #T key
-        'u' : Keys.VK_U,                             #U key
-        'U' : Keys.VK_U,                             #U key
-        'v' : Keys.VK_V,                             #V key
-        'V' : Keys.VK_V,                             #V key
-        'w' : Keys.VK_W,                             #W key
-        'W' : Keys.VK_W,                             #W key
-        'x' : Keys.VK_X,                             #X key
-        'X' : Keys.VK_X,                             #X key
-        'y' : Keys.VK_Y,                             #Y key
-        'Y' : Keys.VK_Y,                             #Y key
-        'z' : Keys.VK_Z,                             #Z key
-        'Z' : Keys.VK_Z,                             #Z key
-        ' ' : Keys.VK_SPACE,                         #Space key
-        '`' : Keys.VK_OEM_3,                         #` key
-        #'~' : Keys.VK_OEM_3,                         #~ key
-        '-' : Keys.VK_OEM_MINUS,                     #- key
-        #'_' : Keys.VK_OEM_MINUS,                     #_ key
-        '=' : Keys.VK_OEM_PLUS,                      #= key
-        #'+' : Keys.VK_OEM_PLUS,                      #+ key
-        '[' : Keys.VK_OEM_4,                         #[ key
-        #'{' : Keys.VK_OEM_4,                         #{ key
-        ']' : Keys.VK_OEM_6,                         #] key
-        #'}' : Keys.VK_OEM_6,                         #} key
-        '\\' : Keys.VK_OEM_5,                        #\ key
-        #'|' : Keys.VK_OEM_5,                         #| key
-        ';' : Keys.VK_OEM_1,                         #; key
-        #':' : Keys.VK_OEM_1,                         #: key
-        '\'' : Keys.VK_OEM_7,                        #' key
-        #'"' : Keys.VK_OEM_7,                         #" key
-        ',' : Keys.VK_OEM_COMMA,                     #, key
-        #'<' : Keys.VK_OEM_COMMA,                     #< key
-        '.' : Keys.VK_OEM_PERIOD,                    #. key
-        #'>' : Keys.VK_OEM_PERIOD,                    #> key
-        '/' : Keys.VK_OEM_2,                         #/ key
-        #'?' : Keys.VK_OEM_2,                         #? key
-        }
-
-    @staticmethod
-    def GetClipboardText():
-        """Return str"""
-        if ctypes.windll.user32.OpenClipboard(0):
-            if ctypes.windll.user32.IsClipboardFormatAvailable(13): # CF_TEXT=1, CF_UNICODETEXT=13
-                hClipboardData = ctypes.windll.user32.GetClipboardData(13)
-                hText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
-                text = ctypes.c_wchar_p(hText).value[:]
-                ctypes.windll.kernel32.GlobalUnlock(hClipboardData)
-                ctypes.windll.user32.CloseClipboard()
-                return text
-        return ''
-
-    @staticmethod
-    def SetClipboardText(text):
-        """text: str"""
-        if ctypes.windll.user32.OpenClipboard(0):
-            ctypes.windll.user32.EmptyClipboard()
-            textByteLen = (len(text) + 1) * 2
-            hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0, textByteLen)  # GMEM_FIXED=0
-            hDestText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
-            ctypes.cdll.msvcrt.wcsncpy(ctypes.c_wchar_p(hDestText), ctypes.c_wchar_p(text), textByteLen // 2)
+def GetClipboardText() -> str:
+    if ctypes.windll.user32.OpenClipboard(0):
+        if ctypes.windll.user32.IsClipboardFormatAvailable(13): # CF_TEXT=1, CF_UNICODETEXT=13
+            hClipboardData = ctypes.windll.user32.GetClipboardData(13)
+            hText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
+            text = ctypes.c_wchar_p(hText).value[:]
             ctypes.windll.kernel32.GlobalUnlock(hClipboardData)
-            # system owns hClipboardData after calling SetClipboardData,
-            # application can not write to or free the data once ownership has been transferred to the system
-            ctypes.windll.user32.SetClipboardData(13, hClipboardData)  # CF_TEXT=1, CF_UNICODETEXT=13
             ctypes.windll.user32.CloseClipboard()
+            return text
+    return ''
 
-    @staticmethod
-    def SetConsoleColor(color):
-        """
-        color: int, a value in class ConsoleColor
-        Change the text color on console window
-        """
-        if not Win32API.DefaultColor:
-            if not Win32API.ConsoleOutputHandle:
-                Win32API.ConsoleOutputHandle = ctypes.windll.kernel32.GetStdHandle(Win32API.StdOutputHandle)
-            bufferInfo = ConsoleScreenBufferInfo()
-            ctypes.windll.kernel32.GetConsoleScreenBufferInfo(Win32API.ConsoleOutputHandle, ctypes.byref(bufferInfo))
-            Win32API.DefaultColor = int(bufferInfo.wAttributes & 0xFF)
-        if IsPy3:
-            if sys.stdout:
-                sys.stdout.flush() # need flush stdout in python 3
-        ctypes.windll.kernel32.SetConsoleTextAttribute(Win32API.ConsoleOutputHandle, color)
 
-    @staticmethod
-    def ResetConsoleColor():
-        """Reset the default text color on console window"""
-        if IsPy3:
-            if sys.stdout:
-                sys.stdout.flush() # need flush stdout in python 3
-        ctypes.windll.kernel32.SetConsoleTextAttribute(Win32API.ConsoleOutputHandle, Win32API.DefaultColor)
+def SetClipboardText(text: str) -> bool:
+    """
+    Return bool, True if succeed otherwise False.
+    """
+    if ctypes.windll.user32.OpenClipboard(0):
+        ctypes.windll.user32.EmptyClipboard()
+        textByteLen = (len(text) + 1) * 2
+        hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0, textByteLen)  # GMEM_FIXED=0
+        hDestText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
+        ctypes.cdll.msvcrt.wcsncpy(ctypes.c_wchar_p(hDestText), ctypes.c_wchar_p(text), textByteLen // 2)
+        ctypes.windll.kernel32.GlobalUnlock(hClipboardData)
+        # system owns hClipboardData after calling SetClipboardData,
+        # application can not write to or free the data once ownership has been transferred to the system
+        ctypes.windll.user32.SetClipboardData(13, hClipboardData)  # CF_TEXT=1, CF_UNICODETEXT=13
+        ctypes.windll.user32.CloseClipboard()
+        return True
+    return False
 
-    @staticmethod
-    def WindowFromPoint(x, y):
-        """Return int"""
-        point = Point()
-        point.x = x
-        point.y = y
-        return ctypes.windll.user32.WindowFromPoint(point)
 
-    @staticmethod
-    def GetCursorPos():
-        """Return two int tuple (x, y)"""
-        point = Point()
-        ctypes.windll.user32.GetCursorPos(ctypes.byref(point))
-        return int(point.x), int(point.y)
+def SetConsoleColor(color: int) -> bool:
+    """
+    Change the text color on console window.
+    color: int, a value in class `ConsoleColor`.
+    Return bool, True if succeed otherwise False.
+    """
+    global _ConsoleOutputHandle
+    global _DefaultConsoleColor
+    if not _DefaultConsoleColor:
+        if not _ConsoleOutputHandle:
+            _ConsoleOutputHandle = ctypes.windll.kernel32.GetStdHandle(_StdOutputHandle)
+        bufferInfo = ConsoleScreenBufferInfo()
+        ctypes.windll.kernel32.GetConsoleScreenBufferInfo(_ConsoleOutputHandle, ctypes.byref(bufferInfo))
+        _DefaultConsoleColor = int(bufferInfo.wAttributes & 0xFF)
+    if sys.stdout:
+        sys.stdout.flush()
+    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, color))
 
-    @staticmethod
-    def SetCursorPos(x, y):
-        """
-        x: int
-        y: int
-        Set cursor to point x, y
-        """
-        ctypes.windll.user32.SetCursorPos(x, y)
 
-    @staticmethod
-    def GetDoubleClickTime():
-        """return int, in milliseconds"""
-        return ctypes.windll.user32.GetDoubleClickTime()
+def ResetConsoleColor() -> bool:
+    """
+    Reset to the default text color on console window.
+    Return bool, True if succeed otherwise False.
+    """
+    if sys.stdout:
+        sys.stdout.flush()
+    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, _DefaultConsoleColor))
 
-    @staticmethod
-    def mouse_event(dwFlags, dx, dy, dwData, dwExtraInfo):
-        """Call API mouse_event from user32.dll"""
-        ctypes.windll.user32.mouse_event(dwFlags, dx, dy, dwData, dwExtraInfo)
 
-    @staticmethod
-    def keybd_event(bVk, bScan, dwFlags, dwExtraInfo):
-        """Call API keybd_event from user32.dll"""
-        ctypes.windll.user32.keybd_event(bVk, bScan, dwFlags, dwExtraInfo)
+def WindowFromPoint(x: int, y: int) -> int:
+    """
+    WindowFromPoint from Win32.
+    Return int, a native window handle.
+    """
+    return ctypes.windll.user32.WindowFromPoint(ctypes.wintypes.POINT(x, y))
 
-    @staticmethod
-    def PostMessage(handle, msg, wparam, lparam):
-        """Call API PostMessageW from user32.dll"""
-        return ctypes.windll.user32.PostMessageW(ctypes.c_void_p(handle), msg, wparam, lparam)
 
-    @staticmethod
-    def SendMessage(handle, msg, wparam, lparam):
-        """Call API SendMessageW from user32.dll"""
-        return ctypes.windll.user32.SendMessageW(ctypes.c_void_p(handle), msg, wparam, lparam)
+def GetCursorPos() -> tuple:
+    """
+    GetCursorPos from Win32.
+    Get current mouse cursor positon.
+    Return tuple, two ints tuple (x, y).
+    """
+    point = ctypes.wintypes.POINT(0, 0)
+    ctypes.windll.user32.GetCursorPos(ctypes.byref(point))
+    return point.x, point.y
 
-    @staticmethod
-    def MouseClick(x, y, waitTime=OPERATION_WAIT_TIME):
-        """
-        x: int
-        y: int
-        waitTime: float
-        Simulate mouse click at point x, y
-        """
-        Win32API.SetCursorPos(x, y)
-        Win32API.mouse_event(MouseEventFlags.LeftDown | MouseEventFlags.Absolute, x, y, 0, 0)
+
+def SetCursorPos(x: int, y: int) -> bool:
+    """
+    SetCursorPos from Win32.
+    Set mouse cursor to point x, y.
+    x: int.
+    y: int.
+    Return bool, True if succeed otherwise False.
+    """
+    return bool(ctypes.windll.user32.SetCursorPos(x, y))
+
+
+def GetDoubleClickTime() -> int:
+    """
+    GetDoubleClickTime from Win32.
+    Return int, in milliseconds.
+    """
+    return ctypes.windll.user32.GetDoubleClickTime()
+
+
+def mouse_event(dwFlags: int, dx: int, dy: int, dwData: int, dwExtraInfo: int) -> None:
+    """mouse_event from Win32."""
+    ctypes.windll.user32.mouse_event(dwFlags, dx, dy, dwData, dwExtraInfo)
+
+
+def keybd_event(bVk: int, bScan: int, dwFlags: int, dwExtraInfo: int) -> None:
+    """keybd_event from Win32."""
+    ctypes.windll.user32.keybd_event(bVk, bScan, dwFlags, dwExtraInfo)
+
+
+def PostMessage(handle: int, msg: int, wParam: int, lParam: int) -> bool:
+    """
+    PostMessage from Win32.
+    Return bool, True if succeed otherwise False.
+    """
+    return bool(ctypes.windll.user32.PostMessageW(ctypes.c_void_p(handle), msg, wParam, lParam))
+
+
+def SendMessage(handle: int, msg: int, wParam: int, lParam: int) -> int:
+    """
+    SendMessage from Win32.
+    Return int, the return value specifies the result of the message processing;
+                it depends on the message sent.
+    """
+    return ctypes.windll.user32.SendMessageW(ctypes.c_void_p(handle), msg, wParam, lParam)
+
+
+def Click(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse click at point x, y.
+    x: int.
+    y: int.
+    waitTime: float.
+    """
+    SetCursorPos(x, y)
+    mouse_event(MouseEventFlag.LeftDown | MouseEventFlag.Absolute, x, y, 0, 0)
+    time.sleep(0.05)
+    mouse_event(MouseEventFlag.LeftUp | MouseEventFlag.Absolute, x, y, 0, 0)
+    time.sleep(waitTime)
+
+
+def MiddleClick(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse middle click at point x, y.
+    x: int.
+    y: int.
+    waitTime: float.
+    """
+    SetCursorPos(x, y)
+    mouse_event(MouseEventFlag.MiddleDown | MouseEventFlag.Absolute, x, y, 0, 0)
+    time.sleep(0.05)
+    mouse_event(MouseEventFlag.MiddleUp | MouseEventFlag.Absolute, x, y, 0, 0)
+    time.sleep(waitTime)
+
+
+def RightClick(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse right click at point x, y.
+    x: int.
+    y: int.
+    waitTime: float.
+    """
+    SetCursorPos(x, y)
+    mouse_event(MouseEventFlag.RightDown | MouseEventFlag.Absolute, x, y, 0, 0)
+    time.sleep(0.05)
+    mouse_event(MouseEventFlag.RightUp | MouseEventFlag.Absolute, x, y, 0, 0)
+    time.sleep(waitTime)
+
+
+def MoveTo(x: int, y: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse move to point x, y from current cursor.
+    x: int.
+    y: int.
+    moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster.
+    waitTime: float.
+    """
+    if moveSpeed <= 0:
+        moveTime = 0
+    else:
+        moveTime = MAX_MOVE_SECOND / moveSpeed
+    curX, curY = GetCursorPos()
+    xCount = abs(x - curX)
+    yCount = abs(y - curY)
+    maxPoint = max(xCount, yCount)
+    screenWidth, screenHeight = GetScreenSize()
+    maxSide = max(screenWidth, screenHeight)
+    minSide = min(screenWidth, screenHeight)
+    if maxPoint > minSide:
+        maxPoint = minSide
+    if maxPoint < maxSide:
+        maxPoint = 100 + int((maxSide - 100) / maxSide * maxPoint)
+        moveTime = moveTime * maxPoint * 1.0 / maxSide
+    stepCount = maxPoint // 20
+    if stepCount > 1:
+        xStep = (x - curX) * 1.0 / stepCount
+        yStep = (y - curY) * 1.0 / stepCount
+        interval = moveTime / stepCount
+        for i in range(stepCount):
+            cx = curX + int(xStep * i)
+            cy = curY + int(yStep * i)
+            # upper-left(0,0), lower-right(65536,65536)
+            # mouse_event(MouseEventFlag.Move | MouseEventFlag.Absolute, cx*65536//screenWidth, cy*65536//screenHeight, 0, 0)
+            SetCursorPos(cx, cy)
+            time.sleep(interval)
+    SetCursorPos(x, y)
+    time.sleep(waitTime)
+
+
+def DragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse drag from point x1, y1 drop to point x2, y2.
+    x1: int.
+    y1: int.
+    x2: int.
+    y2: int.
+    moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster.
+    waitTime: float.
+    """
+    if moveSpeed <= 0:
+        moveTime = 0
+    else:
+        moveTime = MAX_MOVE_SECOND / moveSpeed
+    xCount = abs(x2 - x1)
+    yCount = abs(y2 - y1)
+    maxPoint = max(xCount, yCount)
+    screenWidth, screenHeight = GetScreenSize()
+    maxSide = max(screenWidth, screenHeight)
+    minSide = min(screenWidth, screenHeight)
+    if maxPoint < maxSide:
+        maxPoint = 100 + int((maxSide - 100) / maxSide * maxPoint)
+        moveTime = moveTime * maxPoint * 1.0 / maxSide
+    stepCount = maxPoint // 4  # step should be smaller
+    SetCursorPos(x1, y1)
+    mouse_event(MouseEventFlag.LeftDown | MouseEventFlag.Absolute, x1 * 65536 // screenWidth, y1 * 65536 // screenHeight, 0, 0)
+    if stepCount > 1:
+        xStep = (x2 - x1) * 1.0 / stepCount
+        yStep = (y2 - y1) * 1.0 / stepCount
+        interval = moveTime / stepCount
+        for i in range(stepCount):
+            time.sleep(interval)
+            x1 += xStep
+            y1 += yStep
+            SetCursorPos(int(x1), int(y1))
+    else:
         time.sleep(0.05)
-        Win32API.mouse_event(MouseEventFlags.LeftUp | MouseEventFlags.Absolute, x, y, 0, 0)
-        time.sleep(waitTime)
+    mouse_event(MouseEventFlag.Absolute | MouseEventFlag.LeftUp, x2 * 65536 // screenWidth, y2 * 65536 // screenHeight, 0, 0)
+    SetCursorPos(x2, y2)
+    time.sleep(waitTime)
 
-    @staticmethod
-    def MouseMiddleClick(x, y, waitTime=OPERATION_WAIT_TIME):
-        """
-        x: int
-        y: int
-        waitTime: float
-        Simulate mouse middle click at point x, y
-        """
-        Win32API.SetCursorPos(x, y)
-        Win32API.mouse_event(MouseEventFlags.MiddleDown | MouseEventFlags.Absolute, x, y, 0, 0)
-        time.sleep(0.05)
-        Win32API.mouse_event(MouseEventFlags.MiddleUp | MouseEventFlags.Absolute, x, y, 0, 0)
-        time.sleep(waitTime)
 
-    @staticmethod
-    def MouseRightClick(x, y, waitTime=OPERATION_WAIT_TIME):
-        """
-        x: int
-        y: int
-        waitTime: float
-        Simulate mouse right click at point x, y
-        """
-        Win32API.SetCursorPos(x, y)
-        Win32API.mouse_event(MouseEventFlags.RightDown | MouseEventFlags.Absolute, x, y, 0, 0)
-        time.sleep(0.05)
-        Win32API.mouse_event(MouseEventFlags.RightUp | MouseEventFlags.Absolute, x, y, 0, 0)
-        time.sleep(waitTime)
+def WheelDown(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse wheel down.
+    wheelTimes: int.
+    interval: float.
+    waitTime: float.
+    """
+    for i in range(wheelTimes):
+        mouse_event(MouseEventFlag.Wheel, 0, 0, -120, 0)    #WHEEL_DELTA=120
+        time.sleep(interval)
+    time.sleep(waitTime)
 
-    @staticmethod
-    def MouseMoveTo(x, y, moveSpeed=1, waitTime=OPERATION_WAIT_TIME):
-        """
-        x: int
-        y: int
-        moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster
-        waitTime: float
-        Simulate mouse move to point x, y from current cursor
-        """
-        if moveSpeed <= 0:
-            moveTime = 0
-        else:
-            moveTime = MAX_MOVE_SECOND / moveSpeed
-        curX, curY = Win32API.GetCursorPos()
-        xCount = abs(x - curX)
-        yCount = abs(y - curY)
-        maxPoint = max(xCount, yCount)
-        screenWidth, screenHeight = Win32API.GetScreenSize()
-        maxSide = max(screenWidth, screenHeight)
-        minSide = min(screenWidth, screenHeight)
-        if maxPoint > minSide:
-            maxPoint = minSide
-        if maxPoint < maxSide:
-            maxPoint = 100 + int((maxSide-100) / maxSide * maxPoint)
-            moveTime = moveTime * maxPoint * 1.0 / maxSide
-        stepCount = maxPoint // 20
-        if stepCount > 1:
-            xStep = (x - curX) * 1.0 / stepCount
-            yStep = (y - curY) * 1.0 / stepCount
-            interval = moveTime / stepCount
-            for i in range(stepCount):
-                cx = curX + int(xStep * i)
-                cy = curY + int(yStep * i)
-                # upper-left(0,0), lower-right(65536,65536)
-                # Win32API.mouse_event(MouseEventFlags.Move | MouseEventFlags.Absolute, cx*65536//screenWidth, cy*65536//screenHeight, 0, 0)
-                Win32API.SetCursorPos(cx, cy)
-                time.sleep(interval)
-        Win32API.SetCursorPos(x, y)
-        time.sleep(waitTime)
 
-    @staticmethod
-    def MouseDragDrop(x1, y1, x2, y2, moveSpeed=1, waitTime=OPERATION_WAIT_TIME):
-        """
-        x1: int
-        y1: int
-        x2: int
-        y2: int
-        moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster
-        waitTime: float
-        Simulate mouse drag from point x1, y1 drop to point x2, y2
-        """
-        if moveSpeed <= 0:
-            moveTime = 0
-        else:
-            moveTime = MAX_MOVE_SECOND / moveSpeed
-        xCount = abs(x2 - x1)
-        yCount = abs(y2 - y1)
-        maxPoint = max(xCount, yCount)
-        screenWidth, screenHeight = Win32API.GetScreenSize()
-        maxSide = max(screenWidth, screenHeight)
-        minSide = min(screenWidth, screenHeight)
-        if maxPoint < maxSide:
-            maxPoint = 100 + int((maxSide-100) / maxSide * maxPoint)
-            moveTime = moveTime * maxPoint * 1.0 / maxSide
-        stepCount = maxPoint // 4  # step should be smaller
-        Win32API.SetCursorPos(x1, y1)
-        Win32API.mouse_event(MouseEventFlags.LeftDown| MouseEventFlags.Absolute, x1*65536//screenWidth, y1*65536//screenHeight, 0, 0)
-        if stepCount > 1:
-            xStep = (x2 - x1) * 1.0 / stepCount
-            yStep = (y2 - y1) * 1.0 / stepCount
-            interval = moveTime / stepCount
-            for i in range(stepCount):
-                time.sleep(interval)
-                x1 += xStep
-                y1 += yStep
-                Win32API.SetCursorPos(int(x1), int(y1))
-        else:
-            time.sleep(0.05)
-        Win32API.mouse_event(MouseEventFlags.Absolute | MouseEventFlags.LeftUp, x2 * 65536 // screenWidth, y2 * 65536 // screenHeight, 0, 0)
-        Win32API.SetCursorPos(x2, y2)
-        time.sleep(waitTime)
+def WheelUp(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse wheel up.
+    wheelTimes: int.
+    interval: float.
+    waitTime: float.
+    """
+    for i in range(wheelTimes):
+        mouse_event(MouseEventFlag.Wheel, 0, 0, 120, 0) #WHEEL_DELTA=120
+        time.sleep(interval)
+    time.sleep(waitTime)
 
-    @staticmethod
-    def MouseWheelDown(wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
-        """
-        wheelTimes: int
-        waitTime: float
-        """
-        for i in range(wheelTimes):
-            Win32API.mouse_event(MouseEventFlags.Wheel, 0, 0, -120, 0)
-            time.sleep(0.1)
-        time.sleep(waitTime)
 
-    @staticmethod
-    def MouseWheelUp(wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
-        """
-        wheelTimes: int
-        waitTime: float
-        """
-        for i in range(wheelTimes):
-            Win32API.mouse_event(MouseEventFlags.Wheel, 0, 0, 120, 0)
-            time.sleep(0.1)
-        time.sleep(waitTime)
+def GetScreenSize() -> tuple:
+    """Return tuple, two ints tuple (width, height)."""
+    SM_CXSCREEN = 0
+    SM_CYSCREEN = 1
+    w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN)
+    h = ctypes.windll.user32.GetSystemMetrics(SM_CYSCREEN)
+    return w, h
 
-    @staticmethod
-    def GetScreenSize():
-        """Return two int values tuple (width, height)"""
-        SM_CXSCREEN = 0
-        SM_CYSCREEN = 1
-        w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN)
-        h = ctypes.windll.user32.GetSystemMetrics(SM_CYSCREEN)
-        return w, h
 
-    @staticmethod
-    def GetPixelColor(x, y, handle=0):
-        """
-        x: int
-        y: int
-        handle: int, handle of a Win32 window
-        Return int, the bgr value of point (x,y)
-        r = bgr & 0x0000FF
-        g = (bgr & 0x00FF00) >> 8
-        b = (bgr & 0xFF0000) >> 16
-        If handle is 0, get pixel from Desktop window
-        Note:
-        Not all devices support GetPixel.
-        An application should call GetDeviceCaps to determine whether a specified device supports this function.
-        For example, console window doesn't support.
-        """
-        hdc = ctypes.windll.user32.GetWindowDC(ctypes.c_void_p(handle))
-        bgr = ctypes.windll.gdi32.GetPixel(hdc, x, y)
-        ctypes.windll.user32.ReleaseDC(ctypes.c_void_p(handle), hdc)
-        return bgr
+def GetPixelColor(x: int, y: int, handle: int = 0) -> int:
+    """
+    Get pixel color of a native window.
+    x: int.
+    y: int.
+    handle: int, the handle of a native window.
+    Return int, the bgr value of point (x,y).
+    r = bgr & 0x0000FF
+    g = (bgr & 0x00FF00) >> 8
+    b = (bgr & 0xFF0000) >> 16
+    If handle is 0, get pixel from Desktop window(root control).
+    Note:
+    Not all devices support GetPixel.
+    An application should call GetDeviceCaps to determine whether a specified device supports this function.
+    For example, console window doesn't support.
+    """
+    hdc = ctypes.windll.user32.GetWindowDC(ctypes.c_void_p(handle))
+    bgr = ctypes.windll.gdi32.GetPixel(hdc, x, y)
+    ctypes.windll.user32.ReleaseDC(ctypes.c_void_p(handle), hdc)
+    return bgr
 
-    @staticmethod
-    def MessageBox(content, title, flags=MB.OK):
-        """
-        content: str
-        title: str
-        flags: int, a value or some combined values in class MB
-        """
-        return ctypes.windll.user32.MessageBoxW(ctypes.c_void_p(0), ctypes.c_wchar_p(content), ctypes.c_wchar_p(title), flags)
 
-    @staticmethod
-    def SetForegroundWindow(hWnd):
-        """
-        hWnd: int, handle of a Win32 window
-        """
-        return ctypes.windll.user32.SetForegroundWindow(ctypes.c_void_p(hWnd))
+def MessageBox(content: str, title: str, flags: int = MB.Ok) -> int:
+    """
+    MessageBox from Win32.
+    content: str.
+    title: str.
+    flags: int, a value or some combined values in class `MB`.
+    Return int, a value in MB whose name starts with Id, such as MB.IdOk
+    """
+    return ctypes.windll.user32.MessageBoxW(ctypes.c_void_p(0), ctypes.c_wchar_p(content), ctypes.c_wchar_p(title), flags)
 
-    @staticmethod
-    def SetWindowTopmost(hWnd, isTopmost):
-        """
-        hWnd: int, handle of a Win32 window
-        isTopmost: bool
-        """
-        topValue = SWP.HWND_TOPMOST if isTopmost else SWP.HWND_NOTOPMOST
-        return Win32API.SetWindowPos(hWnd, topValue, 0, 0, 0, 0, SWP.SWP_NOSIZE | SWP.SWP_NOMOVE)
 
-    @staticmethod
-    def BringWindowToTop(hWnd):
-        """hWnd: int, handle of a Win32 window"""
-        return ctypes.windll.user32.BringWindowToTop(ctypes.c_void_p(hWnd))
+def SetForegroundWindow(handle: int) -> bool:
+    """
+    SetForegroundWindow from Win32.
+    handle: int, the handle of a native window.
+    Return bool, True if succeed otherwise False.
+    """
+    return bool(ctypes.windll.user32.SetForegroundWindow(ctypes.c_void_p(handle)))
 
-    @staticmethod
-    def SwitchToThisWindow(hWnd):
-        """hWnd: int, handle of a Win32 window"""
-        return ctypes.windll.user32.SwitchToThisWindow(ctypes.c_void_p(hWnd), 1)
 
-    @staticmethod
-    def GetWindowLong(hWnd, index):
-        """
-        hWnd: int, handle of a Win32 window
-        index: int
-        """
-        return ctypes.windll.user32.GetWindowLongW(ctypes.c_void_p(hWnd), index)
+def BringWindowToTop(handle: int) -> bool:
+    """
+    BringWindowToTop from Win32.
+    handle: int, the handle of a native window.
+    Return bool, True if succeed otherwise False.
+    """
+    return bool(ctypes.windll.user32.BringWindowToTop(ctypes.c_void_p(handle)))
 
-    @staticmethod
-    def IsIconic(hWnd):
-        """
-        hWnd: int, handle of a Win32 window
-        Return bool
-        Determines whether the specified window is minimized
-        """
-        return ctypes.windll.user32.IsIconic(ctypes.c_void_p(hWnd))
 
-    @staticmethod
-    def IsZoomed(hWnd):
-        """
-        hWnd: int, handle of a Win32 window
-        Return bool
-        Determines whether a window is maximized
-        """
-        return ctypes.windll.user32.IsZoomed(ctypes.c_void_p(hWnd))
+def SwitchToThisWindow(handle: int) -> None:
+    """
+    SwitchToThisWindow from Win32.
+    handle: int, the handle of a native window.
+    """
+    ctypes.windll.user32.SwitchToThisWindow(ctypes.c_void_p(handle), 1) #void function, no return
 
-    @staticmethod
-    def IsWindowVisible(hWnd):
-        """
-        hWnd: int, handle of a Win32 window
-        Return bool
-        """
-        return ctypes.windll.user32.IsWindowVisible(ctypes.c_void_p(hWnd))
 
-    @staticmethod
-    def ShowWindow(hWnd, cmdShow):
-        """
-        hWnd: int, handle of a Win32 window
-        cmdShow: int, a value in Class ShowWindow
-        """
-        return ctypes.windll.user32.ShowWindow(ctypes.c_void_p(hWnd), cmdShow)
+def GetAncestor(handle: int, flag: int) -> int:
+    """
+    GetAncestor from Win32.
+    handle: int, the handle of a native window.
+    index: int, a value in class `GAFlag`.
+    Return int, a native window handle.
+    """
+    return ctypes.windll.user32.GetAncestor(ctypes.c_void_p(handle), flag)
 
-    @staticmethod
-    def MoveWindow(hWnd, x, y, width, height, repaint=1):
-        """
-        hWnd: int, handle of a Win32 window
-        x: int
-        y: int
-        width: int
-        height: int
-        repaint: int, use 1 or 0
-        """
-        return ctypes.windll.user32.MoveWindow(ctypes.c_void_p(hWnd), x, y, width, height, repaint)
 
-    @staticmethod
-    def SetWindowPos(hWnd, hWndInsertAfter, x, y, width, height, flags):
-        """
-        hWnd: int, handle of a Win32 window
-        hWndInsertAfter: int, a value whose name starts with 'HWND' in class SWP,
-        x: int
-        y: int
-        width: int
-        height: int
-        flags: int, a value whose name starts with 'SWP' in class SWP,
-        """
-        return ctypes.windll.user32.SetWindowPos(ctypes.c_void_p(hWnd), ctypes.c_void_p(hWndInsertAfter), x, y, width, height, flags)
+def IsTopLevelWindow(handle: int) -> bool:
+    """
+    IsTopLevelWindow from Win32.
+    handle: int, the handle of a native window.
+    Return bool.
+    Only available on Windows 7 or Higher.
+    """
+    return bool(ctypes.windll.user32.IsTopLevelWindow(ctypes.c_void_p(handle)))
 
-    @staticmethod
-    def GetWindowText(hWnd):
-        """
-        hWnd: int, handle of a Win32 window
-        Return str
-        """
-        wArray = ctypes.c_wchar * MAX_PATH
-        values = wArray()
-        ctypes.windll.user32.GetWindowTextW(ctypes.c_void_p(hWnd), values, MAX_PATH)
-        return values.value
 
-    @staticmethod
-    def GetEditText(hWnd):
-        """
-        hWnd: int, handle of a Win32 window
-        Return str
-        Get text of Win32 Edit
-        """
-        textLen = Win32API.SendMessage(hWnd, 0x000E, 0, 0) + 1  #WM_GETTEXTLENGTH
-        wArray = ctypes.c_wchar * textLen
-        values = wArray()
-        Win32API.SendMessage(hWnd, 0x000D, textLen, values)  #WM_GETTEXT
-        return values.value
+def GetWindowLong(handle: int, index: int) -> int:
+    """
+    GetWindowLong from Win32.
+    handle: int, the handle of a native window.
+    index: int.
+    """
+    return ctypes.windll.user32.GetWindowLongW(ctypes.c_void_p(handle), index)
 
-    @staticmethod
-    def SetWindowText(hWnd, text):
-        """
-        hWnd: int, handle of a Win32 window
-        text: str
-        """
-        return ctypes.windll.user32.SetWindowTextW(ctypes.c_void_p(hWnd), ctypes.c_wchar_p(text))
 
-    @staticmethod
-    def GetConsoleOriginalTitle():
-        """Return str"""
-        wArray = ctypes.c_wchar * MAX_PATH
-        values = wArray()
+def IsIconic(handle: int) -> bool:
+    """
+    IsIconic from Win32.
+    Determine whether a native window is minimized.
+    handle: int, the handle of a native window.
+    Return bool.
+    """
+    return bool(ctypes.windll.user32.IsIconic(ctypes.c_void_p(handle)))
+
+
+def IsZoomed(handle: int) -> bool:
+    """
+    IsZoomed from Win32.
+    Determine whether a native window is maximized.
+    handle: int, the handle of a native window.
+    Return bool.
+    """
+    return bool(ctypes.windll.user32.IsZoomed(ctypes.c_void_p(handle)))
+
+
+def IsWindowVisible(handle: int) -> bool:
+    """
+    IsWindowVisible from Win32.
+    handle: int, the handle of a native window.
+    Return bool.
+    """
+    return bool(ctypes.windll.user32.IsWindowVisible(ctypes.c_void_p(handle)))
+
+
+def ShowWindow(handle: int, cmdShow: int) -> bool:
+    """
+    ShowWindow from Win32.
+    handle: int, the handle of a native window.
+    cmdShow: int, a value in clas `SW`.
+    Return bool, True if succeed otherwise False.
+    """
+    return ctypes.windll.user32.ShowWindow(ctypes.c_void_p(handle), cmdShow)
+
+
+def MoveWindow(handle: int, x: int, y: int, width: int, height: int, repaint: int = 1) -> bool:
+    """
+    MoveWindow from Win32.
+    handle: int, the handle of a native window.
+    x: int.
+    y: int.
+    width: int.
+    height: int.
+    repaint: int, use 1 or 0.
+    Return bool, True if succeed otherwise False.
+    """
+    return bool(ctypes.windll.user32.MoveWindow(ctypes.c_void_p(handle), x, y, width, height, repaint))
+
+
+def SetWindowPos(handle: int, hWndInsertAfter: int, x: int, y: int, width: int, height: int, flags: int) -> bool:
+    """
+    SetWindowPos from Win32.
+    handle: int, the handle of a native window.
+    hWndInsertAfter: int, a value whose name starts with 'HWND' in class SWP.
+    x: int.
+    y: int.
+    width: int.
+    height: int.
+    flags: int, values whose name starts with 'SWP' in class `SWP`.
+    Return bool, True if succeed otherwise False.
+    """
+    return ctypes.windll.user32.SetWindowPos(ctypes.c_void_p(handle), ctypes.c_void_p(hWndInsertAfter), x, y, width, height, flags)
+
+
+def SetWindowTopmost(handle: int, isTopmost: bool) -> bool:
+    """
+    handle: int, the handle of a native window.
+    isTopmost: bool
+    Return bool, True if succeed otherwise False.
+    """
+    topValue = SWP.HWND_Topmost if isTopmost else SWP.HWND_NoTopmost
+    return bool(SetWindowPos(handle, topValue, 0, 0, 0, 0, SWP.SWP_NoSize | SWP.SWP_NoMove))
+
+
+def GetWindowText(handle: int) -> str:
+    """
+    GetWindowText from Win32.
+    handle: int, the handle of a native window.
+    Return str.
+    """
+    arrayType = ctypes.c_wchar * MAX_PATH
+    values = arrayType()
+    ctypes.windll.user32.GetWindowTextW(ctypes.c_void_p(handle), values, MAX_PATH)
+    return values.value
+
+
+def SetWindowText(handle: int, text: str) -> bool:
+    """
+    SetWindowText from Win32.
+    handle: int, the handle of a native window.
+    text: str.
+    Return bool, True if succeed otherwise False.
+    """
+    return bool(ctypes.windll.user32.SetWindowTextW(ctypes.c_void_p(handle), ctypes.c_wchar_p(text)))
+
+
+def GetEditText(handle: int) -> str:
+    """
+    Get text of a native Win32 Edit.
+    handle: int, the handle of a native window.
+    Return str.
+    """
+    textLen = SendMessage(handle, 0x000E, 0, 0) + 1  #WM_GETTEXTLENGTH
+    arrayType = ctypes.c_wchar * textLen
+    values = arrayType()
+    SendMessage(handle, 0x000D, textLen, values)  #WM_GETTEXT
+    return values.value
+
+
+def GetConsoleOriginalTitle() -> str:
+    """
+    GetConsoleOriginalTitle from Win32.
+    Return str.
+    Only available on Windows Vista or higher.
+    """
+    if IsNT6orHigher:
+        arrayType = ctypes.c_wchar * MAX_PATH
+        values = arrayType()
         ctypes.windll.kernel32.GetConsoleOriginalTitleW(values, MAX_PATH)
         return values.value
+    else:
+        raise RuntimeError('GetConsoleOriginalTitle is not supported on Windows XP or lower.')
 
-    @staticmethod
-    def GetConsoleTitle():
-        """Return str"""
-        wArray = ctypes.c_wchar * MAX_PATH
-        values = wArray()
-        ctypes.windll.kernel32.GetConsoleTitleW(values, MAX_PATH)
-        return values.value
 
-    @staticmethod
-    def SetConsoleTitle(text):
-        """text: str"""
-        return ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(text))
+def GetConsoleTitle() -> str:
+    """
+    GetConsoleTitle from Win32.
+    Return str.
+    """
+    arrayType = ctypes.c_wchar * MAX_PATH
+    values = arrayType()
+    ctypes.windll.kernel32.GetConsoleTitleW(values, MAX_PATH)
+    return values.value
 
-    @staticmethod
-    def GetForegroundWindow():
-        """Return int, the handle of the foreground window"""
-        return ctypes.windll.user32.GetForegroundWindow()
 
-    @staticmethod
-    def IsDesktopLocked():
-        """
-        Return bool
-        Desktop is locked if press Win+L, Ctrl+Alt+Del or in remote desktop mode
-        """
-        isLocked = False
-        desk = ctypes.windll.user32.OpenDesktopW(ctypes.c_wchar_p('Default'), 0, 0, 0x0100)  # DESKTOP_SWITCHDESKTOP = 0x0100
-        if desk:
-            isLocked = not ctypes.windll.user32.SwitchDesktop(desk)
-            ctypes.windll.user32.CloseDesktop(desk)
-        return isLocked
+def SetConsoleTitle(text: str) -> bool:
+    """
+    SetConsoleTitle from Win32.
+    text: str.
+    Return bool, True if succeed otherwise False.
+    """
+    return bool(ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(text)))
 
-    @staticmethod
-    def PlayWaveFile(filePath=r'C:\Windows\Media\notify.wav', isAsync=False, isLoop=False):
-        """
-        filePath: str, if emtpy, stop playing the current sound
-        isAsync: bool, if True, the sound is played asynchronously and returns immediately.
-        isLoop: bool, if True, the sound plays repeatedly until PlayWaveFile(None) is called again, must also set isAsync to True
-        """
-        if filePath:
-            SND_ASYNC = 0x0001
-            SND_NODEFAULT = 0x0002
-            SND_LOOP = 0x0008
-            flag = SND_NODEFAULT
-            if isAsync:
-                flag |= SND_ASYNC
-            if isLoop:
-                flag |= SND_LOOP
-                flag |= SND_ASYNC
-            return ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(filePath), ctypes.c_void_p(0), flag)
-        else:
-            return ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(0), ctypes.c_void_p(0), 0)
 
-    @staticmethod
-    def GetProcessCommandLine(processId):
-        """
-        processId: int
-        Return str
-        May not work on Windows 7 or higher bacause of no access right, use wmi for a better result
-        """
-        wArray = ctypes.c_wchar * MAX_PATH
-        values = wArray()
-        _AutomationClient.instance().dll.GetProcessCommandLine(processId, values, MAX_PATH)
-        return values.value
+def GetForegroundWindow() -> int:
+    """
+    GetForegroundWindow from Win32.
+    Return int, the native handle of the foreground window.
+    """
+    return ctypes.windll.user32.GetForegroundWindow()
 
-    @staticmethod
-    def GetParentProcessId(processId=-1):
-        """
-        processId: int
-        May not work on Windows 7 or higher bacause of no access right, use wmi for a better result
-        """
-        return _AutomationClient.instance().dll.GetParentProcessId(processId)
 
-    @staticmethod
-    def IsProcess64Bit(processId):
-        """
-        processId: int
-        Return True if process is 64 bit
-        Return False if process is 32 bit
-        Return None if unknown, maybe caused by having no acess right to the process
-        """
-        try:
-            func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  #only 64 bit OS has this function
-        except Exception as ex:
-            return False
-        try:
-            IsWow64Process = ctypes.windll.kernel32.IsWow64Process
-            IsWow64Process.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
-        except Exception as ex:
-            return False
-        hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  #PROCESS_QUERY_INFORMATION=0x0400,PROCESS_QUERY_LIMITED_INFORMATION=0x1000
-        if hProcess:
-            is64Bit = ctypes.c_int32()
-            if IsWow64Process(hProcess, ctypes.byref(is64Bit)):
-                ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
-                return False if is64Bit.value else True
-            else:
-                ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
+def IsDesktopLocked() -> bool:
+    """
+    Check if desktop is locked.
+    Return bool.
+    Desktop is locked if press Win+L, Ctrl+Alt+Del or in remote desktop mode.
+    """
+    isLocked = False
+    desk = ctypes.windll.user32.OpenDesktopW(ctypes.c_wchar_p('Default'), 0, 0, 0x0100)  # DESKTOP_SWITCHDESKTOP = 0x0100
+    if desk:
+        isLocked = not ctypes.windll.user32.SwitchDesktop(desk)
+        ctypes.windll.user32.CloseDesktop(desk)
+    return isLocked
 
-    @staticmethod
-    def GetProcessPath(processId):
-        """
-        processId: int
-        May not work on Windows 7 or higher bacause of no access right, use wmi for a better result
-        """
-        processPath = ''
-        if processId > 0:
-            hModuleSnap = ctypes.windll.kernel32.CreateToolhelp32Snapshot(8, processId)  # TH32CS_SNAPMODULE = 8
-            if hModuleSnap:
-                moduleEntry32 = tagMODULEENTRY32()
-                moduleEntry32.dwSize = ctypes.sizeof(moduleEntry32)
-                if ctypes.windll.kernel32.Module32FirstW(hModuleSnap, ctypes.byref(moduleEntry32)):
-                    processPath = moduleEntry32.szExeFile
-                else:
-                    # if the calling process is a 32-bit process,
-                    # you must call the QueryFullProcessImageName function to retrieve the full path of the executable file for a 64-bit process
-                    if sys.maxsize <= 0xFFFFFFFF and IsNT6:
-                        hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  # PROCESS_QUERY_LIMITED_INFORMATION=0x1000
-                        if hProcess:
-                            wArray = ctypes.c_wchar * MAX_PATH
-                            szPath = wArray()
-                            pSize = ctypes.POINTER(ctypes.wintypes.DWORD)()
-                            pSize.contents = ctypes.wintypes.DWORD(MAX_PATH)
-                            if ctypes.windll.kernel32.QueryFullProcessImageNameW(ctypes.c_void_p(hProcess), 0, szPath, pSize):
-                                processPath = szPath.value
-                            else:
-                                pass  # failed
-                            ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
-                        else:
-                            pass  # failed
-                    else:
-                        pass    # failed
-                ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hModuleSnap))
-            else:
-                pass  # failed
-        return processPath
 
-    @staticmethod
-    def TerminateProcess(processId):
-        """
-        processId: int
-        Return 1 if succeed
-        """
-        hProcess = ctypes.windll.kernel32.OpenProcess(0x0001, 0, processId)  # PROCESS_TERMINATE=0x0001
-        if hProcess:
-            ret = ctypes.windll.kernel32.TerminateProcess(hProcess, -1)
+def PlayWaveFile(filePath: str = r'C:\Windows\Media\notify.wav', isAsync: bool = False, isLoop: bool = False) -> bool:
+    """
+    Call PlaySound from Win32.
+    filePath: str, if emtpy, stop playing the current sound.
+    isAsync: bool, if True, the sound is played asynchronously and returns immediately.
+    isLoop: bool, if True, the sound plays repeatedly until PlayWaveFile(None) is called again, must also set isAsync to True.
+    Return bool, True if succeed otherwise False.
+    """
+    if filePath:
+        SND_ASYNC = 0x0001
+        SND_NODEFAULT = 0x0002
+        SND_LOOP = 0x0008
+        SND_FILENAME = 0x20000
+        flags = SND_NODEFAULT | SND_FILENAME
+        if isAsync:
+            flags |= SND_ASYNC
+        if isLoop:
+            flags |= SND_LOOP
+            flags |= SND_ASYNC
+        return bool(ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(filePath), ctypes.c_void_p(0), flags))
+    else:
+        return bool(ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(0), ctypes.c_void_p(0), 0))
+
+
+def IsProcess64Bit(processId: int) -> bool:
+    """
+    Return True if process is 64 bit.
+    Return False if process is 32 bit.
+    Return None if unknown, maybe caused by having no acess right to the process.
+    """
+    try:
+        func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  #only 64 bit OS has this function
+    except Exception as ex:
+        return False
+    try:
+        IsWow64Process = ctypes.windll.kernel32.IsWow64Process
+        IsWow64Process.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
+    except Exception as ex:
+        return False
+    hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  #PROCESS_QUERY_INFORMATION=0x0400,PROCESS_QUERY_LIMITED_INFORMATION=0x1000
+    if hProcess:
+        is64Bit = ctypes.c_int32()
+        if IsWow64Process(hProcess, ctypes.byref(is64Bit)):
             ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
-            return ret
+            return False if is64Bit.value else True
+        else:
+            ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
 
-    @staticmethod
-    def TerminateProcessByName(processName):
-        """
-        processName: str, such as notepad.exe, ignore case
-        """
-        for pid, name in Win32API.EnumProcess():
-            if name.lower() == processName.lower():
-                Win32API.TerminateProcess(pid)
 
-    @staticmethod
-    def EnumProcess():
-        """
-        Return a list of namedtuple (pid: int, name: str), see TerminateProcessByName. use wmi or psutil for a better result
-        import wmi
-        wobj = wmi.WMI ()
-        for it in wobj.Win32_Process ():
-            #print(it.properties)
-            print(it.ProcessId, it.Name, it.ParentProcessId, it.ExecutablePath, it.CommandLine, it.WorkingSetSize)
-        """
-        import collections
-        hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(15, 0)  # TH32CS_SNAPALL = 15
-        processEntry32 = tagPROCESSENTRY32()
-        processClass = collections.namedtuple('processInfo', 'pid name')
-        processEntry32.dwSize = ctypes.sizeof(processEntry32)
-        processList = []
-        continueFind = ctypes.windll.kernel32.Process32FirstW(ctypes.c_void_p(hSnapshot), ctypes.byref(processEntry32))
-        while continueFind:
-            pid = processEntry32.th32ProcessID
-            name = processEntry32.szExeFile
-            processList.append(processClass(pid, name))
-            continueFind = ctypes.windll.kernel32.Process32NextW(ctypes.c_void_p(hSnapshot), ctypes.byref(processEntry32))
-        ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hSnapshot))
-        return processList
+def SendKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate typing a key.
+    key: int, a value in class `Keys`.
+    """
+    keybd_event(key, 0, KeyboardEventFlag.KeyDown | KeyboardEventFlag.ExtendedKey, 0)
+    keybd_event(key, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
+    time.sleep(waitTime)
 
-    @staticmethod
-    def SendKey(key, waitTime=OPERATION_WAIT_TIME):
-        """
-        key: int, a value in class Keys
-        Simulate typing a key
-        """
-        Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
-        Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        time.sleep(waitTime)
 
-    #@staticmethod
-    #def SendWait(keys):
-        #"""this method needs .Net and PythonForNet, will call System.Windows.Forms.SendKeys.SendWait"""
-        #import clr
-        #import System.Windows.Forms
-        #System.Windows.Forms.SendKeys.SendWait(keys)
+def PressKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate a key down for key.
+    key: int, a value in class `Keys`.
+    waitTime: float.
+    """
+    keybd_event(key, 0, KeyboardEventFlag.KeyDown | KeyboardEventFlag.ExtendedKey, 0)
+    time.sleep(waitTime)
 
-    @staticmethod
-    def KeyDown(key, waitTime=OPERATION_WAIT_TIME):
-        """
-        key: int, a value in class Keys
-        waitTime: float
-        Simulate a key down for key
-        """
-        Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey, 0)
-        time.sleep(waitTime)
 
-    @staticmethod
-    def KeyUp(key, waitTime=OPERATION_WAIT_TIME):
-        """
-        key: int, a value in class Keys
-        waitTime: float
-        Simulate a key up for key
-        """
-        Win32API.keybd_event(key, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        time.sleep(waitTime)
+def ReleaseKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate a key up for key.
+    key: int, a value in class `Keys`.
+    waitTime: float.
+    """
+    keybd_event(key, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
+    time.sleep(waitTime)
 
-    @staticmethod
-    def PressKey(key, waitTime=OPERATION_WAIT_TIME):
-        """
-        key: int, a value in class Keys
-        waitTime: float
-        Simulate pressing a key, same as KeyDown
-        """
-        Win32API.KeyDown(key, waitTime)
 
-    @staticmethod
-    def ReleaseKey(key, waitTime=OPERATION_WAIT_TIME):
-        """
-        key: int, a value in class Keys
-        waitTime: float
-        Simulate repleasing a key, same as KeyUp
-        """
-        Win32API.KeyUp(key, waitTime)
+def IsKeyPressed(key: int) -> bool:
+    """
+    key: int, a value in class `Keys`.
+    Return bool.
+    """
+    state = ctypes.windll.user32.GetAsyncKeyState(key)
+    return bool(state & 0x8000)
 
-    @staticmethod
-    def IsKeyPressed(key):
-        """
-        key: int, a value in class Keys
-        Return bool
-        """
-        state = ctypes.windll.user32.GetAsyncKeyState(key)
-        return True if state & 0x8000 else False
 
-    @staticmethod
-    def VKtoSC(key):
-        """
-        key: int, a value in class Keys
-        Return int
-        This function is only for internal use in SendKeys, you don't need it
-        """
-        SCDict = {
-            Keys.VK_LSHIFT : 0x02A,
-            Keys.VK_RSHIFT : 0x136,
-            Keys.VK_LCONTROL : 0x01D,
-            Keys.VK_RCONTROL : 0x11D,
-            Keys.VK_LMENU : 0x038,
-            Keys.VK_RMENU : 0x138,
-            Keys.VK_LWIN : 0x15B,
-            Keys.VK_RWIN : 0x15C,
-            Keys.VK_NUMPAD0 : 0x52,
-            Keys.VK_NUMPAD1 : 0x4F,
-            Keys.VK_NUMPAD2 : 0x50,
-            Keys.VK_NUMPAD3 : 0x51,
-            Keys.VK_NUMPAD4 : 0x4B,
-            Keys.VK_NUMPAD5 : 0x4C,
-            Keys.VK_NUMPAD6 : 0x4D,
-            Keys.VK_NUMPAD7 : 0x47,
-            Keys.VK_NUMPAD8 : 0x48,
-            Keys.VK_NUMPAD9 : 0x49,
-            Keys.VK_DECIMAL : 0x53,
-            Keys.VK_NUMLOCK : 0x145,
-            Keys.VK_DIVIDE :  0x135,
-            Keys.VK_MULTIPLY : 0x037,
-            Keys.VK_SUBTRACT : 0x04A,
-            Keys.VK_ADD : 0x04E,
-        }
-        if key in SCDict:
-            return SCDict[key]
-        scanCode = ctypes.windll.user32.MapVirtualKeyA(key, 0)
-        if not scanCode:
-            return 0
-        keyList = [Keys.VK_APPS, Keys.VK_CANCEL, Keys.VK_SNAPSHOT, Keys.VK_DIVIDE, Keys.VK_NUMLOCK]
-        if key in keyList:
-            scanCode |= 0x0100
-        return scanCode
+def _CreateInput(structure) -> INPUT:
+    """
+    Create Win32 struct `INPUT` for `SendInput`.
+    Return `INPUT`.
+    """
+    if isinstance(structure, MOUSEINPUT):
+        return INPUT(InputType.Mouse, _INPUTUnion(mi=structure))
+    if isinstance(structure, KEYBDINPUT):
+        return INPUT(InputType.Keyboard, _INPUTUnion(ki=structure))
+    if isinstance(structure, HARDWAREINPUT):
+        return INPUT(InputType.Hardware, _INPUTUnion(hi=structure))
+    raise TypeError('Cannot create INPUT structure!')
 
-    @staticmethod
-    def SendKeys(text, interval=0.01, waitTime=OPERATION_WAIT_TIME, debug=False):
-        """
-        text: str, keys to type
-        interval: float, seconds between keys
-        waitTime: float
-        debug: bool, if True, print the keys
-        Simulate typing keys on keyboard
-        Examples:
-        {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
-        SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
-        SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
-        SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
-        SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
-        SendKeys('{{}Hello{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {Hello}abc abc test}}}!a ()()
-        SendKeys('0123456789{Enter}')
-        SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{Enter}')
-        SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
-        SendKeys('`~!@#$%^&*()-_=+{Enter}')
-        SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
-        """
-        holdKeys = ('WIN', 'LWIN', 'RWIN', 'SHIFT', 'LSHIFT', 'RSHIFT', 'CTRL', 'CONTROL', 'LCTRL', 'RCTRL', 'LCONTROL', 'LCONTROL', 'ALT', 'LALT', 'RALT')
-        keys = []
-        printKeys = []
-        i = 0
-        insertIndex = 0
-        length = len(text)
-        hold = False
-        include = False
-        #lastKey = ''
-        lastKeyValue = None
-        while True:
-            if text[i] == '{':
-                rindex = text.find('}', i)
-                if rindex == i+1:#{}}
-                    rindex = text.find('}', i+2)
-                if rindex == -1:
-                    raise ValueError('"{" or "{}" is not valid, use "{{}" for "{", use "{}}" for "}"')
-                key = text[i+1:rindex]
-                key = [it for it in key.split(' ') if it]
-                if not key:
-                    raise ValueError('"{}" is not valid, use "{{Space}}" or " " for " "'.format(text[i:rindex+1]))
-                if (len(key) == 2 and not key[1].isdigit()) or len(key) > 2:
-                    raise ValueError('"{}" is not valid'.format(text[i:rindex+1]))
-                upperKey = key[0].upper()
-                count = 1
-                if len(key) > 1:
-                    count = int(key[1])
-                for j in range(count):
-                    if hold:
-                        if upperKey in Win32API.SpecialKeyDict:
-                            keyValue = Win32API.SpecialKeyDict[upperKey]
-                            if type(lastKeyValue) == type(keyValue) and lastKeyValue == keyValue:
-                                insertIndex += 1
-                            printKeys.insert(insertIndex, (key[0], 'KeyDown | ExtendedKey'))
-                            printKeys.insert(insertIndex+1, (key[0], 'KeyUp | ExtendedKey'))
-                            keys.insert(insertIndex, (keyValue, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey))
-                            keys.insert(insertIndex+1, (keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
-                            lastKeyValue = keyValue
-                        elif key[0] in Win32API.CharacterDict:
-                            keyValue = Win32API.CharacterDict[key[0]]
-                            if type(lastKeyValue) == type(keyValue) and lastKeyValue == keyValue:
-                                insertIndex += 1
-                            printKeys.insert(insertIndex, (key[0], 'KeyDown | ExtendedKey'))
-                            printKeys.insert(insertIndex+1, (key[0], 'KeyUp | ExtendedKey'))
-                            keys.insert(insertIndex, (keyValue, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey))
-                            keys.insert(insertIndex+1, (keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
-                            lastKeyValue = keyValue
-                        else:
-                            printKeys.insert(insertIndex, (key[0], 'UnicodeChar'))
-                            keys.insert(insertIndex, (key[0], 'UnicodeChar'))
-                            lastKeyValue = key[0]
-                        if include:
+
+def MouseInput(dx: int, dy: int, mouseData: int = 0, dwFlags: int = MouseEventFlag.LeftDown, time_: int = 0) -> INPUT:
+    """
+    Create Win32 struct `MOUSEINPUT` for `SendInput`.
+    Return `INPUT`.
+    """
+    return _CreateInput(MOUSEINPUT(dx, dy, mouseData, dwFlags, time_, None))
+
+
+def KeyboardInput(wVk: int, wScan: int, dwFlags: int = KeyboardEventFlag.KeyDown, time_: int = 0) -> INPUT:
+    """Create Win32 struct `KEYBDINPUT` for `SendInput`."""
+    return _CreateInput(KEYBDINPUT(wVk, wScan, dwFlags, time_, None))
+
+
+def HardwareInput(uMsg: int, param: int = 0) -> INPUT:
+    """Create Win32 struct `HARDWAREINPUT` for `SendInput`."""
+    return _CreateInput(HARDWAREINPUT(uMsg, param & 0xFFFF, param >> 16 & 0xFFFF))
+
+
+def SendInput(*inputs) -> int:
+    """
+    SendInput from Win32.
+    input: `INPUT`.
+    Return int, the number of events that it successfully inserted into the keyboard or mouse input stream.
+                If the function returns zero, the input was already blocked by another thread.
+    """
+    nInputs = len(inputs)
+    LPINPUT = INPUT * nInputs
+    pInputs = LPINPUT(*inputs)
+    cbSize = ctypes.c_int(ctypes.sizeof(INPUT))
+    return ctypes.windll.user32.SendInput(nInputs, pInputs, cbSize)
+
+
+def SendUnicodeChar(char: str) -> int:
+    """
+    Type a single unicode char.
+    char: str, len(char) must equal to 1.
+    Return int, the number of events that it successfully inserted into the keyboard or mouse input stream.
+                If the function returns zero, the input was already blocked by another thread.
+    """
+    return SendInput(KeyboardInput(0, ord(char), KeyboardEventFlag.KeyUnicode | KeyboardEventFlag.KeyDown),
+                     KeyboardInput(0, ord(char), KeyboardEventFlag.KeyUnicode | KeyboardEventFlag.KeyUp))
+
+
+_SCKeys = {
+    Keys.VK_LSHIFT: 0x02A,
+    Keys.VK_RSHIFT: 0x136,
+    Keys.VK_LCONTROL: 0x01D,
+    Keys.VK_RCONTROL: 0x11D,
+    Keys.VK_LMENU: 0x038,
+    Keys.VK_RMENU: 0x138,
+    Keys.VK_LWIN: 0x15B,
+    Keys.VK_RWIN: 0x15C,
+    Keys.VK_NUMPAD0: 0x52,
+    Keys.VK_NUMPAD1: 0x4F,
+    Keys.VK_NUMPAD2: 0x50,
+    Keys.VK_NUMPAD3: 0x51,
+    Keys.VK_NUMPAD4: 0x4B,
+    Keys.VK_NUMPAD5: 0x4C,
+    Keys.VK_NUMPAD6: 0x4D,
+    Keys.VK_NUMPAD7: 0x47,
+    Keys.VK_NUMPAD8: 0x48,
+    Keys.VK_NUMPAD9: 0x49,
+    Keys.VK_DECIMAL: 0x53,
+    Keys.VK_NUMLOCK: 0x145,
+    Keys.VK_DIVIDE: 0x135,
+    Keys.VK_MULTIPLY: 0x037,
+    Keys.VK_SUBTRACT: 0x04A,
+    Keys.VK_ADD: 0x04E,
+}
+
+
+def _VKtoSC(key: int) -> int:
+    """
+    This function is only for internal use in SendKeys.
+    key: int, a value in class `Keys`.
+    Return int.
+    """
+    if key in _SCKeys:
+        return _SCKeys[key]
+    scanCode = ctypes.windll.user32.MapVirtualKeyA(key, 0)
+    if not scanCode:
+        return 0
+    keyList = [Keys.VK_APPS, Keys.VK_CANCEL, Keys.VK_SNAPSHOT, Keys.VK_DIVIDE, Keys.VK_NUMLOCK]
+    if key in keyList:
+        scanCode |= 0x0100
+    return scanCode
+
+
+def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, debug: bool = False) -> None:
+    """
+    Simulate typing keys on keyboard.
+    text: str, keys to type.
+    interval: float, seconds between keys.
+    waitTime: float.
+    debug: bool, if True, print the keys.
+    Examples:
+    {Ctrl}, {Delete} ... are special keys' name in SpecialKeyNames.
+    SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
+    SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
+    SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
+    SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
+    SendKeys('{{}Hello{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {Hello}abc abc test}}}!a ()()
+    SendKeys('0123456789{Enter}')
+    SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{Enter}')
+    SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
+    SendKeys('`~!@#$%^&*()-_=+{Enter}')
+    SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
+    """
+    holdKeys = ('WIN', 'LWIN', 'RWIN', 'SHIFT', 'LSHIFT', 'RSHIFT', 'CTRL', 'CONTROL', 'LCTRL', 'RCTRL', 'LCONTROL', 'LCONTROL', 'ALT', 'LALT', 'RALT')
+    keys = []
+    printKeys = []
+    i = 0
+    insertIndex = 0
+    length = len(text)
+    hold = False
+    include = False
+    lastKeyValue = None
+    while True:
+        if text[i] == '{':
+            rindex = text.find('}', i)
+            if rindex == i + 1:#{}}
+                rindex = text.find('}', i + 2)
+            if rindex == -1:
+                raise ValueError('"{" or "{}" is not valid, use "{{}" for "{", use "{}}" for "}"')
+            key = text[i + 1:rindex]
+            key = [it for it in key.split(' ') if it]
+            if not key:
+                raise ValueError('"{}" is not valid, use "{{Space}}" or " " for " "'.format(text[i:rindex + 1]))
+            if (len(key) == 2 and not key[1].isdigit()) or len(key) > 2:
+                raise ValueError('"{}" is not valid'.format(text[i:rindex + 1]))
+            upperKey = key[0].upper()
+            count = 1
+            if len(key) > 1:
+                count = int(key[1])
+            for j in range(count):
+                if hold:
+                    if upperKey in SpecialKeyNames:
+                        keyValue = SpecialKeyNames[upperKey]
+                        if type(lastKeyValue) == type(keyValue) and lastKeyValue == keyValue:
                             insertIndex += 1
-                        else:
-                            if upperKey in holdKeys:
-                                insertIndex += 1
-                            else:
-                                hold = False
-                    else:
-                        if upperKey in Win32API.SpecialKeyDict:
-                            keyValue = Win32API.SpecialKeyDict[upperKey]
-                            printKeys.append((key[0], 'KeyDown | ExtendedKey'))
-                            printKeys.append((key[0], 'KeyUp | ExtendedKey'))
-                            keys.append((keyValue, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey))
-                            keys.append((keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
-                            lastKeyValue = keyValue
-                            if upperKey in holdKeys:
-                                hold = True
-                                insertIndex = len(keys) - 1
-                            else:
-                                hold = False
-                        else:
-                            printKeys.append((key[0], 'UnicodeChar'))
-                            keys.append((key[0], 'UnicodeChar'))
-                            lastKeyValue = key[0]
-                    #lastKey = key[0]
-                i = rindex + 1
-            elif text[i] == '(':
-                if hold:
-                    include = True
-                else:
-                    printKeys.append((text[i], 'UnicodeChar'))
-                    keys.append((text[i], 'UnicodeChar'))
-                    lastKeyValue = text[i]
-                #lastKey = text[i]
-                i += 1
-            elif text[i] == ')':
-                if hold:
-                    include = False
-                    hold = False
-                else:
-                    printKeys.append((text[i], 'UnicodeChar'))
-                    keys.append((text[i], 'UnicodeChar'))
-                    lastKeyValue = text[i]
-                #lastKey = text[i]
-                i += 1
-            else:
-                if hold:
-                    if text[i] in Win32API.CharacterDict:
-                        keyValue = Win32API.CharacterDict[text[i]]
-                        if include and type(lastKeyValue) == type(keyValue) and lastKeyValue == keyValue:
+                        printKeys.insert(insertIndex, (key[0], 'KeyDown | ExtendedKey'))
+                        printKeys.insert(insertIndex + 1, (key[0], 'KeyUp | ExtendedKey'))
+                        keys.insert(insertIndex, (keyValue, KeyboardEventFlag.KeyDown | KeyboardEventFlag.ExtendedKey))
+                        keys.insert(insertIndex + 1, (keyValue, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey))
+                        lastKeyValue = keyValue
+                    elif key[0] in CharacterCodes:
+                        keyValue = CharacterCodes[key[0]]
+                        if type(lastKeyValue) == type(keyValue) and lastKeyValue == keyValue:
                             insertIndex += 1
-                        printKeys.insert(insertIndex, (text[i], 'KeyDown | ExtendedKey'))
-                        printKeys.insert(insertIndex + 1, (text[i], 'KeyUp | ExtendedKey'))
-                        keys.insert(insertIndex, (keyValue, KeyboardEventFlags.KeyDown | KeyboardEventFlags.ExtendedKey))
-                        keys.insert(insertIndex + 1, (keyValue, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey))
+                        printKeys.insert(insertIndex, (key[0], 'KeyDown | ExtendedKey'))
+                        printKeys.insert(insertIndex + 1, (key[0], 'KeyUp | ExtendedKey'))
+                        keys.insert(insertIndex, (keyValue, KeyboardEventFlag.KeyDown | KeyboardEventFlag.ExtendedKey))
+                        keys.insert(insertIndex + 1, (keyValue, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey))
                         lastKeyValue = keyValue
                     else:
-                        printKeys.append((text[i], 'UnicodeChar'))
-                        keys.append((text[i], 'UnicodeChar'))
-                        lastKeyValue = text[i]
+                        printKeys.insert(insertIndex, (key[0], 'UnicodeChar'))
+                        keys.insert(insertIndex, (key[0], 'UnicodeChar'))
+                        lastKeyValue = key[0]
                     if include:
                         insertIndex += 1
                     else:
-                        hold = False
+                        if upperKey in holdKeys:
+                            insertIndex += 1
+                        else:
+                            hold = False
+                else:
+                    if upperKey in SpecialKeyNames:
+                        keyValue = SpecialKeyNames[upperKey]
+                        printKeys.append((key[0], 'KeyDown | ExtendedKey'))
+                        printKeys.append((key[0], 'KeyUp | ExtendedKey'))
+                        keys.append((keyValue, KeyboardEventFlag.KeyDown | KeyboardEventFlag.ExtendedKey))
+                        keys.append((keyValue, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey))
+                        lastKeyValue = keyValue
+                        if upperKey in holdKeys:
+                            hold = True
+                            insertIndex = len(keys) - 1
+                        else:
+                            hold = False
+                    else:
+                        printKeys.append((key[0], 'UnicodeChar'))
+                        keys.append((key[0], 'UnicodeChar'))
+                        lastKeyValue = key[0]
+            i = rindex + 1
+        elif text[i] == '(':
+            if hold:
+                include = True
+            else:
+                printKeys.append((text[i], 'UnicodeChar'))
+                keys.append((text[i], 'UnicodeChar'))
+                lastKeyValue = text[i]
+            i += 1
+        elif text[i] == ')':
+            if hold:
+                include = False
+                hold = False
+            else:
+                printKeys.append((text[i], 'UnicodeChar'))
+                keys.append((text[i], 'UnicodeChar'))
+                lastKeyValue = text[i]
+            i += 1
+        else:
+            if hold:
+                if text[i] in CharacterCodes:
+                    keyValue = CharacterCodes[text[i]]
+                    if include and type(lastKeyValue) == type(keyValue) and lastKeyValue == keyValue:
+                        insertIndex += 1
+                    printKeys.insert(insertIndex, (text[i], 'KeyDown | ExtendedKey'))
+                    printKeys.insert(insertIndex + 1, (text[i], 'KeyUp | ExtendedKey'))
+                    keys.insert(insertIndex, (keyValue, KeyboardEventFlag.KeyDown | KeyboardEventFlag.ExtendedKey))
+                    keys.insert(insertIndex + 1, (keyValue, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey))
+                    lastKeyValue = keyValue
                 else:
                     printKeys.append((text[i], 'UnicodeChar'))
                     keys.append((text[i], 'UnicodeChar'))
                     lastKeyValue = text[i]
-                #lastKey = text[i]
-                i += 1
-            if i >= length:
-                break
-        hotkeyInterval = 0.01
-        for i, key in enumerate(keys):
-            if key[1] == 'UnicodeChar':
-                _AutomationClient.instance().dll.SendUnicodeChar(ctypes.c_wchar_p(key[0]))
+                if include:
+                    insertIndex += 1
+                else:
+                    hold = False
+            else:
+                printKeys.append((text[i], 'UnicodeChar'))
+                keys.append((text[i], 'UnicodeChar'))
+                lastKeyValue = text[i]
+            i += 1
+        if i >= length:
+            break
+    hotkeyInterval = 0.01
+    for i, key in enumerate(keys):
+        if key[1] == 'UnicodeChar':
+            SendUnicodeChar(key[0])
+            time.sleep(interval)
+            if debug:
+                Logger.ColorfullyWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(printKeys[i], interval), writeToFile=False)
+        else:
+            scanCode = _VKtoSC(key[0])
+            keybd_event(key[0], scanCode, key[1], 0)
+            if debug:
+                Logger.Write(printKeys[i], ConsoleColor.DarkGreen, writeToFile=False)
+            if i + 1 == len(keys):
                 time.sleep(interval)
                 if debug:
-                    Logger.ColorfulWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(printKeys[i], interval), writeToFile=False)
+                    Logger.Write(', sleep({})\n'.format(interval), writeToFile=False)
             else:
-                scanCode = Win32API.VKtoSC(key[0])
-                Win32API.keybd_event(key[0], scanCode, key[1], 0)
-                if debug:
-                    Logger.Write(printKeys[i], ConsoleColor.DarkGreen, writeToFile=False)
-                if i + 1 == len(keys):
-                    time.sleep(interval)
-                    if debug:
-                        Logger.Write(', sleep({})\n'.format(interval), writeToFile=False)
-                else:
-                    if key[1] & KeyboardEventFlags.KeyUp:
-                        if keys[i+1][1] == 'UnicodeChar' or keys[i+1][1] & KeyboardEventFlags.KeyUp == 0:
-                            time.sleep(interval)
-                            if debug:
-                                Logger.Write(', sleep({})\n'.format(interval), writeToFile=False)
-                        else:
-                            time.sleep(hotkeyInterval)  #must sleep for a while, otherwise combined keys may not be caught
-                            if debug:
-                                Logger.Write(', sleep({})\n'.format(hotkeyInterval), writeToFile=False)
-                    else:  #KeyboardEventFlags.KeyDown
-                        time.sleep(hotkeyInterval)
+                if key[1] & KeyboardEventFlag.KeyUp:
+                    if keys[i + 1][1] == 'UnicodeChar' or keys[i + 1][1] & KeyboardEventFlag.KeyUp == 0:
+                        time.sleep(interval)
+                        if debug:
+                            Logger.Write(', sleep({})\n'.format(interval), writeToFile=False)
+                    else:
+                        time.sleep(hotkeyInterval)  #must sleep for a while, otherwise combined keys may not be caught
                         if debug:
                             Logger.Write(', sleep({})\n'.format(hotkeyInterval), writeToFile=False)
-        #make sure hold keys are not pressed
-        #win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
-        #ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
-        #alt = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_MENU)
-        #shift = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_SHIFT)
-        #if win & 0x8000:
-            #Logger.WriteLine('ERROR: WIN is pressed, it should not be pressed!', ConsoleColor.Red)
-            #Win32API.keybd_event(Keys.VK_LWIN, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        #if ctrl & 0x8000:
-            #Logger.WriteLine('ERROR: CTRL is pressed, it should not be pressed!', ConsoleColor.Red)
-            #Win32API.keybd_event(Keys.VK_CONTROL, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        #if alt & 0x8000:
-            #Logger.WriteLine('ERROR: ALT is pressed, it should not be pressed!', ConsoleColor.Red)
-            #Win32API.keybd_event(Keys.VK_MENU, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        #if shift & 0x8000:
-            #Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
-            #Win32API.keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlags.KeyUp | KeyboardEventFlags.ExtendedKey, 0)
-        time.sleep(waitTime)
+                else:  #KeyboardEventFlag.KeyDown
+                    time.sleep(hotkeyInterval)
+                    if debug:
+                        Logger.Write(', sleep({})\n'.format(hotkeyInterval), writeToFile=False)
+    #make sure hold keys are not pressed
+    #win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
+    #ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
+    #alt = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_MENU)
+    #shift = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_SHIFT)
+    #if win & 0x8000:
+        #Logger.WriteLine('ERROR: WIN is pressed, it should not be pressed!', ConsoleColor.Red)
+        #keybd_event(Keys.VK_LWIN, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
+    #if ctrl & 0x8000:
+        #Logger.WriteLine('ERROR: CTRL is pressed, it should not be pressed!', ConsoleColor.Red)
+        #keybd_event(Keys.VK_CONTROL, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
+    #if alt & 0x8000:
+        #Logger.WriteLine('ERROR: ALT is pressed, it should not be pressed!', ConsoleColor.Red)
+        #keybd_event(Keys.VK_MENU, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
+    #if shift & 0x8000:
+        #Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
+        #keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
+    time.sleep(waitTime)
+
+
+class Logger:
+    """
+    Logger for print and log. Support for printing log with different colors on console.
+    """
+    FileName = '@AutomationLog.txt'
+    ColorNames = {
+        "Black": ConsoleColor.Black,
+        "DarkBlue": ConsoleColor.DarkBlue,
+        "DarkGreen": ConsoleColor.DarkGreen,
+        "DarkCyan": ConsoleColor.DarkCyan,
+        "DarkRed": ConsoleColor.DarkRed,
+        "DarkMagenta": ConsoleColor.DarkMagenta,
+        "DarkYellow": ConsoleColor.DarkYellow,
+        "Gray": ConsoleColor.Gray,
+        "DarkGray": ConsoleColor.DarkGray,
+        "Blue": ConsoleColor.Blue,
+        "Green": ConsoleColor.Green,
+        "Cyan": ConsoleColor.Cyan,
+        "Red": ConsoleColor.Red,
+        "Magenta": ConsoleColor.Magenta,
+        "Yellow": ConsoleColor.Yellow,
+        "White": ConsoleColor.White,
+    }
+
+    @staticmethod
+    def SetLogFile(path: str) -> None:
+        Logger.FileName = path
+
+    @staticmethod
+    def Write(log: Any, consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None, printTruncateLen: int = 0) -> None:
+        """
+        log: any type.
+        consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
+        writeToFile: bool.
+        printToStdout: bool.
+        logFile: str, log file path.
+        printTruncateLen: int, if <= 0, log is not truncated when print.
+        """
+        if not isinstance(log, str):
+            log = str(log)
+        if printToStdout and sys.stdout:
+            isValidColor = (consoleColor >= ConsoleColor.Black and consoleColor <= ConsoleColor.White)
+            if isValidColor:
+                SetConsoleColor(consoleColor)
+            try:
+                if printTruncateLen > 0 and len(log) > printTruncateLen:
+                    sys.stdout.write(log[:printTruncateLen] + '...')
+                else:
+                    sys.stdout.write(log)
+            except Exception as ex:
+                SetConsoleColor(ConsoleColor.Red)
+                isValidColor = True
+                sys.stdout.write(ex.__class__.__name__ + ': can\'t print the log!')
+                if log.endswith('\n'):
+                    sys.stdout.write('\n')
+            if isValidColor:
+                ResetConsoleColor()
+            sys.stdout.flush()
+        if not writeToFile:
+            return
+        fileName = logFile if logFile else Logger.FileName
+        try:
+            fout = open(fileName, 'a+', encoding='utf-8')
+            fout.write(log)
+        except Exception as ex:
+            if sys.stdout:
+                sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
+        finally:
+            if fout:
+                fout.close()
+
+    @staticmethod
+    def WriteLine(log: Any, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+        """
+        log: any type.
+        consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
+        writeToFile: bool.
+        printToStdout: bool.
+        logFile: str, log file path.
+        """
+        Logger.Write('{}\n'.format(log), consoleColor, writeToFile, printToStdout, logFile)
+
+    @staticmethod
+    def ColorfullyWrite(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+        """
+        log: str.
+        consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
+        writeToFile: bool.
+        printToStdout: bool.
+        logFile: str, log file path.
+        ColorfullyWrite('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorNames.
+        """
+        text = []
+        start = 0
+        while True:
+            index1 = log.find('<Color=', start)
+            if index1 >= 0:
+                if index1 > start:
+                    text.append((log[start:index1], consoleColor))
+                index2 = log.find('>', index1)
+                colorName = log[index1+7:index2]
+                index3 = log.find('</Color>', index2 + 1)
+                text.append((log[index2 + 1:index3], Logger.ColorNames[colorName]))
+                start = index3 + 8
+            else:
+                if start < len(log):
+                    text.append((log[start:], consoleColor))
+                break
+        for t, c in text:
+            Logger.Write(t, c, writeToFile, printToStdout, logFile)
+
+    @staticmethod
+    def ColorfullyWriteLine(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+        """
+        log: str.
+        consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
+        writeToFile: bool.
+        printToStdout: bool.
+        logFile: str, log file path.
+
+        ColorfullyWriteLine('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorNames.
+        """
+        Logger.ColorfullyWrite(log + '\n', consoleColor, writeToFile, printToStdout, logFile)
+
+    @staticmethod
+    def Log(log: Any = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+        """
+        log: any type.
+        consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
+        writeToFile: bool.
+        printToStdout: bool.
+        logFile: str, log file path.
+        """
+        t = datetime.datetime.now()
+        frame = sys._getframe(1)
+        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}\n'.format(t.year, t.month, t.day,
+            t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log)
+        Logger.Write(log, consoleColor, writeToFile, printToStdout, logFile)
+
+    @staticmethod
+    def ColorfullyLog(log: str = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+        """
+        log: any type.
+        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen.
+        writeToFile: bool.
+        printToStdout: bool.
+        logFile: str, log file path.
+
+        ColorfullyLog('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorNames
+        """
+        t = datetime.datetime.now()
+        frame = sys._getframe(1)
+        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}\n'.format(t.year, t.month, t.day,
+            t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log)
+        Logger.ColorfullyWrite(log, consoleColor, writeToFile, printToStdout, logFile)
+
+    @staticmethod
+    def DeleteLog() -> None:
+        """Delete log file."""
+        if os.path.exists(Logger.FileName):
+            os.remove(Logger.FileName)
 
 
 class Bitmap:
-    """A simple Bitmap class wraps Windows GDI+ Gdiplus::Bitmap, but may not have high efficiency"""
-    def __init__(self, width=0, height=0):
+    """
+    A simple Bitmap class wraps Windows GDI+ Gdiplus::Bitmap, but may not have high efficiency.
+    """
+    def __init__(self, width: int = 0, height: int = 0):
         """
-        width: int
-        height: int
-        Create a black bimap of size(width, height)
+        Create a black bimap of size(width, height).
         """
         self._width = width
         self._height = height
         self._bitmap = 0
         if width > 0 and height > 0:
-            self._bitmap = _AutomationClient.instance().dll.BitmapCreate(width, height)
+            self._bitmap = _DllClient.instance().dll.BitmapCreate(width, height)
 
     def __del__(self):
         self.Release()
 
-    def _getsize(self):
-        """internal use only"""
-        size = _AutomationClient.instance().dll.BitmapGetWidthAndHeight(self._bitmap)
+    def _getsize(self) -> None:
+        size = _DllClient.instance().dll.BitmapGetWidthAndHeight(self._bitmap)
         self._width = size & 0xFFFF
         self._height = size >> 16
 
-    def Release(self):
+    def Release(self) -> None:
         if self._bitmap:
-            _AutomationClient.instance().dll.BitmapRelease(self._bitmap)
+            _DllClient.instance().dll.BitmapRelease(self._bitmap)
             self._bitmap = 0
             self._width = 0
             self._height = 0
 
     @property
-    def Width(self):
+    def Width(self) -> int:
+        """
+        Property Width.
+        Return int.
+        """
         return self._width
 
     @property
-    def Height(self):
+    def Height(self) -> int:
+        """
+        Property Height.
+        Return int.
+        """
         return self._height
 
-    def FromHandle(self, hwnd, left=0, top=0, right=0, bottom=0):
+    def FromHandle(self, hwnd: int, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0) -> bool:
         """
-        hwnd: int
-        left: int
-        top: int
-        right: int
-        bottom: int
-        Capture a Win32 Window to Bitmap by its handle
-        left, top, right and bottom are control's internal postion(from 0,0)
+        Capture a native window to Bitmap by its handle.
+        hwnd: int, the handle of a native window.
+        left: int.
+        top: int.
+        right: int.
+        bottom: int.
+        left, top, right and bottom are control's internal postion(from 0,0).
+        Return bool, True if succeed otherwise False.
         """
         self.Release()
         root = GetRootControl()
-        rect = Rect()
+        rect = ctypes.wintypes.RECT()
         ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
         left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
-        self._bitmap = _AutomationClient.instance().dll.BitmapFromWindow(root.Handle, left, top, right, bottom)
+        self._bitmap = _DllClient.instance().dll.BitmapFromWindow(root.NativeWindowHandle, left, top, right, bottom)
         self._getsize()
         return self._bitmap > 0
 
-    def FromControl(self, control, x=0, y=0, width=0, height=0):
+    def FromControl(self, control, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> bool:
         """
-        control: a instance of Control or Control's subclasses
-        x: int
-        y: int
-        width: int
-        height: int
-        Capture a control to Bitmap
+        Capture a control to Bitmap.
+        control: `Control` or its subclass.
+        x: int.
+        y: int.
+        width: int.
+        height: int.
         x, y: the point in control's internal position(from 0,0)
         width, height: image's width and height from x, y, use 0 for entire area,
-        If width(or height) < 0, image size will be control's width(or height) - width(or height)
+        If width(or height) < 0, image size will be control's width(or height) - width(or height).
+        Return bool, True if succeed otherwise False.
         """
-        left, top, right, bottom = control.BoundingRectangle
-        while (right - left) == 0 or (bottom - top) == 0:
+        rect = control.BoundingRectangle
+        while rect.width() == 0 or rect.height() == 0:
             #some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
             control = control.GetParentControl()
             if not control:
                 return False
-            left, top, right, bottom = control.BoundingRectangle
+            rect = control.BoundingRectangle
         if width <= 0:
-            width = right - left + width
+            width = rect.width() + width
         if height <= 0:
-            height = bottom - top + height
-        hWnd = control.Handle
-        if hWnd:
+            height = rect.height() + height
+        handle = control.NativeWindowHandle
+        if handle:
             left = x
             top = y
             right = left + width
@@ -2196,31 +2880,32 @@ class Bitmap:
         else:
             while True:
                 control = control.GetParentControl()
-                hWnd = control.Handle
-                if hWnd:
-                    pleft, ptop, pright, pbottom = control.BoundingRectangle
-                    left = left - pleft + x
-                    top = top - ptop + y
+                handle = control.NativeWindowHandle
+                if handle:
+                    pRect = control.BoundingRectangle
+                    left = rect.left - pRect.left + x
+                    top = rect.top - pRect.top + y
                     right = left + width
                     bottom = top + height
                     break
-        return self.FromHandle(hWnd, left, top, right, bottom)
+        return self.FromHandle(handle, left, top, right, bottom)
 
-    def FromFile(self, filePath):
+    def FromFile(self, filePath: str) -> bool:
         """
-        filePath: str
-        Load image from a file
-        Return True if succeed
+        Load image from a file.
+        filePath: str.
+        Return bool, True if succeed otherwise False.
         """
         self.Release()
-        self._bitmap = _AutomationClient.instance().dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
+        self._bitmap = _DllClient.instance().dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
         self._getsize()
         return self._bitmap > 0
 
-    def ToFile(self, savePath):
+    def ToFile(self, savePath: str) -> bool:
         """
-        savePath: str, should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff
-        Return 1 if succeed
+        Save to a file.
+        savePath: str, should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff.
+        Return bool, True if succeed otherwise False.
         """
         name, ext = os.path.splitext(savePath)
         extMap = {'.bmp': 'image/bmp'
@@ -2232,536 +2917,2724 @@ class Bitmap:
                   , '.png': 'image/png'
                   }
         gdiplusImageFormat = extMap.get(ext.lower(), 'image/png')
-        return _AutomationClient.instance().dll.BitmapToFile(self._bitmap, ctypes.c_wchar_p(savePath), ctypes.c_wchar_p(gdiplusImageFormat))
+        return bool(_DllClient.instance().dll.BitmapToFile(self._bitmap, ctypes.c_wchar_p(savePath), ctypes.c_wchar_p(gdiplusImageFormat)))
 
-    def GetPixelColor(self, x, y):
+    def GetPixelColor(self, x: int, y: int) -> int:
         """
-        x: int
-        y: int
-        Return int, argb color
+        Get color value of a pixel.
+        x: int.
+        y: int.
+        Return int, argb color.
         b = argb & 0x0000FF
         g = (argb & 0x00FF00) >> 8
         r = (argb & 0xFF0000) >> 16
         a = (argb & 0xFF0000) >> 24
         """
-        return _AutomationClient.instance().dll.BitmapGetPixel(self._bitmap, x, y)
+        return _DllClient.instance().dll.BitmapGetPixel(self._bitmap, x, y)
 
-    def SetPixelColor(self, x, y, argb):
+    def SetPixelColor(self, x: int, y: int, argb: int) -> bool:
         """
-        x: int
-        y: int
-        argb: int, color value
+        Set color value of a pixel.
+        x: int.
+        y: int.
+        argb: int, color value.
+        Return bool, True if succeed otherwise False.
         """
-        return _AutomationClient.instance().dll.BitmapSetPixel(self._bitmap, x, y, argb)
+        return _DllClient.instance().dll.BitmapSetPixel(self._bitmap, x, y, argb)
 
-    def GetPixelColorsHorizontally(self, x, y, count):
+    def GetPixelColorsHorizontally(self, x: int, y: int, count: int) -> ctypes.Array:
         """
-        x: int
-        y: int
-        count: int
-        Return a list of color values in argb form point x,y horizontally
+        x: int.
+        y: int.
+        count: int.
+        Return `ctypes.Array`, an iterable array of int values in argb form point x,y horizontally.
         """
-        colorArray = ctypes.c_uint32 * count
-        values = colorArray(*(0 for n in range(count)))
-        _AutomationClient.instance().dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
+        arrayType = ctypes.c_uint32 * count
+        values = arrayType()
+        _DllClient.instance().dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
-    def GetPixelColorsVertically(self, x, y, count):
+    def SetPixelColorsHorizontally(self, x: int, y: int, colors: Iterable) -> bool:
         """
-        x: int
-        y: int
-        count: int
-        Return a list of color values in argb form point x,y vertically
+        Set pixel colors form x,y horizontally.
+        x: int.
+        y: int.
+        colors: Iterable, an iterable list of int color values in argb.
+        Return bool, True if succeed otherwise False.
         """
-        colorArray = ctypes.c_uint32 * count
-        values = colorArray(*(0 for n in range(count)))
-        _AutomationClient.instance().dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
+        count = len(colors)
+        arrayType = ctypes.c_uint32 * count
+        values = arrayType(*colors)
+        return _DllClient.instance().dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
+
+    def GetPixelColorsVertically(self, x: int, y: int, count: int) -> ctypes.Array:
+        """
+        x: int.
+        y: int.
+        count: int.
+        Return `ctypes.Array`, an iterable array of int values in argb form point x,y vertically.
+        """
+        arrayType = ctypes.c_uint32 * count
+        values = arrayType()
+        _DllClient.instance().dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
-    def GetPixelColorsOfRow(self, y):
+    def SetPixelColorsVertically(self, x: int, y: int, colors: Iterable) -> bool:
         """
-        y: int, row index
-        Return a list of color values in argb of y row
+        Set pixel colors form x,y vertically.
+        x: int.
+        y: int.
+        colors: Iterable, an iterable list of int color values in argb.
+        Return bool, True if succeed otherwise False.
         """
-        return self.GetPixelColorsHorizontally(0, y, self.Width)
+        count = len(colors)
+        arrayType = ctypes.c_uint32 * count
+        values = arrayType(*colors)
+        return _DllClient.instance().dll.BitmapSetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
 
-    def GetPixelColorsOfColumn(self, x):
+    def GetPixelColorsOfRow(self, y: int) -> ctypes.Array:
         """
-        x: int
-        Return a list of color values in argb of x column
+        y: int, row index.
+        Return `ctypes.Array`, an iterable array of int values in argb of y row.
         """
-        return self.GetPixelColorsVertically(x, 0, self.Height)
+        return self.GetPixelColorsOfRect(0, y, self.Width, 1)
 
-    def GetPixelColorsOfRect(self, x, y, width, height):
+    def GetPixelColorsOfColumn(self, x: int) -> ctypes.Array:
         """
-        x: int
-        y: int
-        width: int
-        height: int
-        Return a list of color values in argb of the rect
+        x: int, column index.
+        Return `ctypes.Array`, an iterable array of int values in argb of x column.
         """
-        allColors = self.GetAllPixelColors()
-        colors = []
-        for row in range(height):
-            colors.extend(allColors[(y+row)*self.Width+x:(y+row)*self.Width+x+width])
-        return colors
+        return self.GetPixelColorsOfRect(x, 0, 1, self.Height)
 
-    def GetPixelColorsOfRects(self, rects):
+    def GetPixelColorsOfRect(self, x: int, y: int, width: int, height: int) -> ctypes.Array:
         """
-        rects: a list of rects, such as [[0,0,10,10], [10,10,20,20]]
-        Returns a list whose elements are all list of color values
+        x: int.
+        y: int.
+        width: int.
+        height: int.
+        Return `ctypes.Array`, an iterable array of int values in argb of the input rect.
         """
-        allColors = self.GetAllPixelColors()
+        arrayType = ctypes.c_uint32 * (width * height)
+        values = arrayType()
+        _DllClient.instance().dll.BitmapGetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, values)
+        return values
+
+    def SetPixelColorsOfRect(self, x: int, y: int, width: int, height: int, colors: Iterable) -> bool:
+        """
+        x: int.
+        y: int.
+        width: int.
+        height: int.
+        colors: Iterable, an iterable list of int values, it's length must equal to width*height.
+        Return `ctypes.Array`, an iterable array of int values in argb of the input rect.
+        """
+        arrayType = ctypes.c_uint32 * (width * height)
+        values = arrayType(*colors)
+        return bool(_DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, values))
+
+    def GetPixelColorsOfRects(self, rects: list) -> list:
+        """
+        rects: a list of rects, such as [(0,0,10,10), (10,10,20,20),(x,y,width,height)].
+        Return list, a list whose elements are ctypes.Array which is an iterable array of int values in argb.
+        """
+        rects2 = [(x, y, x + width, y + height) for x, y, width, height in rects]
+        left, top, right, bottom = zip(*rects2)
+        left, top, right, bottom = min(left), min(top), max(right), max(bottom)
+        width, height = right - left, bottom - top
+        allColors = self.GetPixelColorsOfRect(left, top, width, height)
         colorsOfRects = []
         for rect in rects:
-            x, y, width, height = rect
+            x, y, w, h = rect
+            x -= left
+            y -= top
             colors = []
-            for row in range(height):
-                colors.extend(allColors[(y+row)*self.Width+x:(y+row)*self.Width+x+width])
+            for row in range(h):
+                colors.extend(allColors[(y + row) * width + x:(y + row) * width + x + w])
             colorsOfRects.append(colors)
         return colorsOfRects
 
-    def GetAllPixelColors(self):
-        """Returns a list of all color values in argb from 0,0 horizontally"""
-        return self.GetPixelColorsHorizontally(0, 0, self.Width * self.Height)
-
-    def SetPixelColorsHorizontally(self, x, y, colors):
+    def GetAllPixelColors(self) -> ctypes.Array:
         """
-        x: int
-        y: int
-        colors: a list of int color values in argb
-        Set pixel colors form x,y horizontally"""
-        count = len(colors)
-        colorArray = ctypes.c_uint32 * count
-        values = colorArray(*colors)
-        return _AutomationClient.instance().dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
-
-    def SetPixelColorsVertically(self, x, y, colors):
+        Return `ctypes.Array`, an iterable array of int values in argb.
         """
-        x: int
-        y: int
-        colors: a list of int color values in argb
-        Set pixel colors form x,y vertically"""
-        count = len(colors)
-        colorArray = ctypes.c_uint32 * count
-        values = colorArray(*colors)
-        return _AutomationClient.instance().dll.BitmapSetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
+        return self.GetPixelColorsOfRect(0, 0, self.Width, self.Height)
+
+    def GetSubBitmap(self, x: int, y: int, width: int, height: int):
+        """
+        x: int.
+        y: int.
+        width: int.
+        height: int.
+        Return `Bitmap`, a sub bitmap of the input rect.
+        """
+        colors = self.GetPixelColorsOfRect(x, y, width, height)
+        bitmap = Bitmap(width, height)
+        bitmap.SetPixelColorsOfRect(0, 0, width, height, colors)
+        return bitmap
+
+
+_PatternIdInterfaces = None
+def GetPatternIdInterface(patternId: int):
+    """
+    Get pattern COM interface by pattern id.
+    patternId: int, a value in class `PatternId`.
+    Return comtypes._cominterface_meta.
+    """
+    global _PatternIdInterfaces
+    if not _PatternIdInterfaces:
+        _PatternIdInterfaces = {
+            # PatternId.AnnotationPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationAnnotationPattern,
+            # PatternId.CustomNavigationPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationCustomNavigationPattern,
+            PatternId.DockPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationDockPattern,
+            # PatternId.DragPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationDragPattern,
+            # PatternId.DropTargetPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationDropTargetPattern,
+            PatternId.ExpandCollapsePattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationExpandCollapsePattern,
+            PatternId.GridItemPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationGridItemPattern,
+            PatternId.GridPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationGridPattern,
+            PatternId.InvokePattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationInvokePattern,
+            PatternId.ItemContainerPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationItemContainerPattern,
+            PatternId.LegacyIAccessiblePattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationLegacyIAccessiblePattern,
+            PatternId.MultipleViewPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationMultipleViewPattern,
+            # PatternId.ObjectModelPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationObjectModelPattern,
+            PatternId.RangeValuePattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationRangeValuePattern,
+            PatternId.ScrollItemPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationScrollItemPattern,
+            PatternId.ScrollPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationScrollPattern,
+            PatternId.SelectionItemPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationSelectionItemPattern,
+            PatternId.SelectionPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationSelectionPattern,
+            # PatternId.SpreadsheetItemPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationSpreadsheetItemPattern,
+            # PatternId.SpreadsheetPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationSpreadsheetPattern,
+            # PatternId.StylesPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationStylesPattern,
+            PatternId.SynchronizedInputPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationSynchronizedInputPattern,
+            PatternId.TableItemPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationTableItemPattern,
+            PatternId.TablePattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationTablePattern,
+            # PatternId.TextChildPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationTextChildPattern,
+            # PatternId.TextEditPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationTextEditPattern,
+            PatternId.TextPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationTextPattern,
+            # PatternId.TextPattern2: _AutomationClient.instance().UIAutomationCore.IUIAutomationTextPattern2,
+            PatternId.TogglePattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationTogglePattern,
+            PatternId.TransformPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationTransformPattern,
+            # PatternId.TransformPattern2: _AutomationClient.instance().UIAutomationCore.IUIAutomationTransformPattern2,
+            PatternId.ValuePattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationValuePattern,
+            PatternId.VirtualizedItemPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationVirtualizedItemPattern,
+            PatternId.WindowPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationWindowPattern,
+        }
+        debug = False
+        #the following patterns dosn't exist on Windows 7 or lower
+        try:
+            _PatternIdInterfaces[PatternId.AnnotationPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationAnnotationPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have AnnotationPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.CustomNavigationPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationCustomNavigationPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have CustomNavigationPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.DragPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationDragPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have DragPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.DropTargetPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationDropTargetPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have DropTargetPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.ObjectModelPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationObjectModelPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have ObjectModelPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.SpreadsheetItemPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationSpreadsheetItemPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have SpreadsheetItemPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.SpreadsheetPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationSpreadsheetPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have SpreadsheetPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.StylesPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationStylesPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have StylesPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.TextChildPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationTextChildPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have TextChildPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.TextEditPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationTextEditPattern
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have TextEditPattern.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.TextPattern2] = _AutomationClient.instance().UIAutomationCore.IUIAutomationTextPattern2
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have TextPattern2.', ConsoleColor.Yellow)
+        try:
+            _PatternIdInterfaces[PatternId.TransformPattern2] = _AutomationClient.instance().UIAutomationCore.IUIAutomationTransformPattern2
+        except:
+            if debug: Logger.WriteLine('UIAutomationCore does not have TransformPattern2.', ConsoleColor.Yellow)
+    return _PatternIdInterfaces[patternId]
+
+
+"""
+Control Pattern Mapping for UI Automation Clients.
+Refer https://docs.microsoft.com/en-us/previous-versions//dd319586(v=vs.85)
+"""
+
+
+class AnnotationPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationannotationpattern"""
+        self.pattern = pattern
+
+    @property
+    def AnnotationTypeId(self) -> int:
+        """
+        Property AnnotationTypeId.
+        Call IUIAutomationAnnotationPattern::get_CurrentAnnotationTypeId.
+        Return int, a value in class `AnnotationType`.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentannotationtypeid
+        """
+        return self.pattern.CurrentAnnotationTypeId
+
+    @property
+    def AnnotationTypeName(self) -> str:
+        """
+        Property AnnotationTypeName.
+        Call IUIAutomationAnnotationPattern::get_CurrentAnnotationTypeName.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentannotationtypename
+        """
+        return self.pattern.CurrentAnnotationTypeName
+
+    @property
+    def Author(self) -> str:
+        """
+        Property Author.
+        Call IUIAutomationAnnotationPattern::get_CurrentAuthor.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentauthor
+        """
+        return self.pattern.CurrentAuthor
+
+    @property
+    def DateTime(self) -> str:
+        """
+        Property DateTime.
+        Call IUIAutomationAnnotationPattern::get_CurrentDateTime.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentdatetime
+        """
+        return self.pattern.CurrentDateTime
+
+    @property
+    def Target(self):
+        """
+        Property Target.
+        Call IUIAutomationAnnotationPattern::get_CurrentTarget.
+        Return `Control` subclass, the element that is being annotated.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currenttarget
+        """
+        ele = self.pattern.CurrentTarget
+        return Control.CreateControlFromElement(ele)
+
+
+class CustomNavigationPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationcustomnavigationpattern"""
+        self.pattern = pattern
+
+    def Navigate(self, direction: int):
+        """
+        Call IUIAutomationCustomNavigationPattern::Navigate.
+        Get the next control in the specified direction within the logical UI tree.
+        direction: int, a value in class `NavigateDirection`.
+        Return `Control` subclass or None.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationcustomnavigationpattern-navigate
+        """
+        ele = self.pattern.Navigate(direction)
+        return Control.CreateControlFromElement(ele)
+
+
+class DockPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationdockpattern"""
+        self.pattern = pattern
+
+    @property
+    def DockPosition(self) -> int:
+        """
+        Property DockPosition.
+        Call IUIAutomationDockPattern::get_CurrentDockPosition.
+        Return int, a value in class `DockPosition`.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdockpattern-get_currentdockposition
+        """
+        return self.pattern.CurrentDockPosition
+
+    def SetDockPosition(self, dockPosition: int, waitTime: float = OPERATION_WAIT_TIME) -> int:
+        """
+        Call IUIAutomationDockPattern::SetDockPosition.
+        dockPosition: int, a value in class `DockPosition`.
+        waitTime: float.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdockpattern-setdockposition
+        """
+        ret = self.pattern.SetDockPosition(dockPosition)
+        time.sleep(waitTime)
+        return ret
+
+
+class DragPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationdragpattern"""
+        self.pattern = pattern
+
+    @property
+    def DropEffect(self) -> str:
+        """
+        Property DropEffect.
+        Call IUIAutomationDragPattern::get_CurrentDropEffect.
+        Return str, a localized string that indicates what happens
+                    when the user drops this element as part of a drag-drop operation.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdropeffect
+        """
+        return self.pattern.CurrentDropEffect
+
+    @property
+    def DropEffects(self) -> list:
+        """
+        Property DropEffects.
+        Call IUIAutomationDragPattern::get_CurrentDropEffects, todo SAFEARRAY.
+        Return list, a list of localized strings that enumerate the full set of effects
+                     that can happen when this element as part of a drag-and-drop operation.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdropeffects
+        """
+        return self.pattern.CurrentDropEffects
+
+    @property
+    def IsGrabbed(self) -> bool:
+        """
+        Property IsGrabbed.
+        Call IUIAutomationDragPattern::get_CurrentIsGrabbed.
+        Return bool, indicates whether the user has grabbed this element as part of a drag-and-drop operation.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentisgrabbed
+        """
+        return bool(self.pattern.CurrentIsGrabbed)
+
+    def GetGrabbedItems(self) -> list:
+        """
+        Call IUIAutomationDragPattern::GetCurrentGrabbedItems.
+        Return list, a list of `Control` subclasses that represent the full set of items
+                     that the user is dragging as part of a drag operation.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-getcurrentgrabbeditems
+        """
+        eleArray = self.pattern.GetCurrentGrabbedItems()
+        if eleArray:
+            controls = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                con = Control.CreateControlFromElement(element=ele)
+                if con:
+                    controls.append(con)
+            return controls
+        return []
+
+
+class DropTargetPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationdroptargetpattern"""
+        self.pattern = pattern
+
+    @property
+    def DropTargetEffect(self) -> str:
+        """
+        Property DropTargetEffect.
+        Call IUIAutomationDropTargetPattern::get_CurrentDropTargetEffect.
+        Return str, a localized string that describes what happens
+                    when the user drops the grabbed element on this drop target.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdroptargeteffect
+        """
+        return self.pattern.CurrentDropTargetEffect
+
+    @property
+    def DropTargetEffects(self) -> list:
+        """
+        Property DropTargetEffects.
+        Call IUIAutomationDropTargetPattern::get_CurrentDropTargetEffects, todo SAFEARRAY.
+        Return list, a list of localized strings that enumerate the full set of effects
+                     that can happen when the user drops a grabbed element on this drop target
+                     as part of a drag-and-drop operation.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdroptargeteffects
+        """
+        return self.pattern.CurrentDropTargetEffects
+
+
+class ExpandCollapsePattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationexpandcollapsepattern"""
+        self.pattern = pattern
+
+    @property
+    def ExpandCollapseState(self) -> int:
+        """
+        Property ExpandCollapseState.
+        Call IUIAutomationExpandCollapsePattern::get_CurrentExpandCollapseState.
+        Return int, a value in class ExpandCollapseState.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-get_currentexpandcollapsestate
+        """
+        return self.pattern.CurrentExpandCollapseState
+
+    def Collapse(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationExpandCollapsePattern::Collapse.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-collapse
+        """
+        ret = self.pattern.Collapse() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def Expand(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationExpandCollapsePattern::Expand.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-collapse
+        """
+        ret = self.pattern.Expand() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+
+class GridItemPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationgriditempattern"""
+        self.pattern = pattern
+
+    @property
+    def Column(self) -> int:
+        """
+        Property Column.
+        Call IUIAutomationGridItemPattern::get_CurrentColumn.
+        Return int, the zero-based index of the column that contains the item.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentcolumn
+        """
+        return self.pattern.CurrentColumn
+
+    @property
+    def ColumnSpan(self) -> int:
+        """
+        Property ColumnSpan.
+        Call IUIAutomationGridItemPattern::get_CurrentColumnSpan.
+        Return int, the number of columns spanned by the grid item.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentcolumnspan
+        """
+        return self.pattern.CurrentColumnSpan
+
+    @property
+    def ContainingGrid(self):
+        """
+        Property ContainingGrid.
+        Call IUIAutomationGridItemPattern::get_CurrentContainingGrid.
+        Return `Control` subclass, the element that contains the grid item.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentcontaininggrid
+        """
+        return Control.CreateControlFromElement(self.pattern.CurrentContainingGrid)
+
+    @property
+    def Row(self) -> int:
+        """
+        Property Row.
+        Call IUIAutomationGridItemPattern::get_CurrentRow.
+        Return int, the zero-based index of the row that contains the grid item.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentrow
+        """
+        return self.pattern.CurrentRow
+
+    @property
+    def RowSpan(self) -> int:
+        """
+        Property RowSpan.
+        Call IUIAutomationGridItemPattern::get_CurrentRowSpan.
+        Return int, the number of rows spanned by the grid item.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentrowspan
+        """
+        return self.pattern.CurrentRowSpan
+
+
+class GridPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationgridpattern"""
+        self.pattern = pattern
+
+    @property
+    def ColumnCount(self) -> int:
+        """
+        Property ColumnCount.
+        Call IUIAutomationGridPattern::get_CurrentColumnCount.
+        Return int, the number of columns in the grid.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-get_currentcolumncount
+        """
+        return self.pattern.CurrentColumnCount
+
+    @property
+    def RowCount(self) -> int:
+        """
+        Property RowCount.
+        Call IUIAutomationGridPattern::get_CurrentRowCount.
+        Return int, the number of rows in the grid.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-get_currentrowcount
+        """
+        return self.pattern.CurrentRowCount
+
+    def GetItem(self):
+        """
+        Call IUIAutomationGridPattern::GetItem.
+        Return `Control` subclass, a control representing an item in the grid.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-getitem
+        """
+        return Control.CreateControlFromElement(self.pattern.GetItem())
+
+class InvokePattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationinvokepattern"""
+        self.pattern = pattern
+
+    def Invoke(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationInvokePattern::Invoke.
+        Invoke the action of a control, such as a button click.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationinvokepattern-invoke
+        """
+        ret = self.pattern.Invoke() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+
+class ItemContainerPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationitemcontainerpattern"""
+        self.pattern = pattern
+
+    def FindItemByProperty(control, propertyId: int, propertyValue):
+        """
+        Call IUIAutomationItemContainerPattern::FindItemByProperty.
+        control: `Control` or its subclass.
+        propertyValue: VARIANT ? todo
+        propertyId: int, a value in class `PropertyId`.
+        Return `Control` subclass, a control within a containing element, based on a specified property value.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationitemcontainerpattern-finditembyproperty
+        """
+        ele = self.pattern.FindItemByProperty(control.Element, propertyId, propertyValue)
+        return Control.CreateControlFromElement(ele)
 
 
 class LegacyIAccessiblePattern():
-    def IsLegacyIAccessiblePatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId) != 0
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationlegacyiaccessiblepattern"""
+        self.pattern = pattern
 
-    def AccessibleSelect(self, flag):
+    @property
+    def ChildId(self) -> int:
         """
-        flag: int, a value in class AccessibleSelectFlag
-        Call IUIAutomationLegacyIAccessiblePattern Select"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            _AutomationClient.instance().dll.LegacyIAccessiblePatternSelect(pattern, flag)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
-
-    def AccessibleDoDefaultAction(self):
-        """Call IUIAutomationLegacyIAccessiblePattern DoDefaultAction"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            _AutomationClient.instance().dll.LegacyIAccessiblePatternDoDefaultAction(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
-
-    def AccessibleSetValue(self, value):
+        Property ChildId.
+        Call IUIAutomationLegacyIAccessiblePattern::get_CurrentChildId.
+        Return int, the Microsoft Active Accessibility child identifier for the element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentchildid
         """
-        value: str
-        call IUIAutomationLegacyIAccessiblePattern SetValue"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            _AutomationClient.instance().dll.LegacyIAccessiblePatternSetValue(pattern, ctypes.c_wchar_p(value))
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+        return self.pattern.CurrentChildId
 
-    def AccessibleCurrentChildId(self):
+    @property
+    def DefaultAction(self) -> str:
         """
-        Call IUIAutomationLegacyIAccessiblePattern get_CurrentChildId.
-        Returns int. If the element is not a child element, CHILDID_SELF (0) is returned"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentChildId(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
-
-    def AccessibleCurrentName(self):
+        Property DefaultAction.
+        Call IUIAutomationLegacyIAccessiblePattern::get_CurrentDefaultAction.
+        Return str, the Microsoft Active Accessibility current default action for the element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentdefaultaction
         """
-        Call IUIAutomationLegacyIAccessiblePattern get_CurrentName.
-        Return str
+        return self.pattern.CurrentDefaultAction
+
+    @property
+    def Description(self) -> str:
         """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentName(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if bstrValue:
-                cValue = ctypes.c_wchar_p(bstrValue)
-                value = cValue.value[:]
-                ctypes.windll.OleAut32.SysFreeString(cValue)
-                return value
-            return ''
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
-
-    def AccessibleCurrentValue(self):
+        Property Description.
+        Call IUIAutomationLegacyIAccessiblePattern::get_CurrentDescription.
+        Return str, the Microsoft Active Accessibility description of the element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentdescription
         """
-        Call IUIAutomationLegacyIAccessiblePattern get_CurrentValue.
-        Return str
+        return self.pattern.CurrentDescription
+
+    @property
+    def Help(self) -> str:
         """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentValue(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if bstrValue:
-                cValue = ctypes.c_wchar_p(bstrValue)
-                value = cValue.value[:]
-                ctypes.windll.OleAut32.SysFreeString(cValue)
-                return value
-            return ''
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
-
-    def AccessibleCurrentDescription(self):
+        Property Help.
+        Call IUIAutomationLegacyIAccessiblePattern::get_CurrentHelp.
+        Return str, the Microsoft Active Accessibility help string for the element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currenthelp
         """
-        Call IUIAutomationLegacyIAccessiblePattern get_CurrentDescription.
-        Return str
+        return self.pattern.CurrentHelp
+
+    @property
+    def KeyboardShortcut(self) -> str:
         """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentDescription(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if bstrValue:
-                cValue = ctypes.c_wchar_p(bstrValue)
-                value = cValue.value[:]
-                ctypes.windll.OleAut32.SysFreeString(cValue)
-                return value
-            return ''
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
-
-    def AccessibleCurrentRole(self):
+        Property KeyboardShortcut.
+        Call IUIAutomationLegacyIAccessiblePattern::get_CurrentKeyboardShortcut.
+        Return str, the Microsoft Active Accessibility keyboard shortcut property for the element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentkeyboardshortcut
         """
-        Call IUIAutomationLegacyIAccessiblePattern get_CurrentRole.
-        Return int, a value in class AccessibleRole"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentRole(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+        return self.pattern.CurrentKeyboardShortcut
 
-    def AccessibleCurrentState(self):
+    @property
+    def Name(self) -> str:
         """
-        Call IUIAutomationLegacyIAccessiblePattern get_CurrentState.
-        Return int, a combined value in class AccessibleState"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentState(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
-
-    def AccessibleCurrentHelp(self):
+        Property Name.
+        Call IUIAutomationLegacyIAccessiblePattern::get_CurrentName.
+        Return str, the Microsoft Active Accessibility name property of the element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentname
         """
-        Call IUIAutomationLegacyIAccessiblePattern get_CurrentHelp.
-        Return str
+        return self.pattern.CurrentName
+
+    @property
+    def Role(self) -> int:
         """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentHelp(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if bstrValue:
-                cValue = ctypes.c_wchar_p(bstrValue)
-                value = cValue.value[:]
-                ctypes.windll.OleAut32.SysFreeString(cValue)
-                return value
-            return ''
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
-
-    def AccessibleCurrentKeyboardShortcut(self):
+        Property Role.
+        Call IUIAutomationLegacyIAccessiblePattern::get_CurrentRole.
+        Return int, a value in calss `AccessibleRole`, the Microsoft Active Accessibility role identifier.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentrole
         """
-        Call IUIAutomationLegacyIAccessiblePattern get_CurrentKeyboardShortcut.
-        Return str"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentKeyboardShortcut(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if bstrValue:
-                cValue = ctypes.c_wchar_p(bstrValue)
-                value = cValue.value[:]
-                ctypes.windll.OleAut32.SysFreeString(cValue)
-                return value
-            return ''
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+        return self.pattern.CurrentRole
 
-    def AccessibleGetCurrentSelection(self):
+    @property
+    def State(self) -> int:
         """
-        Call IUIAutomationLegacyIAccessiblePattern GetCurrentSelection.
-        Return a list of Controls"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            lists = []
-            iUIAutomationElementArray = _AutomationClient.instance().dll.LegacyIAccessiblePatternGetCurrentSelection(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if iUIAutomationElementArray:
-                length = _AutomationClient.instance().dll.ElementArrayGetLength(iUIAutomationElementArray)
-                for i in range(length):
-                    lists.append(Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
-                _AutomationClient.instance().dll.ReleaseElementArray(iUIAutomationElementArray)
-            return lists
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
-
-    def AccessibleCurrentDefaultAction(self):
+        Property State.
+        Call IUIAutomationLegacyIAccessiblePattern::get_CurrentState.
+        Return int, a value in calss `AccessibleState`, the Microsoft Active Accessibility state identifier.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentstate
         """
-        Call IUIAutomationLegacyIAccessiblePattern get_CurrentDefaultAction.
-        Return str
+        return self.pattern.CurrentState
+
+    @property
+    def Value(self) -> str:
         """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_LegacyIAccessiblePatternId)
-        if pattern:
-            bstrValue = _AutomationClient.instance().dll.LegacyIAccessiblePatternCurrentDefaultAction(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if bstrValue:
-                cValue = ctypes.c_wchar_p(bstrValue)
-                value = cValue.value[:]
-                ctypes.windll.OleAut32.SysFreeString(cValue)
-                return value
-            return ''
-        else:
-            Logger.WriteLine('LegacyIAccessiblePattern is not supported!', ConsoleColor.Yellow)
+        Property Value.
+        Call IUIAutomationLegacyIAccessiblePattern::get_CurrentValue.
+        Return str, the Microsoft Active Accessibility value property.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentvalue
+        """
+        return self.pattern.CurrentValue
 
-class QTPLikeSyntaxSupport():
-    """
-    Add syntax support like QTP, with that, user can locate object like following example:
-    WindowControl(Name="SomeWindowTitle").ButtonControl(AutomationId="OneOfButton").Click()
-    This class inherited by Control class
-    """
+    def DoDefaultAction(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationLegacyIAccessiblePattern::DoDefaultAction.
+        Perform the Microsoft Active Accessibility default action for the element.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-dodefaultaction
+        """
+        ret = self.pattern.DoDefaultAction() == S_OK
+        time.sleep(waitTime)
+        return ret
 
-    def Control(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return Control(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    def GetSelection(self) -> list:
+        """
+        Call IUIAutomationLegacyIAccessiblePattern::GetCurrentSelection.
+        Return list, a list of `Control` subclasses,
+                     the Microsoft Active Accessibility property that identifies the selected children of this element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-getcurrentselection
+        """
+        eleArray = self.pattern.GetCurrentSelection()
+        if eleArray:
+            controls = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                con = Control.CreateControlFromElement(element=ele)
+                if con:
+                    controls.append(con)
+            return controls
+        return []
 
-    def ButtonControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ButtonControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    def GetIAccessible(self):
+        """
+        Call IUIAutomationLegacyIAccessiblePattern::GetIAccessible, todo.
+        Return an IAccessible object that corresponds to the Microsoft UI Automation element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-getiaccessible
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/oleacc/nn-oleacc-iaccessible
+        """
+        return self.pattern.GetIAccessible()
 
-    def CalendarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return CalendarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    def Select(self, flagsSelect: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationLegacyIAccessiblePattern::Select.
+        Perform a Microsoft Active Accessibility selection.
+        flagsSelect: int, a value in `AccessibleSelection`.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-select
+        """
+        ret = self.pattern.Select(flagsSelect) == S_OK
+        time.sleep(waitTime)
+        return ret
 
-    def CheckBoxControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return CheckBoxControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    def SetValue(self, value: str, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationLegacyIAccessiblePattern::SetValue.
+        Set the Microsoft Active Accessibility value property for the element.
+        value: str.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-setvalue
+        """
+        ret = self.pattern.SetValue(value) == S_OK
+        time.sleep(waitTime)
+        return ret
 
-    def ComboBoxControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ComboBoxControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
 
-    def CustomControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return CustomControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+class MultipleViewPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationmultipleviewpattern"""
+        self.pattern = pattern
 
-    def DataGridControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return DataGridControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    @property
+    def CurrentView(self) -> int:
+        """
+        Property CurrentView.
+        Call IUIAutomationMultipleViewPattern::get_CurrentCurrentView.
+        Return int, the control-specific identifier of the current view of the control.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-get_currentcurrentview
+        """
+        return self.pattern.CurrentCurrentView
 
-    def DataItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return DataItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    def GetSupportedViews(self) -> list:
+        """
+        Call IUIAutomationMultipleViewPattern::GetCurrentSupportedViews, todo.
+        Return list, a list of int, control-specific view identifiers.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-getcurrentsupportedviews
+        """
+        return self.pattern.GetCurrentSupportedViews()
 
-    def DocumentControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return DocumentControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    def GetViewName(self, view: int) -> str:
+        """
+        Call IUIAutomationMultipleViewPattern::GetViewName.
+        view: int, the control-specific view identifier.
+        Return str, the name of a control-specific view.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-getviewname
+        """
+        return self.pattern.GetViewName(view)
 
-    def EditControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return EditControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    def SetView(self, view: int) -> bool:
+        """
+        Call IUIAutomationMultipleViewPattern::SetCurrentView.
+        Set the view of the control.
+        view: int, the control-specific view identifier.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-getviewname
+        """
+        return self.pattern.SetCurrentView(view) == S_OK
 
-    def GroupControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return GroupControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
 
-    def HeaderControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return HeaderControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+class ObjectModelPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationobjectmodelpattern"""
+        self.pattern = pattern
 
-    def HeaderItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return HeaderItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    def GetUnderlyingObjectModel(self) -> ctypes.POINTER(comtypes.IUnknown):
+        """
+        Call IUIAutomationObjectModelPattern::GetUnderlyingObjectModel, todo.
+        Return `ctypes.POINTER(comtypes.IUnknown)`, an interface used to access the underlying object model of the provider.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationobjectmodelpattern-getunderlyingobjectmodel
+        """
+        return self.pattern.GetUnderlyingObjectModel()
 
-    def HyperlinkControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return HyperlinkControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
 
-    def ImageControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ImageControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+class RangeValuePattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationrangevaluepattern"""
+        self.pattern = pattern
 
-    def ListControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ListControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    @property
+    def IsReadOnly(self) -> bool:
+        """
+        Property IsReadOnly.
+        Call IUIAutomationRangeValuePattern::get_CurrentIsReadOnly.
+        Return bool, indicates whether the value of the element can be changed.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentisreadonly
+        """
+        return self.pattern.CurrentIsReadOnly
 
-    def ListItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ListItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    @property
+    def LargeChange(self) -> float:
+        """
+        Property LargeChange.
+        Call IUIAutomationRangeValuePattern::get_CurrentLargeChange.
+        Return float, the value that is added to or subtracted from the value of the control
+                      when a large change is made, such as when the PAGE DOWN key is pressed.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentlargechange
+        """
+        return self.pattern.CurrentLargeChange
 
-    def MenuControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return MenuControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    @property
+    def Maximum(self) -> float:
+        """
+        Property Maximum.
+        Call IUIAutomationRangeValuePattern::get_CurrentMaximum.
+        Return float, the maximum value of the control.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentmaximum
+        """
+        return self.pattern.CurrentMaximum
 
-    def MenuBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return MenuBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    @property
+    def Minimum(self) -> float:
+        """
+        Property Minimum.
+        Call IUIAutomationRangeValuePattern::get_CurrentMinimum.
+        Return float, the minimum value of the control.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentminimum
+        """
+        return self.pattern.CurrentMinimum
 
-    def MenuItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return MenuItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    @property
+    def SmallChange(self) -> float:
+        """
+        Property SmallChange.
+        Call IUIAutomationRangeValuePattern::get_CurrentSmallChange.
+        Return float, the value that is added to or subtracted from the value of the control
+                      when a small change is made, such as when an arrow key is pressed.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentsmallchange
+        """
+        return self.pattern.CurrentSmallChange
 
-    def PaneControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return PaneControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    @property
+    def Value(self) -> float:
+        """
+        Property Value.
+        Call IUIAutomationRangeValuePattern::get_CurrentValue.
+        Return float, the value of the control.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentvalue
+        """
+        return self.pattern.CurrentValue
 
-    def ProgressBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ProgressBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self, **searchPorpertyDict)
+    def SetValue(self, value: float, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationRangeValuePattern::SetValue.
+        Set the value of the control.
+        value: int.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-setvalue
+        """
+        ret = self.pattern.SetValue(value) == S_OK
+        time.sleep(waitTime)
+        return ret
 
-    def RadioButtonControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return RadioButtonControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
 
-    def ScrollBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ScrollBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+class ScrollItemPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationscrollitempattern"""
+        self.pattern = pattern
 
-    def SemanticZoomControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return SemanticZoomControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    def ScrollIntoView(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationScrollItemPattern::ScrollIntoView.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollitempattern-scrollintoview
+        """
+        ret = self.pattern.ScrollIntoView() == S_OK
+        time.sleep(waitTime)
+        return ret
 
-    def SeparatorControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return SeparatorControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
 
-    def SliderControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return SliderControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+class ScrollPattern():
+    NoScrollValue = -1
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationscrollpattern"""
+        self.pattern = pattern
 
-    def SpinnerControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return SpinnerControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    @property
+    def HorizontallyScrollable(self) -> bool:
+        """
+        Property HorizontallyScrollable.
+        Call IUIAutomationScrollPattern::get_CurrentHorizontallyScrollable.
+        Return bool, indicates whether the element can scroll horizontally.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currenthorizontallyscrollable
+        """
+        return bool(self.pattern.CurrentHorizontallyScrollable)
 
-    def SplitButtonControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return SplitButtonControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    @property
+    def HorizontalScrollPercent(self) -> float:
+        """
+        Property HorizontalScrollPercent.
+        Call IUIAutomationScrollPattern::get_CurrentHorizontalScrollPercent.
+        Return float, the horizontal scroll position.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currenthorizontalscrollpercent
+        """
+        return self.pattern.CurrentHorizontalScrollPercent
 
-    def StatusBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return StatusBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    @property
+    def HorizontalViewSize(self) -> float:
+        """
+        Property HorizontalViewSize.
+        Call IUIAutomationScrollPattern::get_CurrentHorizontalViewSize.
+        Return float, the horizontal size of the viewable region of a scrollable element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currenthorizontalviewsize
+        """
+        return self.pattern.CurrentHorizontalViewSize
 
-    def TabControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return TabControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    @property
+    def VerticallyScrollable(self) -> bool:
+        """
+        Property VerticallyScrollable.
+        Call IUIAutomationScrollPattern::get_CurrentVerticallyScrollable.
+        Return bool, indicates whether the element can scroll vertically.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentverticallyscrollable
+        """
+        return bool(self.pattern.CurrentVerticallyScrollable)
 
-    def TabItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return TabItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    @property
+    def VerticalScrollPercent(self) -> float:
+        """
+        Property VerticalScrollPercent.
+        Call IUIAutomationScrollPattern::get_CurrentVerticalScrollPercent.
+        Return float, the vertical scroll position.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentverticalscrollpercent
+        """
+        return self.pattern.CurrentVerticalScrollPercent
 
-    def TableControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return TableControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    @property
+    def VerticalViewSize(self) -> float:
+        """
+        Property VerticalViewSize.
+        Call IUIAutomationScrollPattern::get_CurrentVerticalViewSize.
+        Return float, the vertical size of the viewable region of a scrollable element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentverticalviewsize
+        """
+        return self.pattern.CurrentVerticalViewSize
 
-    def TextControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return TextControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    def Scroll(self, horizontalAmount: int, verticalAmount: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationScrollPattern::Scroll.
+        Scroll the visible region of the content area horizontally and vertically.
+        horizontalAmount: int, a value in ScrollAmount.
+        verticalAmount: int, a value in ScrollAmount.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-scroll
+        """
+        ret = self.pattern.Scroll(horizontalAmount, verticalAmount) == S_OK
+        time.sleep(waitTime)
+        return ret
 
-    def ThumbControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ThumbControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    def SetScrollPercent(self, horizontalPercent: float, verticalPercent: float, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationScrollPattern::SetScrollPercent.
+        Set the horizontal and vertical scroll positions as a percentage of the total content area within the UI Automation element.
+        horizontalPercent: float or int, a value in [0, 100] or ScrollPattern.NoScrollValue(-1) if no scroll.
+        verticalPercent: float or int, a value  in [0, 100] or ScrollPattern.NoScrollValue(-1) if no scroll.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-setscrollpercent
+        """
+        ret = self.pattern.SetScrollPercent(horizontalPercent, verticalPercent) == S_OK
+        time.sleep(waitTime)
+        return ret
 
-    def TitleBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return TitleBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
 
-    def ToolBarControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ToolBarControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+class SelectionItemPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationselectionitempattern"""
+        self.pattern = pattern
 
-    def ToolTipControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return ToolTipControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    def AddToSelection(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationSelectionItemPattern::AddToSelection.
+        Add the current element to the collection of selected items.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionitempattern-addtoselection
+        """
+        ret = self.pattern.AddToSelection() == S_OK
+        time.sleep(waitTime)
+        return ret
 
-    def TreeControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return TreeControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    @property
+    def IsSelected(self) -> bool:
+        """
+        Property IsSelected.
+        Call IUIAutomationScrollPattern::get_CurrentIsSelected.
+        Return bool, indicates whether this item is selected.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentisselected
+        """
+        return bool(self.pattern.CurrentIsSelected)
 
-    def TreeItemControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return TreeItemControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    @property
+    def SelectionContainer(self):
+        """
+        Property SelectionContainer.
+        Call IUIAutomationScrollPattern::get_CurrentSelectionContainer.
+        Return `Control` subclass, the element that supports IUIAutomationSelectionPattern and acts as the container for this item.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentselectioncontainer
+        """
+        ele = self.pattern.CurrentSelectionContainer
+        return Control.CreateControlFromElement(ele)
 
-    def WindowControl(self, element=0, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        return WindowControl(element=element, searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, searchFromControl=self,**searchPorpertyDict)
+    def RemoveFromSelection(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationSelectionItemPattern::RemoveFromSelection.
+        Remove this element from the selection.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionitempattern-removefromselection
+        """
+        ret = self.pattern.RemoveFromSelection() == S_OK
+        time.sleep(waitTime)
+        return ret
 
-class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
+    def Select(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationSelectionItemPattern::Select.
+        Clear any selected items and then select the current element.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionitempattern-select
+        """
+        ret = self.pattern.Select() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+
+class SelectionPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationselectionpattern"""
+        self.pattern = pattern
+
+    @property
+    def CanSelectMultiple(self) -> bool:
+        """
+        Property CanSelectMultiple.
+        Call IUIAutomationSelectionPattern::get_CurrentCanSelectMultiple.
+        Return bool, indicates whether more than one item in the container can be selected at one time.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-get_currentcanselectmultiple
+        """
+        return bool(self.pattern.CurrentCanSelectMultiple)
+
+    @property
+    def IsSelectionRequired(self) -> bool:
+        """
+        Property IsSelectionRequired.
+        Call IUIAutomationSelectionPattern::get_CurrentIsSelectionRequired.
+        Return bool, indicates whether at least one item must be selected at all times.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-get_currentisselectionrequired
+        """
+        return bool(self.pattern.CurrentIsSelectionRequired)
+
+    def GetSelection(self) -> list:
+        """
+        Call IUIAutomationSelectionPattern::GetCurrentSelection.
+        Return list, a list of `Control` subclasses, the selected elements in the container..
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-getcurrentselection
+        """
+        eleArray = self.pattern.GetCurrentSelection()
+        if eleArray:
+            controls = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                con = Control.CreateControlFromElement(element=ele)
+                if con:
+                    controls.append(con)
+            return controls
+        return []
+
+
+class SpreadsheetItemPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationspreadsheetitempattern"""
+        self.pattern = pattern
+
+    @property
+    def Formula(self) -> str:
+        """
+        Property Formula.
+        Call IUIAutomationSpreadsheetItemPattern::get_CurrentFormula.
+        Return str, the formula for this cell.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetitempattern-get_currentformula
+        """
+        return self.pattern.CurrentFormula
+
+    def GetAnnotationObjects(self) -> list:
+        """
+        Call IUIAutomationSelectionPattern::GetCurrentAnnotationObjects.
+        Return list, a list of `Control` subclasses representing the annotations associated with this spreadsheet cell.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetitempattern-getcurrentannotationobjects
+        """
+        eleArray = self.pattern.GetCurrentAnnotationObjects()
+        if eleArray:
+            controls = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                con = Control.CreateControlFromElement(element=ele)
+                if con:
+                    controls.append(con)
+            return controls
+        return []
+
+    def GetAnnotationTypes(self) -> list:
+        """
+        Call IUIAutomationSelectionPattern::GetCurrentAnnotationTypes.
+        Return list, a list of int values in class `AnnotationType`,
+                     indicating the types of annotations that are associated with this spreadsheet cell.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-getcurrentannotationtypes
+        """
+        return self.pattern.GetCurrentAnnotationTypes()
+
+
+class SpreadsheetPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationspreadsheetpattern"""
+        self.pattern = pattern
+
+    def GetItemByName(self, name: str):
+        """
+        Call IUIAutomationSpreadsheetPattern::GetItemByName.
+        name: str.
+        Return `Control` subclass or None, represents the spreadsheet cell that has the specified name..
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetpattern-getitembyname
+        """
+        ele = self.pattern.GetItemByName(name)
+        return Control.CreateControlFromElement(element=ele)
+
+
+class StylesPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationstylespattern"""
+        self.pattern = pattern
+
+    @property
+    def ExtendedProperties(self) -> str:
+        """
+        Property ExtendedProperties.
+        Call IUIAutomationStylesPattern::get_CurrentExtendedProperties.
+        Return str, a localized string that contains the list of extended properties for an element in a document.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentextendedproperties
+        """
+        return self.pattern.CurrentExtendedProperties
+
+    @property
+    def FillColor(self) -> int:
+        """
+        Property FillColor.
+        Call IUIAutomationStylesPattern::get_CurrentFillColor.
+        Return int, the fill color of an element in a document.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentfillcolor
+        """
+        return self.pattern.CurrentFillColor
+
+    @property
+    def FillPatternColor(self) -> int:
+        """
+        Property FillPatternColor.
+        Call IUIAutomationStylesPattern::get_CurrentFillPatternColor.
+        Return int, the color of the pattern used to fill an element in a document.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentfillpatterncolor
+        """
+        return self.pattern.CurrentFillPatternColor
+
+    @property
+    def Shape(self) -> str:
+        """
+        Property Shape.
+        Call IUIAutomationStylesPattern::get_CurrentShape.
+        Return str, the shape of an element in a document.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentshape
+        """
+        return self.pattern.CurrentShape
+
+    @property
+    def StyleId(self) -> int:
+        """
+        Property StyleId.
+        Call IUIAutomationStylesPattern::get_CurrentStyleId.
+        Return int, a value in class `StyleId`, the visual style associated with an element in a document.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentstyleid
+        """
+        return self.pattern.CurrentStyleId
+
+    @property
+    def StyleName(self) -> str:
+        """
+        Property StyleName.
+        Call IUIAutomationStylesPattern::get_CurrentStyleName.
+        Return str, the name of the visual style associated with an element in a document.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentstylename
+        """
+        return self.pattern.CurrentStyleName
+
+
+class SynchronizedInputPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationsynchronizedinputpattern"""
+        self.pattern = pattern
+
+    def Cancel(self) -> bool:
+        """
+        Call IUIAutomationSynchronizedInputPattern::Cancel.
+        Cause the Microsoft UI Automation provider to stop listening for mouse or keyboard input.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationsynchronizedinputpattern-cancel
+        """
+        return self.pattern.Cancel() == S_OK
+
+    def StartListening(self) -> bool:
+        """
+        Call IUIAutomationSynchronizedInputPattern::StartListening.
+        Cause the Microsoft UI Automation provider to start listening for mouse or keyboard input.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationsynchronizedinputpattern-startlistening
+        """
+        return self.pattern.StartListening() == S_OK
+
+
+class TableItemPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtableitempattern"""
+        self.pattern = pattern
+
+    def GetColumnHeaderItems(self) -> list:
+        """
+        Call IUIAutomationTableItemPattern::GetCurrentColumnHeaderItems.
+        Return list, a list of `Control` subclasses, the column headers associated with a table item or cell.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtableitempattern-getcurrentcolumnheaderitems
+        """
+        eleArray = self.pattern.GetCurrentColumnHeaderItems()
+        if eleArray:
+            controls = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                con = Control.CreateControlFromElement(element=ele)
+                if con:
+                    controls.append(con)
+            return controls
+        return []
+
+    def GetRowHeaderItems(self) -> list:
+        """
+        Call IUIAutomationTableItemPattern::GetCurrentRowHeaderItems.
+        Return list, a list of `Control` subclasses, the row headers associated with a table item or cell.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtableitempattern-getcurrentrowheaderitems
+        """
+        eleArray = self.pattern.GetCurrentRowHeaderItems()
+        if eleArray:
+            controls = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                con = Control.CreateControlFromElement(element=ele)
+                if con:
+                    controls.append(con)
+            return controls
+        return []
+
+
+class TablePattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtablepattern"""
+        self.pattern = pattern
+
+    @property
+    def RowOrColumnMajor(self) -> int:
+        """
+        Property RowOrColumnMajor.
+        Call IUIAutomationTablePattern::get_CurrentRowOrColumnMajor.
+        Return int, a value in class `RowOrColumnMajor`, the primary direction of traversal for the table.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-get_currentroworcolumnmajor
+        """
+        return self.pattern.CurrentRowOrColumnMajor
+
+    def GetColumnHeaders(self) -> list:
+        """
+        Call IUIAutomationTablePattern::GetCurrentColumnHeaders.
+        Return list, a list of `Control` subclasses, representing all the column headers in a table..
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-getcurrentcolumnheaders
+        """
+        eleArray = self.pattern.GetCurrentColumnHeaders()
+        if eleArray:
+            controls = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                con = Control.CreateControlFromElement(element=ele)
+                if con:
+                    controls.append(con)
+            return controls
+        return []
+
+    def GetRowHeaders(self) -> list:
+        """
+        Call IUIAutomationTablePattern::GetCurrentRowHeaders.
+        Return list, a list of `Control` subclasses, representing all the row headers in a table.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-getcurrentrowheaders
+        """
+        eleArray = self.pattern.GetCurrentRowHeaders()
+        if eleArray:
+            controls = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                con = Control.CreateControlFromElement(element=ele)
+                if con:
+                    controls.append(con)
+            return controls
+        return []
+
+
+class TextRange():
+    def __init__(self, textRange=None):
+        """
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextrange
+        """
+        self.textRange = textRange
+
+    def AddToSelection(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTextRange::AddToSelection.
+        Add the text range to the collection of selected text ranges in a control that supports multiple, disjoint spans of selected text.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-addtoselection
+        """
+        ret = self.textRange.AddToSelection() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def Clone(self):
+        """
+        Call IUIAutomationTextRange::Clone.
+        return `TextRange`, identical to the original and inheriting all properties of the original.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-clone
+        """
+        return TextRange(textRange=self.textRange.Clone())
+
+    def Compare(self, textRange) -> bool:
+        """
+        Call IUIAutomationTextRange::Compare.
+        textRange: `TextRange`.
+        Return bool, specifies whether this text range has the same endpoints as another text range.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-compare
+        """
+        return bool(self.textRange.Compare(textRange.textRange))
+
+    def CompareEndpoints(self, srcEndPoint: int, textRange, targetEndPoint: int) -> int:
+        """
+        Call IUIAutomationTextRange::CompareEndpoints.
+        srcEndPoint: int, a value in class `TextPatternRangeEndpoint`.
+        textRange: `TextRange`.
+        targetEndPoint: int, a value in class `TextPatternRangeEndpoint`.
+        Return int, a negative value if the caller's endpoint occurs earlier in the text than the target endpoint;
+                    0 if the caller's endpoint is at the same location as the target endpoint;
+                    or a positive value if the caller's endpoint occurs later in the text than the target endpoint.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-compareendpoints
+        """
+        return self.textRange.CompareEndpoints(srcEndPoint, textRange, targetEndPoint)
+
+    def ExpandToEnclosingUnit(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTextRange::ExpandToEnclosingUnit.
+        Normalize the text range by the specified text unit.
+            The range is expanded if it is smaller than the specified unit,
+            or shortened if it is longer than the specified unit.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-expandtoenclosingunit
+        """
+        ret = self.textRange.ExpandToEnclosingUnit() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def FindAttribute(self, textAttributeId: int, val, backward: bool):
+        """
+        Call IUIAutomationTextRange::FindAttribute.
+        textAttributeID: int, a value in class `TextAttributeId`.
+        val: VARIANT ? todo.
+        backward: bool.
+        return `TextRange` or None, a text range subset that has the specified text attribute value.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-findattribute
+        """
+        textRange = self.textRange.FindAttribute(textAttributeID, val, int(backward))
+        if textRange:
+            return TextRange(textRange=textRange)
+
+    def FindText(self, text: str, backward: bool, ignoreCase: bool):
+        """
+        Call IUIAutomationTextRange::FindText.
+        text: str,
+        backward: bool, True if the last occurring text range should be returned instead of the first; otherwise False.
+        ignoreCase: bool, True if case should be ignored; otherwise False.
+        return `TextRange` or None, a text range subset that contains the specified text.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-findtext
+        """
+        textRange = self.textRange.FindText(text, int(backward), int(ignoreCase))
+        if textRange:
+            return TextRange(textRange=textRange)
+
+    def GetAttributeValue(self, textAttributeId: int):
+        """
+        Call IUIAutomationTextRange::GetAttributeValue.
+        textAttributeId: int, a value in class `TextAttributeId`.
+        Return VARIANT ? todo, the value of the specified text attribute across the entire text range.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getattributevalue
+        """
+        textRange = self.textRange.GetAttributeValue(textAttributeId)
+        if textRange:
+            return TextRange(textRange=textRange)
+
+    def GetBoundingRectangles(self) -> list:
+        """
+        Call IUIAutomationTextRange::GetBoundingRectangles.
+        textAttributeId: int, a value in class `TextAttributeId`.
+        Return list, a list of `ctypes.wintypes.RECT`. SAFEARRAY ? todo,
+            bounding rectangles for each fully or partially visible line of text in a text range..
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getboundingrectangles
+        """
+        return self.textRange.GetBoundingRectangles()
+
+    def GetChildren(self) -> list:
+        """
+        Call IUIAutomationTextRange::GetChildren.
+        textAttributeId: int, a value in class `TextAttributeId`.
+        Return list, a list of `Control` subclasses, embedded objects that fall within the text range..
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getchildren
+        """
+        eleArray = self.textRange.GetChildren()
+        if eleArray:
+            controls = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                con = Control.CreateControlFromElement(element=ele)
+                if con:
+                    controls.append(con)
+            return controls
+        return []
+
+    def GetEnclosingControl(self):
+        """
+        Call IUIAutomationTextRange::GetEnclosingElement.
+        Return `Control` subclass, the innermost UI Automation element that encloses the text range.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getenclosingelement
+        """
+        return Control.CreateControlFromElement(self.textRange.GetEnclosingElement())
+
+    def GetText(self, maxLength: int = -1) -> str:
+        """
+        Call IUIAutomationTextRange::GetText.
+        maxLength: int, the maximum length of the string to return, or -1 if no limit is required.
+        Return str, the plain text of the text range.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-gettext
+        """
+        return self.textRange.GetText(maxLength)
+
+    def Move(self, unit: int, count: int, waitTime: float = OPERATION_WAIT_TIME) -> int:
+        """
+        Call IUIAutomationTextRange::Move.
+        Move the text range forward or backward by the specified number of text units.
+        unit: int, a value in class `TextUnit`.
+        count: int, the number of text units to move.
+               A positive value moves the text range forward.
+               A negative value moves the text range backward. Zero has no effect.
+        waitTime: float.
+        Return: int, the number of text units actually moved.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-move
+        """
+        ret = self.textRange.Move(unit, count)
+        time.sleep(waitTime)
+        return ret
+
+    def MoveEndpointByRange(self, srcEndPoint: int, textRange, targetEndPoint: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTextRange::MoveEndpointByRange.
+        Move one endpoint of the current text range to the specified endpoint of a second text range.
+        srcEndPoint: int, a value in class `TextPatternRangeEndpoint`.
+        textRange: `TextRange`.
+        targetEndPoint: int, a value in class `TextPatternRangeEndpoint`.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-moveendpointbyrange
+        """
+        ret = self.textRange.MoveEndpointByRange(srcEndPoint, textRange.textRange, targetEndPoint) == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def MoveEndpointByUnit(self, endPoint: int, unit: int, count: int, waitTime: float = OPERATION_WAIT_TIME) -> int:
+        """
+        Call IUIAutomationTextRange::MoveEndpointByUnit.
+        Move one endpoint of the text range the specified number of text units within the document range.
+        endPoint: int, a value in class `TextPatternRangeEndpoint`.
+        unit: int, a value in class `TextUnit`.
+        count: int, the number of units to move.
+                    A positive count moves the endpoint forward.
+                    A negative count moves backward.
+                    A count of 0 has no effect.
+        waitTime: float.
+        Return int, the count of units actually moved.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-moveendpointbyunit
+        """
+        ret = self.textRange.MoveEndpointByUnit(endPoint, unit, count)
+        time.sleep(waitTime)
+        return ret
+
+    def RemoveFromSelection(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTextRange::RemoveFromSelection.
+        Remove the text range from an existing collection of selected text in a text container that supports multiple, disjoint selections.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-removefromselection
+        """
+        ret = self.textRange.RemoveFromSelection() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def ScrollIntoView(self, alignTop: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTextRange::ScrollIntoView.
+        Cause the text control to scroll until the text range is visible in the viewport.
+        alignTop: bool, True if the text control should be scrolled so that the text range is flush with the top of the viewport;
+                        False if it should be flush with the bottom of the viewport.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-scrollintoview
+        """
+        ret = self.textRange.ScrollIntoView(int(alignTop)) == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def Select(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTextRange::Select.
+        Select the span of text that corresponds to this text range, and remove any previous selection.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-select
+        """
+        ret = self.textRange.Select() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+
+class TextChildPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextchildpattern"""
+        self.pattern = pattern
+
+    @property
+    def TextContainer(self):
+        """
+        Property TextContainer.
+        Call IUIAutomationSelectionContainer::get_TextContainer.
+        Return `Control` subclass, the nearest ancestor element that supports the Text control pattern.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextchildpattern-get_textcontainer
+        """
+        return Control.CreateControlFromElement(self.pattern.TextContainer)
+
+    @property
+    def TextRange(self) -> TextRange:
+        """
+        Property TextRange.
+        Call IUIAutomationSelectionContainer::get_TextRange.
+        Return `TextRange`, a text range that encloses this child element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextchildpattern-get_textrange
+        """
+        return TextRange(self.pattern.TextRange)
+
+
+class TextEditPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtexteditpattern"""
+        self.pattern = pattern
+
+    def GetActiveComposition(self) -> TextRange:
+        """
+        Call IUIAutomationTextEditPattern::GetActiveComposition.
+        Return `TextRange` or None, the active composition.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtexteditpattern-getactivecomposition
+        """
+        textRange = self.pattern.GetActiveComposition()
+        if textRange:
+            return TextRange(textRange=textRange)
+
+    def GetConversionTarget(self) -> TextRange:
+        """
+        Call IUIAutomationTextEditPattern::GetConversionTarget.
+        Return `TextRange` or None, the current conversion target range..
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtexteditpattern-getconversiontarget
+        """
+        textRange = self.pattern.GetConversionTarget()
+        if textRange:
+            return TextRange(textRange=textRange)
+
+
+class TextPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextpattern"""
+        self.pattern = pattern
+
+    @property
+    def DocumentRange(self) -> TextRange:
+        """
+        Property DocumentRange.
+        Call IUIAutomationTextPattern::get_DocumentRange.
+        Return `TextRange`, a text range that encloses the main text of a document.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-get_documentrange
+        """
+        return TextRange(self.pattern.DocumentRange)
+
+    @property
+    def SupportedTextSelection(self) -> bool:
+        """
+        Property SupportedTextSelection.
+        Call IUIAutomationTextPattern::get_SupportedTextSelection.
+        Return bool, specifies the type of text selection that is supported by the control.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-get_supportedtextselection
+        """
+        return bool(self.pattern.SupportedTextSelection)
+
+    def GetSelection(self) -> list:
+        """
+        Call IUIAutomationTextPattern::GetSelection.
+        Return list, a list of `TextRange`, represents the currently selected text in a text-based control.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-getselection
+        """
+        eleArray = self.pattern.GetSelection()
+        if eleArray:
+            textRanges = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                textRanges.append(TextRange(textRange=ele))
+            return textRanges
+        return []
+
+    def GetVisibleRanges(self) -> list:
+        """
+        Call IUIAutomationTextPattern::GetVisibleRanges.
+        Return list, a list of `TextRange`, disjoint text ranges from a text-based control
+                     where each text range represents a contiguous span of visible text.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-getvisibleranges
+        """
+        eleArray = self.pattern.GetVisibleRanges()
+        if eleArray:
+            textRanges = []
+            for i in range(eleArray.Length):
+                ele = eleArray.GetElement(i)
+                textRanges.append(TextRange(textRange=ele))
+            return textRanges
+        return []
+
+    def RangeFromChild(self, child) -> TextRange:
+        """
+        Call IUIAutomationTextPattern::RangeFromChild.
+        child: `Control` or its subclass.
+        Return `TextRange` or None, a text range enclosing a child element such as an image,
+            hyperlink, Microsoft Excel spreadsheet, or other embedded object.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-rangefromchild
+        """
+        textRange = self.pattern.RangeFromChild(Control.Element)
+        if textRange:
+            return TextRange(textRange=textRange)
+
+    def RangeFromPoint(self, x: int, y: int) -> TextRange:
+        """
+        Call IUIAutomationTextPattern::RangeFromPoint.
+        child: `Control` or its subclass.
+        Return `TextRange` or None, the degenerate (empty) text range nearest to the specified screen coordinates.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-rangefrompoint
+        """
+        textRange = self.pattern.RangeFromPoint(ctypes.wintypes.POINT(x, y))
+        if textRange:
+            return TextRange(textRange=textRange)
+
+
+class TextPattern2():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextpattern2"""
+        self.pattern = pattern
+
+
+class TogglePattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtogglepattern"""
+        self.pattern = pattern
+
+    @property
+    def ToggleState(self) -> int:
+        """
+        Property ToggleState.
+        Call IUIAutomationTogglePattern::get_CurrentToggleState.
+        Return int, a value in class `ToggleState`, the state of the control.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtogglepattern-get_currenttogglestate
+        """
+        return self.pattern.CurrentToggleState
+
+    def Toggle(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTogglePattern::Toggle.
+        Cycle through the toggle states of the control.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtogglepattern-toggle
+        """
+        ret = self.pattern.Toggle() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+
+class TransformPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtransformpattern"""
+        self.pattern = pattern
+
+    @property
+    def CanMove(self) -> bool:
+        """
+        Property CanMove.
+        Call IUIAutomationTransformPattern::get_CurrentCanMove.
+        Return bool, indicates whether the element can be moved.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-get_currentcanmove
+        """
+        return bool(self.pattern.CurrentCanMove)
+
+    @property
+    def CanResize(self) -> bool:
+        """
+        Property CanResize.
+        Call IUIAutomationTransformPattern::get_CurrentCanResize.
+        Return bool, indicates whether the element can be resized.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-get_currentcanresize
+        """
+        return bool(self.pattern.CurrentCanResize)
+
+    @property
+    def CanRotate(self) -> bool:
+        """
+        Property CanRotate.
+        Call IUIAutomationTransformPattern::get_CurrentCanRotate.
+        Return bool, indicates whether the element can be rotated.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-get_currentcanrotate
+        """
+        return bool(self.pattern.CurrentCanRotate)
+
+    def Move(self, x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTransformPattern::Move.
+        Move the UI Automation element.
+        x: int.
+        y: int.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-move
+        """
+        ret = self.pattern.Move(x, y) == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def Resize(self, width: int, height: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTransformPattern::Resize.
+        Resize the UI Automation element.
+        width: int.
+        height: int.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-resize
+        """
+        ret = self.pattern.Resize(width, height) == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def Rotate(self, degrees: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTransformPattern::Rotate.
+        Rotates the UI Automation element.
+        degrees: int.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-rotate
+        """
+        ret = self.pattern.Rotate(degrees) == S_OK
+        time.sleep(waitTime)
+        return ret
+
+
+class TransformPattern2():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtransformpattern2"""
+        self.pattern = pattern
+
+    @property
+    def CanZoom(self) -> bool:
+        """
+        Property CanZoom.
+        Call IUIAutomationTransformPattern2::get_CurrentCanZoom.
+        Return bool, indicates whether the control supports zooming of its viewport.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_CurrentCanZoom
+        """
+        return bool(self.pattern.CurrentCanZoom)
+
+    @property
+    def ZoomLevel(self) -> float:
+        """
+        Property ZoomLevel.
+        Call IUIAutomationTransformPattern2::get_CurrentZoomLevel.
+        Return float, the zoom level of the control's viewport.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_currentzoomlevel
+        """
+        return self.pattern.CurrentZoomLevel
+
+    @property
+    def ZoomMaximum(self) -> float:
+        """
+        Property ZoomMaximum.
+        Call IUIAutomationTransformPattern2::get_CurrentZoomMaximum.
+        Return float, the maximum zoom level of the control's viewport.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_currentzoommaximum
+        """
+        return self.pattern.CurrentZoomMaximum
+
+    @property
+    def ZoomMinimum(self) -> float:
+        """
+        Property ZoomMinimum.
+        Call IUIAutomationTransformPattern2::get_CurrentZoomMinimum.
+        Return float, the minimum zoom level of the control's viewport.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_currentzoomminimum
+        """
+        return self.pattern.CurrentZoomMinimum
+
+    def Zoom(self, zoomLevel: float, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTransformPattern2::Zoom.
+        Zoom the viewport of the control.
+        zoomLevel: float for int.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-zoom
+        """
+        ret = self.pattern.Zoom(zoomLevel) == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def ZoomByUnit(self, zoomUnit: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTransformPattern2::ZoomByUnit.
+        Zoom the viewport of the control by the specified unit.
+        zoomUnit: int, a value in class `ZoomUnit`.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-zoombyunit
+        """
+        ret = self.pattern.ZoomByUnit(zoomUnit) == S_OK
+        time.sleep(waitTime)
+        return ret
+
+
+class ValuePattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationvaluepattern"""
+        self.pattern = pattern
+
+    @property
+    def IsReadOnly(self) -> bool:
+        """
+        Property IsReadOnly.
+        Call IUIAutomationTransformPattern2::IUIAutomationValuePattern::get_CurrentIsReadOnly.
+        Return bool, indicates whether the value of the element is read-only.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-get_currentisreadonly
+        """
+        return self.pattern.CurrentIsReadOnly
+
+    @property
+    def Value(self) -> str:
+        """
+        Property Value.
+        Call IUIAutomationTransformPattern2::IUIAutomationValuePattern::get_CurrentValue.
+        Return str, the value of the element.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-get_currentvalue
+        """
+        return self.pattern.CurrentValue
+
+    def SetValue(self, value: str, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationTransformPattern2::IUIAutomationValuePattern::SetValue.
+        Set the value of the element.
+        value: str.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-setvalue
+        """
+        ret = self.pattern.SetValue(value) == S_OK
+        time.sleep(waitTime)
+        return ret
+
+
+class VirtualizedItemPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationvirtualizeditempattern"""
+        self.pattern = pattern
+
+    def Realize(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationVirtualizedItemPattern::Realize.
+        Create a full UI Automation element for a virtualized item.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationvirtualizeditempattern-realize
+        """
+        ret = self.pattern.Realize() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+
+class WindowPattern():
+    def __init__(self, pattern=None):
+        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationwindowpattern"""
+        self.pattern = pattern
+
+    def Close(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationWindowPattern::Close.
+        Close the window.
+        waitTime: float.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-close
+        """
+        ret = self.pattern.Close() == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    @property
+    def CanMaximize(self) -> bool:
+        """
+        Property CanMaximize.
+        Call IUIAutomationWindowPattern::get_CurrentCanMaximize.
+        Return bool, indicates whether the window can be maximized.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentcanmaximize
+        """
+        return bool(self.pattern.CurrentCanMaximize)
+
+    @property
+    def CanMinimize(self) -> bool:
+        """
+        Property CanMinimize.
+        Call IUIAutomationWindowPattern::get_CurrentCanMinimize.
+        Return bool, indicates whether the window can be minimized.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentismodal
+        """
+        return bool(self.pattern.CurrentCanMinimize)
+
+    @property
+    def IsModal(self) -> bool:
+        """
+        Property IsModal.
+        Call IUIAutomationWindowPattern::get_CurrentIsModal.
+        Return bool, indicates whether the window is modal.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentistopmost
+        """
+        return bool(self.pattern.CurrentIsModal)
+
+    @property
+    def IsTopmost(self) -> bool:
+        """
+        Property IsTopmost.
+        Call IUIAutomationWindowPattern::get_CurrentIsTopmost.
+        Return bool, indicates whether the window is the topmost element in the z-order.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentistopmost
+        """
+        return bool(self.pattern.CurrentIsTopmost)
+
+    @property
+    def WindowInteractionState(self) -> int:
+        """
+        Property WindowInteractionState.
+        Call IUIAutomationWindowPattern::get_CurrentWindowInteractionState.
+        Return int, a value in class `WindowInteractionState`,
+                    the current state of the window for the purposes of user interaction.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentwindowinteractionstate
+        """
+        return self.pattern.CurrentWindowInteractionState
+
+    @property
+    def WindowVisualState(self) -> int:
+        """
+        Property WindowVisualState.
+        Call IUIAutomationWindowPattern::get_CurrentWindowVisualState.
+        Return int, a value in class `WindowVisualState`,
+                    the visual state of the window; that is, whether it is in the normal, maximized, or minimized state.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentwindowvisualstate
+        """
+        return self.pattern.CurrentWindowVisualState
+
+    def SetWindowVisualState(self, state: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call IUIAutomationWindowPattern::SetWindowVisualState.
+        Minimize, maximize, or restore the window.
+        state: int, a value in class `WindowVisualState`.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-setwindowvisualstate
+        """
+        ret = self.pattern.SetWindowVisualState(state) == S_OK
+        time.sleep(waitTime)
+        return ret
+
+    def WaitForInputIdle(self, milliseconds: int) -> bool:
+        '''
+        Call IUIAutomationWindowPattern::WaitForInputIdle.
+        Cause the calling code to block for the specified time or
+            until the associated process enters an idle state, whichever completes first.
+        milliseconds: int.
+        Return bool, True if succeed otherwise False.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-waitforinputidle
+        '''
+        return self.pattern.WaitForInputIdle(milliseconds) == S_OK
+
+
+PatternConstructors = {
+    PatternId.AnnotationPattern: AnnotationPattern,
+    PatternId.CustomNavigationPattern: CustomNavigationPattern,
+    PatternId.DockPattern: DockPattern,
+    PatternId.DragPattern: DragPattern,
+    PatternId.DropTargetPattern: DropTargetPattern,
+    PatternId.ExpandCollapsePattern: ExpandCollapsePattern,
+    PatternId.GridItemPattern: GridItemPattern,
+    PatternId.GridPattern: GridPattern,
+    PatternId.InvokePattern: InvokePattern,
+    PatternId.ItemContainerPattern: ItemContainerPattern,
+    PatternId.LegacyIAccessiblePattern: LegacyIAccessiblePattern,
+    PatternId.MultipleViewPattern: MultipleViewPattern,
+    PatternId.ObjectModelPattern: ObjectModelPattern,
+    PatternId.RangeValuePattern: RangeValuePattern,
+    PatternId.ScrollItemPattern: ScrollItemPattern,
+    PatternId.ScrollPattern: ScrollPattern,
+    PatternId.SelectionItemPattern: SelectionItemPattern,
+    PatternId.SelectionPattern: SelectionPattern,
+    PatternId.SpreadsheetItemPattern: SpreadsheetItemPattern,
+    PatternId.SpreadsheetPattern: SpreadsheetPattern,
+    PatternId.StylesPattern: StylesPattern,
+    PatternId.SynchronizedInputPattern: SynchronizedInputPattern,
+    PatternId.TableItemPattern: TableItemPattern,
+    PatternId.TablePattern: TablePattern,
+    PatternId.TextChildPattern: TextChildPattern,
+    PatternId.TextEditPattern: TextEditPattern,
+    PatternId.TextPattern: TextPattern,
+    PatternId.TextPattern2: TextPattern2,
+    PatternId.TogglePattern: TogglePattern,
+    PatternId.TransformPattern: TransformPattern,
+    PatternId.TransformPattern2: TransformPattern2,
+    PatternId.ValuePattern: ValuePattern,
+    PatternId.VirtualizedItemPattern: VirtualizedItemPattern,
+    PatternId.WindowPattern: WindowPattern,
+}
+
+
+def CreatePattern(patternId: int, pattern: ctypes.POINTER(comtypes.IUnknown)):
+    """Create a concreate pattern by pattern id and pattern(POINTER(IUnknown))."""
+    subPattern = pattern.QueryInterface(GetPatternIdInterface(patternId))
+    if subPattern:
+        return PatternConstructors[patternId](pattern=subPattern)
+
+
+class Control():
     ValidKeys = set(['ControlType', 'ClassName', 'AutomationId', 'Name', 'SubName', 'RegexName', 'Depth', 'Compare'])
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
+    def __init__(self, searchFromControl=None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
         """
-        element: int
-        searchFromControl: Control, if is None, search from root control(Desktop)
-        searchDepth: int, max search depth from searchFromControl
-        foundIndex: int, value must >= 1
-        searchWaitTime: float, wait searchWaitTime before every search
-        searchPorpertyDict: a dict that defines how to search, the following keys can be used
-                            ControlType: int, a value in class ControlType
-                            ClassName: str or unicode
-                            AutomationId: str or unicode
-                            Name: str or unicode
-                            SubName: str or unicode
-                            RegexName: str or unicode, supports regex
-                            Depth: int, relative depth from searchFromControl, if set, searchDepth will be set to Depth too
-                            Compare: custom compare function(control, depth) returns a bool value
+        searchFromControl: `Control` or its subclass, if it is None, search from root control(Desktop).
+        searchDepth: int, max search depth from searchFromControl.
+        foundIndex: int, starts with 1, >= 1.
+        searchWaitTime: float, wait searchWaitTime before every search(interval between searchs).
+        element: `ctypes.POINTER(IUIAutomationElement)`, internal use.
+        searchProperties: defines how to search, the following keys can be used:
+                            ControlType: int, a value in class ControlType.
+                            ClassName: str or unicode.
+                            AutomationId: str or unicode.
+                            Name: str or unicode.
+                            SubName: str or unicode.
+                            RegexName: str or unicode, supports regex.
+                            Depth: int, relative depth from searchFromControl, if set, searchDepth will be set to Depth too.
+                            Compare: Callable, custom compare function(control, depth) returns a bool value.
+
+        `Control` wraps IUIAutomationElement.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement
         """
         self._element = element
         self._elementDirectAssign = True if element else False
         self.searchFromControl = searchFromControl
-        self.searchDepth = searchPorpertyDict.get('Depth', searchDepth)
+        self.searchDepth = searchProperties.get('Depth', searchDepth)
         self.searchWaitTime = searchWaitTime
         self.foundIndex = foundIndex
-        self.searchPorpertyDict = searchPorpertyDict
-        regName = searchPorpertyDict.get('RegexName', '')
+        self.searchProperties = searchProperties
+        regName = searchProperties.get('RegexName', '')
         self.regexName = re.compile(regName) if regName else None
+        self._supportedPatterns = {}
 
-    def __del__(self):
+    def __str__(self):
+        rect = self.BoundingRectangle
+        return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(
+            self.ControlTypeName, self.ClassName, self.AutomationId, rect, self.Name, self.NativeWindowHandle)
+
+    @staticmethod
+    def CreateControlFromElement(element):
         """
-        Note:
-        When script exits, the module ctypes may be None.
-        ctypes sometimes is None before all controls are destoryed,
-        but __del__ needs method in dll(which needs ctypes) to release resources.
-        To avoid this issue, don't use controls in global area
+        Create a concreate `Control` from a com type `IUIAutomationElement`.
+        element: `ctypes.POINTER(IUIAutomationElement)`.
+        Return a subclass of `Control`, an instance of the control's real type.
         """
-        if self._element:
-            _AutomationClient.instance().dll.ReleaseElement(self._element)
-            self._element = 0
+        if element:
+            controlType = element.CurrentControlType
+            if controlType in ControlConstructors:
+                return ControlConstructors[controlType](element=element)
+            else:
+                Logger.WriteLine("element.CurrentControlType returns {}, invalid ControlType!".format(controlType), ConsoleColor.Red)  #rarely happens
+
+    @staticmethod
+    def CreateControlFromControl(control):
+        """
+        Create a concreate `Control` from a control instance, copy it.
+        control: `Control` or its subclass.
+        Return a subclass of `Control`, an instance of the control's real type.
+        For example: if control's ControlType is EditControl, return an EditControl.
+        """
+        newControl = Control.CreateControlFromElement(control.Element)
+        return newControl
 
     def SetSearchFromControl(self, searchFromControl):
-        """searchFromControl: Control or subclasses"""
+        """searchFromControl: `Control` or its subclass"""
         self.searchFromControl = searchFromControl
 
-    def SetSearchDepth(self, searchDepth):
-        """searchDepth: int"""
+    def SetSearchDepth(self, searchDepth: int):
         self.searchDepth = searchDepth
 
-    def AddSearchProperty(self, **searchPorpertyDict):
+    def AddSearchProperties(self, **searchProperties):
         """
-        searchPorpertyDict: dict, same as searchPorpertyDict in __init__.
-        See __init__ doc string.
+        Add search properties using `dict.update`.
+        searchProperties: dict, same as searchProperties in `Control.__init__`.
         """
-        self.searchPorpertyDict.update(searchPorpertyDict)
-        if 'Depth' in searchPorpertyDict:
-            self.searchDepth = searchPorpertyDict['Depth']
-        if 'RegexName' in searchPorpertyDict:
-            regName = searchPorpertyDict['RegexName']
+        self.searchProperties.update(searchProperties)
+        if 'Depth' in searchProperties:
+            self.searchDepth = searchProperties['Depth']
+        if 'RegexName' in searchProperties:
+            regName = searchProperties['RegexName']
             self.regexName = re.compile(regName) if regName else None
 
-    def RemoveSearchProperty(self, **searchPorpertyDict):
+    def RemoveSearchProperties(self, **searchProperties):
         """
-        searchPorpertyDict: dict, same as searchPorpertyDict in __init__.
-        See __init__ doc string.
+        searchProperties: dict, same as searchProperties `Control.__init__`.
         """
-        for key in searchPorpertyDict:
-            del self.searchPorpertyDict[key]
+        for key in searchProperties:
+            del self.searchProperties[key]
             if key == 'RegexName':
                 self.regexName = None
 
-    def GetSearchPorpertyStr(self):
-        strs = ['{}: {}'.format(k, ControlTypeNameDict[v] if k == 'ControlType' else repr(v)) for k, v in self.searchPorpertyDict.items()]
+    def GetSearchPropertiesStr(self):
+        strs = ['{}: {}'.format(k, ControlTypeNames[v] if k == 'ControlType' else repr(v)) for k, v in self.searchProperties.items()]
         return '{' + ', '.join(strs) + '}'
 
-    def GetColorfulSearchPorpertyStr(self, keyColor='DarkGreen', valueColor='DarkCyan'):
+    def GetColorfulSearchPropertiesStr(self, keyColor='DarkGreen', valueColor='DarkCyan'):
         """keyColor, valueColor: str, color name in class ConsoleColor"""
         strs = ['<Color={}>{}</Color>: <Color={}>{}</Color>'.format(keyColor if k in Control.ValidKeys else 'DarkYellow', k, valueColor,
-                ControlTypeNameDict[v] if k == 'ControlType' else repr(v)) for k, v in self.searchPorpertyDict.items()]
+                ControlTypeNames[v] if k == 'ControlType' else repr(v)) for k, v in self.searchProperties.items()]
         return '{' + ', '.join(strs) + '}'
 
-    def _CompareFunction(self, control, depth):
+    #BuildUpdatedCache
+    #CachedAcceleratorKey
+    #CachedAccessKey
+    #CachedAriaProperties
+    #CachedAriaRole
+    #CachedAutomationId
+    #CachedBoundingRectangle
+    #CachedClassName
+    #CachedControlType
+    #CachedControllerFor
+    #CachedCulture
+    #CachedDescribedBy
+    #CachedFlowsTo
+    #CachedFrameworkId
+    #CachedHasKeyboardFocus
+    #CachedHelpText
+    #CachedIsContentElement
+    #CachedIsControlElement
+    #CachedIsDataValidForForm
+    #CachedIsEnabled
+    #CachedIsKeyboardFocusable
+    #CachedIsOffscreen
+    #CachedIsPassword
+    #CachedIsRequiredForForm
+    #CachedItemStatus
+    #CachedItemType
+    #CachedLabeledBy
+    #CachedLocalizedControlType
+    #CachedName
+    #CachedNativeWindowHandle
+    #CachedOrientation
+    #CachedProcessId
+    #CachedProviderDescription
+
+    @property
+    def AcceleratorKey(self) -> str:
         """
-        control: Control or subclasses
-        Define how to search, return True if found
+        Property AcceleratorKey.
+        Call IUIAutomationElement::get_CurrentAcceleratorKey.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentacceleratorkey
         """
-        for key, value in self.searchPorpertyDict.items():
+        return self.Element.CurrentAcceleratorKey
+
+    @property
+    def AccessKey(self) -> str:
+        """
+        Property AccessKey.
+        Call IUIAutomationElement::get_CurrentAccessKey.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentaccesskey
+        """
+        return self.Element.CurrentAccessKey
+
+    @property
+    def AriaProperties(self) -> str:
+        """
+        Property AriaProperties.
+        Call IUIAutomationElement::get_CurrentAriaProperties.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentariaproperties
+        """
+        return self.Element.CurrentAriaProperties
+
+    @property
+    def AriaRole(self) -> str:
+        """
+        Property AriaRole.
+        Call IUIAutomationElement::get_CurrentAriaRole.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentariarole
+        """
+        return self.Element.CurrentAriaRole
+
+    @property
+    def AutomationId(self) -> str:
+        """
+        Property AutomationId.
+        Call IUIAutomationElement::get_CurrentAutomationId.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentautomationid
+        """
+        return self.Element.CurrentAutomationId
+
+    @property
+    def BoundingRectangle(self) -> ctypes.wintypes.RECT:
+        """
+        Property BoundingRectangle.
+        Call IUIAutomationElement::get_CurrentBoundingRectangle.
+        Return `ctypes.wintypes.RECT`.
+        It has 4 properties: left, top, right, bottom, 2 methods: width() and height().
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentboundingrectangle
+        """
+        return self.Element.CurrentBoundingRectangle
+
+    @property
+    def ClassName(self) -> str:
+        """
+        Property ClassName.
+        Call IUIAutomationElement::get_CurrentClassName.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentclassname
+        """
+        return self.Element.CurrentClassName
+
+    @property
+    def ControlType(self) -> int:
+        """
+        Property ControlType.
+        Return int, a value in class `ControlType`.
+        Call IUIAutomationElement::get_CurrentControlType.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentcontroltype
+        """
+        return self.Element.CurrentControlType
+
+    #@property
+    #def ControllerFor(self):
+        #return self.Element.CurrentControllerFor
+
+    @property
+    def Culture(self) -> int:
+        """
+        Property Culture.
+        Call IUIAutomationElement::get_CurrentCulture.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentculture
+        """
+        return self.Element.CurrentCulture
+
+    #@property
+    #def DescribedBy(self):
+        #return self.Element.CurrentDescribedBy
+
+    #@property
+    #def FlowsTo(self):
+        #return self.Element.CurrentFlowsTo
+
+    @property
+    def FrameworkId(self) -> str:
+        """
+        Property FrameworkId.
+        Call IUIAutomationElement::get_CurrentFrameworkId.
+        Return str, such as Win32, WPF...
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentframeworkid
+        """
+        return self.Element.CurrentFrameworkId
+
+    @property
+    def HasKeyboardFocus(self) -> bool:
+        """
+        Property HasKeyboardFocus.
+        Call IUIAutomationElement::get_CurrentHasKeyboardFocus.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currenthaskeyboardfocus
+        """
+        return bool(self.Element.CurrentHasKeyboardFocus)
+
+    @property
+    def HelpText(self) -> str:
+        """
+        Property HelpText.
+        Call IUIAutomationElement::get_CurrentHelpText.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currenthelptext
+        """
+        return self.Element.CurrentHelpText
+
+    @property
+    def IsContentElement(self) -> bool:
+        """
+        Property IsContentElement.
+        Call IUIAutomationElement::get_CurrentIsContentElement.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiscontentelement
+        """
+        return bool(self.Element.CurrentIsContentElement)
+
+    @property
+    def IsControlElement(self) -> bool:
+        """
+        Property IsControlElement.
+        Call IUIAutomationElement::get_CurrentIsControlElement.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiscontrolelement
+        """
+        return bool(self.Element.CurrentIsControlElement)
+
+    @property
+    def IsDataValidForForm(self) -> bool:
+        """
+        Property IsDataValidForForm.
+        Call IUIAutomationElement::get_CurrentIsDataValidForForm.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisdatavalidforform
+        """
+        return bool(self.Element.CurrentIsDataValidForForm)
+
+    @property
+    def IsEnabled(self) -> bool:
+        """
+        Property IsEnabled.
+        Call IUIAutomationElement::get_CurrentIsEnabled.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisenabled
+        """
+        return self.Element.CurrentIsEnabled
+
+    @property
+    def IsKeyboardFocusable(self) -> bool:
+        """
+        Property IsKeyboardFocusable.
+        Call IUIAutomationElement::get_CurrentIsKeyboardFocusable.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiskeyboardfocusable
+        """
+        return self.Element.CurrentIsKeyboardFocusable
+
+    @property
+    def IsOffscreen(self) -> bool:
+        """
+        Property IsOffscreen.
+        Call IUIAutomationElement::get_CurrentIsOffscreen.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisoffscreen
+        """
+        return self.Element.CurrentIsOffscreen
+
+    @property
+    def IsPassword(self) -> bool:
+        """
+        Property IsPassword.
+        Call IUIAutomationElement::get_CurrentIsPassword.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentispassword
+        """
+        return self.Element.CurrentIsPassword
+
+    @property
+    def IsRequiredForForm(self) -> bool:
+        """
+        Property IsRequiredForForm.
+        Call IUIAutomationElement::get_CurrentIsRequiredForForm.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisrequiredforform
+        """
+        return self.Element.CurrentIsRequiredForForm
+
+    @property
+    def ItemStatus(self) -> str:
+        """
+        Property ItemStatus.
+        Call IUIAutomationElement::get_CurrentItemStatus.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentitemstatus
+        """
+        return self.Element.CurrentItemStatus
+
+    @property
+    def ItemType(self) -> str:
+        """
+        Property ItemType.
+        Call IUIAutomationElement::get_CurrentItemType.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentitemtype
+        """
+        return self.Element.CurrentItemType
+
+    #@property
+    #def LabeledBy(self):
+        #return self.Element.CurrentLabeledBy
+
+    @property
+    def LocalizedControlType(self) -> str:
+        """
+        Property LocalizedControlType.
+        Call IUIAutomationElement::get_CurrentLocalizedControlType.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentlocalizedcontroltype
+        """
+        return self.Element.CurrentLocalizedControlType
+
+    @property
+    def Name(self) -> str:
+        """
+        Property Name.
+        Call IUIAutomationElement::get_CurrentName.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentname
+        """
+        return self.Element.CurrentName
+
+    @property
+    def NativeWindowHandle(self) -> str:
+        """
+        Property NativeWindowHandle.
+        Call IUIAutomationElement::get_CurrentNativeWindowHandle.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentnativewindowhandle
+        """
+        handle = self.Element.CurrentNativeWindowHandle
+        return 0 if handle is None else handle
+
+    @property
+    def Orientation(self) -> int:
+        """
+        Property Orientation.
+        Return int, a value in class `OrientationType`.
+        Call IUIAutomationElement::get_CurrentOrientation.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentorientation
+        """
+        return self.Element.CurrentOrientation
+
+    @property
+    def ProcessId(self) -> int:
+        """
+        Property ProcessId.
+        Call IUIAutomationElement::get_CurrentProcessId.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentprocessid
+        """
+        return self.Element.CurrentProcessId
+
+    @property
+    def ProviderDescription(self) -> str:
+        """
+        Property ProviderDescription.
+        Call IUIAutomationElement::get_CurrentProviderDescription.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentproviderdescription
+        """
+        return self.Element.CurrentProviderDescription
+
+    #FindAll
+    #FindAllBuildCache
+    #FindFirst
+    #FindFirstBuildCache
+    #GetCachedChildren
+    #GetCachedParent
+    #GetCachedPattern
+    #GetCachedPatternAs
+    #GetCachedPropertyValue
+    #GetCachedPropertyValueEx
+
+    def GetClickablePoint(self):
+        """
+        Call IUIAutomationElement::GetClickablePoint.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getclickablepoint
+        """
+        return self.Element.GetClickablePoint()
+
+    def GetPattern(self, patternId: int):
+        """
+        Call IUIAutomationElement::GetCurrentPattern.
+        Get a new pattern by pattern id if it supports the pattern.
+        patternId: int, a value in class `PatternId`.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpattern
+        """
+        try:
+            pattern = self.Element.GetCurrentPattern(patternId)
+            if pattern:
+                subPattern = CreatePattern(patternId, pattern)
+                self._supportedPatterns[patternId] = subPattern
+                return subPattern
+        except comtypes.COMError as ex:
+            pass
+
+    def GetPatternAs(self, patternId: int, riid):
+        """
+        Call IUIAutomationElement::GetCurrentPatternAs.
+        patternId: int, a value in class `PatternId`.
+        riid: GUID.
+        Call IUIAutomationElement::GetCurrentPatternAs.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpatternas
+        """
+        return self.Element.GetCurrentPatternAs(patternId, riid)
+
+    def GetPropertyValue(self, propertyId: int):
+        """
+        Call IUIAutomationElement::GetCurrentPropertyValue.
+        propertyId: int, a value in class `PropertyId`.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpropertyvalue
+        """
+        return self.Element.GetCurrentPropertyValue(propertyId)
+
+    def GetPropertyValueEx(self, propertyId: int, ignoreDefaultValue: int):
+        """
+        Call IUIAutomationElement::GetCurrentPropertyValueEx.
+        propertyId: int, a value in class `PropertyId`.
+        ignoreDefaultValue: int, 0 or 1.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpropertyvalueex
+        """
+        return self.Element.GetCurrentPropertyValueEx(propertyId, ignoreDefaultValue)
+
+    def GetRuntimeId(self) -> list:
+        """
+        Call IUIAutomationElement::GetRuntimeId.
+        Return list, a list of int.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getruntimeid
+        """
+        return self.Element.GetRuntimeId()
+
+    #QueryInterface
+    #Release
+
+    def SetFocus(self) -> bool:
+        """
+        Call IUIAutomationElement::SetFocus.
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-setfocus
+        """
+        return self.Element.SetFocus() == S_OK
+
+    @property
+    def Element(self):
+        """
+        Property Element.
+        Return `ctypes.POINTER(IUIAutomationElement)`.
+        """
+        if not self._element:
+            self.Refind(maxSearchSeconds=TIME_OUT_SECOND, searchIntervalSeconds=self.searchWaitTime)
+        return self._element
+
+    @property
+    def ControlTypeName(self) -> str:
+        """
+        Property ControlTypeName.
+        """
+        return ControlTypeNames[self.ControlType]
+
+    def GetCachedPattern(self, patternId: int, cache: bool):
+        """
+        Get a pattern by patternId, return a pattern if it supports the pattern else None.
+        patternId: int, a value in class `PatternId`.
+        cache: bool, if True, store the pattern for later use, if False, get a new pattern by `self.GetPattern`.
+        """
+        if cache:
+            pattern = self._supportedPatterns.get(patternId, None)
+            if pattern:
+                return pattern
+            else:
+                pattern = self.GetPattern(patternId)
+                if pattern:
+                    self._supportedPatterns[patternId] = pattern
+                    return pattern
+        else:
+            pattern = self.GetPattern(patternId)
+            if pattern:
+                self._supportedPatterns[patternId] = pattern
+                return pattern
+
+    def GetLegacyIAccessiblePattern(self) -> LegacyIAccessiblePattern:
+        """
+        Return `LegacyIAccessiblePattern` if it supports the pattern else None.
+        """
+        return self.GetPattern(PatternId.LegacyIAccessiblePattern)
+
+    def GetAncestorControl(self, condition: Callable):
+        """
+        Get a ancestor control that matches the condition.
+        condition: Callable, comapre function (control: Control, depth: int)->bool,
+                   depth starts with -1 and decreses when search goes up.
+        Return `Control` subclass or None.
+        """
+        ancestor = self
+        depth = 0
+        while True:
+            ancestor = ancestor.GetParentControl()
+            depth -= 1
+            if ancestor:
+                if condition(ancestor, depth):
+                    return ancestor
+            else:
+                break
+
+    def GetParentControl(self):
+        """
+        Return `Control` subclass or None.
+        """
+        ele = _AutomationClient.instance().ViewWalker.GetParentElement(self.Element)
+        return Control.CreateControlFromElement(ele)
+
+    def GetFirstChildControl(self):
+        """
+        Return `Control` subclass or None.
+        """
+        ele = _AutomationClient.instance().ViewWalker.GetFirstChildElement(self.Element)
+        return Control.CreateControlFromElement(ele)
+
+    def GetLastChildControl(self):
+        """
+        Return `Control` subclass or None.
+        """
+        ele = _AutomationClient.instance().ViewWalker.GetLastChildElement(self.Element)
+        return Control.CreateControlFromElement(ele)
+
+    def GetNextSiblingControl(self):
+        """
+        Return `Control` subclass or None.
+        """
+        ele = _AutomationClient.instance().ViewWalker.GetNextSiblingElement(self.Element)
+        return Control.CreateControlFromElement(ele)
+
+    def GetPreviousSiblingControl(self):
+        """
+        Return `Control` subclass or None.
+        """
+        ele = _AutomationClient.instance().ViewWalker.GetPreviousSiblingElement(self.Element)
+        return Control.CreateControlFromElement(ele)
+
+    def GetChildren(self) -> list:
+        """
+        Return list, a list of `Control` subclasses.
+        """
+        children = []
+        child = self.GetFirstChildControl()
+        while child:
+            children.append(child)
+            child = child.GetNextSiblingControl()
+        return children
+
+    def _CompareFunction(self, control, depth: int) -> bool:
+        """
+        Define how to search.
+        control: `Control` or its subclass.
+        depth: int, tree depth from searchFromControl.
+        Return bool.
+        """
+        for key, value in self.searchProperties.items():
             if 'ControlType' == key:
                 if value != control.ControlType:
                     return False
@@ -2788,12 +5661,12 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                     return False
         return True
 
-    def Exists(self, maxSearchSeconds=5, searchIntervalSeconds=SEARCH_INTERVAL, printIfNotExist=False):
+    def Exists(self, maxSearchSeconds=5, searchIntervalSeconds=SEARCH_INTERVAL, printIfNotExist=False) -> bool:
         """
         maxSearchSeconds: float
         searchIntervalSeconds: float
         Find control every searchIntervalSeconds seconds in maxSearchSeconds seconds.
-        Return True if found
+        Return bool, True if find
         """
         if self._element and self._elementDirectAssign:
             #if element is directly assigned, not by searching, just check whether self._element is valid
@@ -2802,24 +5675,21 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
             if self._element == rootElement:
                 return True
             else:
-                parentElement = _AutomationClient.instance().dll.GetParentElement(self._element)
+                parentElement = _AutomationClient.instance().ViewWalker.GetParentElement(self._element)
                 if parentElement:
-                    _AutomationClient.instance().dll.ReleaseElement(parentElement)
                     return True
                 else:
                     return False
         #find the element
-        if len(self.searchPorpertyDict) == 0:
-            raise LookupError("control's searchPorpertyDict must not be empty!")
-        if self._element:
-            _AutomationClient.instance().dll.ReleaseElement(self._element)
-        self._element = 0
+        if len(self.searchProperties) == 0:
+            raise LookupError("control's searchProperties must not be empty!")
+        self._element = None
         startTime = ProcessTime()
         # Use same timeout(s) parameters for resolve all parents
         prev =  self.searchFromControl
         if prev and not prev._element and not prev.Exists(maxSearchSeconds, searchIntervalSeconds):
             if printIfNotExist or DEBUG_EXIST_DISAPPEAR:
-                Logger.ColorfulWriteLine(self.GetColorfulSearchPorpertyStr() + '<Color=Red> does not exist.</Color>', writeToFile=False)
+                Logger.ColorfullyWriteLine(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not exist.</Color>')
             return False
         startTime2 = ProcessTime()
         if DEBUG_SEARCH_TIME:
@@ -2830,8 +5700,8 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                 self._element = control.Element
                 control._element = 0  # control will be destroyed, but the element needs to be stroed in self._element
                 if DEBUG_SEARCH_TIME:
-                    Logger.ColorfulWriteLine('{} TraverseControls: <Color=Cyan>{}</Color>, SearchTime: <Color=Cyan>{:.3f}</Color>s[{} - {}]'.format(
-                        self.GetColorfulSearchPorpertyStr(), control.traverseCount, ProcessTime() - startTime2,
+                    Logger.ColorfullyWriteLine('{} TraverseControls: <Color=Cyan>{}</Color>, SearchTime: <Color=Cyan>{:.3f}</Color>s[{} - {}]'.format(
+                        self.GetColorfulSearchPropertiesStr(), control.traverseCount, ProcessTime() - startTime2,
                         startDateTime.time(), datetime.datetime.now().time()))
                 return True
             else:
@@ -2840,15 +5710,15 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                     time.sleep(min(remain, searchIntervalSeconds))
                 else:
                     if printIfNotExist or DEBUG_EXIST_DISAPPEAR:
-                        Logger.ColorfulWriteLine(self.GetColorfulSearchPorpertyStr() + '<Color=Red> does not exist.</Color>', writeToFile=False)
+                        Logger.ColorfullyWriteLine(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not exist.</Color>')
                     return False
 
-    def Disappears(self, maxSearchSeconds=5, searchIntervalSeconds=SEARCH_INTERVAL, printIfNotDisappear=False):
+    def Disappears(self, maxSearchSeconds: float = 5, searchIntervalSeconds: float = SEARCH_INTERVAL, printIfNotDisappear: bool = False):
         """
         maxSearchSeconds: float
         searchIntervalSeconds: float
         Check if control disappears every searchIntervalSeconds seconds in maxSearchSeconds seconds.
-        Return True if control disappears.
+        Return bool, True if control disappears.
         """
         global DEBUG_EXIST_DISAPPEAR
         start = ProcessTime()
@@ -2864,1958 +5734,1526 @@ class Control(LegacyIAccessiblePattern, QTPLikeSyntaxSupport):
                 time.sleep(min(remain, searchIntervalSeconds))
             else:
                 if printIfNotDisappear or DEBUG_EXIST_DISAPPEAR:
-                    Logger.ColorfulWriteLine(self.GetColorfulSearchPorpertyStr() + '<Color=Red> does not disappear.</Color>', writeToFile=False)
+                    Logger.ColorfullyWriteLine(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not disappear.</Color>')
                 return False
 
-    def Refind(self, maxSearchSeconds=TIME_OUT_SECOND, searchIntervalSeconds=SEARCH_INTERVAL, raiseException=True):
+    def Refind(self, maxSearchSeconds: float = TIME_OUT_SECOND, searchIntervalSeconds: float = SEARCH_INTERVAL, raiseException: bool = True) -> bool:
         """
-        maxSearchSeconds: float
-        searchIntervalSeconds: float
-        raiseException: bool
         Refind the control every searchIntervalSeconds seconds in maxSearchSeconds seconds.
-        Raise a LookupError if raiseException is True and time out
+        maxSearchSeconds: float.
+        searchIntervalSeconds: float.
+        raiseException: bool, if True, raise a LookupError if timeout.
+        Return bool, True if find.
         """
         if not self.Exists(maxSearchSeconds, searchIntervalSeconds, False if raiseException else DEBUG_EXIST_DISAPPEAR):
             if raiseException:
-                Logger.ColorfulWriteLine('<Color=Red>Find Control Time Out: </Color>' + self.GetColorfulSearchPorpertyStr(), writeToFile=False)
-                raise LookupError('Find Control Time Out: ' + self.GetSearchPorpertyStr())
+                Logger.ColorfullyWriteLine('<Color=Red>Find Control Time Out: </Color>' + self.GetColorfulSearchPropertiesStr())
+                raise LookupError('Find Control Time Out: ' + self.GetSearchPropertiesStr())
+            else:
+                return False
+        return True
 
-    @property
-    def Element(self):
-        """Return an int value of control's IUIAutomationElement"""
-        if not self._element:
-            self.Refind(maxSearchSeconds=TIME_OUT_SECOND, searchIntervalSeconds=self.searchWaitTime)
-        return self._element
-
-    @property
-    def Name(self):
-        """Return str"""
-        bstrValue = _AutomationClient.instance().dll.GetElementName(self.Element)
-        if bstrValue:
-            cValue = ctypes.c_wchar_p(bstrValue)
-            value = cValue.value[:]
-            ctypes.windll.OleAut32.SysFreeString(cValue)
-            return value
-        return ''
-
-    @property
-    def ControlType(self):
-        """Return an int value in class ControlType"""
-        return _AutomationClient.instance().dll.GetElementControlType(self.Element)
-
-    @property
-    def ControlTypeName(self):
-        """Return str"""
-        return ControlTypeNameDict.get(self.ControlType, 'UnknownControl')
-
-    @property
-    def LocalizedControlType(self):
-        """Return str"""
-        bstrValue = _AutomationClient.instance().dll.GetElementLocalizedControlType(self.Element)
-        if bstrValue:
-            cValue = ctypes.c_wchar_p(bstrValue)
-            value = cValue.value[:]
-            ctypes.windll.OleAut32.SysFreeString(cValue)
-            return value
-        return ''
-
-    @property
-    def ClassName(self):
-        """Return str"""
-        bstrValue = _AutomationClient.instance().dll.GetElementClassName(self.Element)
-        if bstrValue:
-            cValue = ctypes.c_wchar_p(bstrValue)
-            value = cValue.value[:]
-            ctypes.windll.OleAut32.SysFreeString(cValue)
-            return value
-        return ''
-
-    @property
-    def AutomationId(self):
-        """Return str"""
-        bstrValue = _AutomationClient.instance().dll.GetElementAutomationId(self.Element)
-        if bstrValue:
-            cValue = ctypes.c_wchar_p(bstrValue)
-            value = cValue.value[:]
-            ctypes.windll.OleAut32.SysFreeString(cValue)
-            return value
-        return ''
-
-    @property
-    def ProcessId(self):
-        """Return int"""
-        return _AutomationClient.instance().dll.GetElementProcessId(self.Element)
-
-    @property
-    def IsEnabled(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementIsEnabled(self.Element)
-
-    @property
-    def HasKeyboardFocus(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementHasKeyboardFocus(self.Element)
-
-    @property
-    def IsKeyboardFocusable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementIsKeyboardFocusable(self.Element)
-
-    @property
-    def IsOffScreen(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementIsOffscreen(self.Element)
-
-    @property
-    def BoundingRectangle(self):
-        """Return four int values tuple (left, top, right, bottom)"""
-        rect = Rect()
-        _AutomationClient.instance().dll.GetElementBoundingRectangle(ctypes.c_size_t(self.Element), ctypes.byref(rect))
-        return (rect.left, rect.top, rect.right, rect.bottom)
-
-    @property
-    def Handle(self):
-        """Return int, control's handle"""
-        return _AutomationClient.instance().dll.GetElementHandle(self.Element)
-
-    def SetFocus(self):
-        """Make the control have focus"""
-        _AutomationClient.instance().dll.SetElementFocus(self.Element)
-
-    def MoveCursor(self, ratioX=0.5, ratioY=0.5, simulateMove=True):
+    def MoveCursorToInnerPos(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True) -> tuple:
         """
-        ratioX: float or int, if is int, move to left + ratioX, if < 0, move to right + ratioX
-        ratioY: float or int, if is int, move to top + ratioY, if < 0, move to bottom + ratioY
-        simulateMove: bool
-        Move cursor to control's internal positon, default to center
+        Move cursor to control's internal position, default to center.
+        x: int, if < 0, move to self.BoundingRectangle.right + x, if not None, ignore ratioX.
+        y: int, if < 0, move to self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
+        ratioX: float.
+        ratioY: float.
+        simulateMove: bool.
+        Return tuple, two ints(x,y), the cursor positon relative to screen(0,0) after moving or None if control's width or height == 0.
         """
-        left, top, right, bottom = self.BoundingRectangle
-        if left == 0 and top == 0 and right == 0 and bottom == 0:
-            Logger.WriteLine('{}\'s BoundingRectangle is empty(0,0,0,0). searchPorperty: {}'.format(self.ControlTypeName, self.searchPorpertyDict), ConsoleColor.Yellow)
-        if type(ratioX) is float:
-            x = left + int((right - left) * ratioX)
+        rect = self.BoundingRectangle
+        if rect.width() == 0 or rect.height() == 0:
+            Logger.ColorfullyWriteLine('<Color=Yellow>Can not move curosr</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
+                self.ControlTypeName, rect, self.GetColorfulSearchPropertiesStr()))
+            return
+        if x is None:
+            x = rect.left + int((rect.right - rect.left) * ratioX)
         else:
-            x = (left if ratioX >= 0 else right) + ratioX
-        if type(ratioY) is float:
-            y = top + int((bottom - top) * ratioY)
+            x = (rect.left if x >= 0 else rect.right) + x
+        if y is None:
+            y = rect.top + int((rect.bottom - rect.top) * ratioY)
         else:
-            y = (top if ratioY >= 0 else bottom) + ratioY
+            y = (rect.top if x >= 0 else rect.bottom) + y
         if simulateMove and MAX_MOVE_SECOND > 0:
-            Win32API.MouseMoveTo(x, y, waitTime=0)
+            MoveTo(x, y, waitTime=0)
         else:
-            Win32API.SetCursorPos(x, y)
+            SetCursorPos(x, y)
         return x, y
 
-    def MoveCursorToMyCenter(self, simulateMove=True):
-        """Move cursor to control's center"""
-        return self.MoveCursor(simulateMove=simulateMove)
+    def MoveCursorToMyCenter(self, simulateMove=True) -> tuple:
+        """
+        Move cursor to control's center.
+        Return tuple, two ints tuple(x,y), the cursor positon relative to screen(0,0) after moving .
+        """
+        return self.MoveCursorToInnerPos(simulateMove=simulateMove)
 
-    def Click(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME):
+    def Click(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
-        ratioX: float or int, if is int, click left + ratioX, if < 0, click right + ratioX
-        ratioY: float or int, if is int, click top + ratioY, if < 0, click bottom + ratioY
-        simulateMove: bool, if True, first move cursor to control smoothly
-        waitTime: float
-        Click(0.5, 0.5): click center
-        Click(10, 10): click left+10, top+10
-        Click(-10, -10): click right-10, bottom-10
-        """
-        x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
-        Win32API.MouseClick(x, y, waitTime)
+        x: int, if < 0, click self.BoundingRectangle.right + x, if not None, ignore ratioX.
+        y: int, if < 0, click self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
+        ratioX: float.
+        ratioY: float.
+        simulateMove: bool, if True, first move cursor to control smoothly.
+        waitTime: float.
 
-    def MiddleClick(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME):
+        Click(), Click(ratioX=0.5, ratioY=0.5): click center.
+        Click(10, 10): click left+10, top+10.
+        Click(-10, -10): click right-10, bottom-10.
         """
-        ratioX: float or int, if is int, click left + ratioX, if < 0, click right + ratioX
-        ratioY: float or int, if is int, click top + ratioY, if < 0, click bottom + ratioY
-        simulateMove: bool, if True, first move cursor to control smoothly
-        waitTime: float
-        MiddleClick(0.5, 0.5): middle click center
-        MiddleClick(10, 10): middle click left+10, top+10
-        MiddleClick(-10, -10): middle click right-10, bottom-10
-        """
-        x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
-        Win32API.MouseMiddleClick(x, y, waitTime)
+        point = self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove)
+        if point:
+            Click(point[0], point[1], waitTime)
 
-    def RightClick(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME):
+    def MiddleClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
-        ratioX: float or int, if is int, click left + ratioX, if < 0, click right + ratioX
-        ratioY: float or int, if is int, click top + ratioY, if < 0, click bottom + ratioY
-        simulateMove: bool, if True, first move cursor to control smoothly
-        waitTime: float
-        RightClick(0.5, 0.5): right click center
-        RightClick(10, 10): right click left+10, top+10
-        RightClick(-10, -10): click right-10, bottom-10
-        """
-        x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
-        Win32API.MouseRightClick(x, y, waitTime)
+        x: int, if < 0, middle click self.BoundingRectangle.right + x, if not None, ignore ratioX.
+        y: int, if < 0, middle click self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
+        ratioX: float.
+        ratioY: float.
+        simulateMove: bool, if True, first move cursor to control smoothly.
+        waitTime: float.
 
-    def DoubleClick(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME):
+        MiddleClick(), MiddleClick(ratioX=0.5, ratioY=0.5): middle click center.
+        MiddleClick(10, 10): middle click left+10, top+10.
+        MiddleClick(-10, -10): middle click right-10, bottom-10.
         """
-        ratioX: float or int, if is int, click left + ratioX, if < 0, click right + ratioX
-        ratioY: float or int, if is int, click top + ratioY, if < 0, click bottom + ratioY
-        simulateMove: bool, if True, first move cursor to control smoothly
-        waitTime: float
-        DoubleClick(0.5, 0.5): double click center
-        DoubleClick(10, 10): double click left+10, top+10
-        DoubleClick(-10, -10): click right-10, bottom-10
-        """
-        x, y = self.MoveCursor(ratioX, ratioY, simulateMove)
-        Win32API.MouseClick(x, y, 0)
-        time.sleep(Win32API.GetDoubleClickTime() * 1.0 / 2000)
-        Win32API.MouseClick(x, y, waitTime)
+        point = self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove)
+        if point:
+            MiddleClick(point[0], point[1], waitTime)
 
-    def WheelDown(self, wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
+    def RightClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
-        wheelTimes: int
-        waitTime: float
-        Make Control have focus first and wheel down
+        x: int, if < 0, right click self.BoundingRectangle.right + x, if not None, ignore ratioX.
+        y: int, if < 0, right click self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
+        ratioX: float.
+        ratioY: float.
+        simulateMove: bool, if True, first move cursor to control smoothly.
+        waitTime: float.
+
+        RightClick(), RightClick(ratioX=0.5, ratioY=0.5): right click center.
+        RightClick(10, 10): right click left+10, top+10.
+        RightClick(-10, -10): right click right-10, bottom-10.
         """
-        x, y = Win32API.GetCursorPos()
+        point = self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove)
+        if point:
+            RightClick(point[0], point[1], waitTime)
+
+    def DoubleClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
+        """
+        x: int, if < 0, right click self.BoundingRectangle.right + x, if not None, ignore ratioX.
+        y: int, if < 0, right click self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
+        ratioX: float.
+        ratioY: float.
+        simulateMove: bool, if True, first move cursor to control smoothly.
+        waitTime: float.
+
+        DoubleClick(), DoubleClick(ratioX=0.5, ratioY=0.5): double click center.
+        DoubleClick(10, 10): double click left+10, top+10.
+        DoubleClick(-10, -10): double click right-10, bottom-10.
+        """
+        x, y = self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove)
+        Click(x, y, GetDoubleClickTime() * 1.0 / 2000)
+        Click(x, y, waitTime)
+
+    def WheelDown(self, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
+        """
+        Make control have focus first, move cursor to center and mouse wheel down.
+        wheelTimes: int.
+        interval: float.
+        waitTime: float.
+        """
+        x, y = GetCursorPos()
         self.SetFocus()
         self.MoveCursorToMyCenter(False)
-        Win32API.MouseWheelDown(wheelTimes, waitTime)
-        Win32API.SetCursorPos(x, y)
+        WheelDown(wheelTimes, interval, waitTime)
+        SetCursorPos(x, y)
 
-    def WheelUp(self, wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
+    def WheelUp(self, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
-        wheelTimes: int
-        waitTime: float
-        Make Control have focus first and wheel up
+        Make control have focus first, move cursor to center and mouse wheel up.
+        wheelTimes: int.
+        interval: float.
+        waitTime: float.
         """
-        x, y = Win32API.GetCursorPos()
+        x, y = GetCursorPos()
         self.SetFocus()
         self.MoveCursorToMyCenter(False)
-        Win32API.MouseWheelUp(wheelTimes, waitTime)
-        Win32API.SetCursorPos(x, y)
+        WheelUp(wheelTimes, interval, waitTime)
+        SetCursorPos(x, y)
 
-    def GetParentControl(self):
-        """Return Control"""
-        comEle = _AutomationClient.instance().dll.GetParentElement(self.Element)
-        if comEle:
-            return Control.CreateControlFromElement(comEle)
-
-    def GetTopWindow(self):
-        """Return Control, control's top window"""
-        control = self
-        parents = []
-        while control:
-            if control.ControlType == ControlType.WindowControl:
-                return control
-            parents.insert(0, control)
-            control = control.GetParentControl()
-        if len(parents) > 1:
-            return parents[1]
-        elif len(parents) == 1:
-            return parents[0]
-
-    def GetFirstChildControl(self):
-        """Return Control"""
-        comEle = _AutomationClient.instance().dll.GetFirstChildElement(self.Element)
-        if comEle:
-            return Control.CreateControlFromElement(comEle)
-
-    def GetLastChildControl(self):
-        """Return Control"""
-        comEle = _AutomationClient.instance().dll.GetLastChildElement(self.Element)
-        if comEle:
-            return Control.CreateControlFromElement(comEle)
-
-    def GetNextSiblingControl(self):
-        """Return Control"""
-        comEle = _AutomationClient.instance().dll.GetNextSiblingElement(self.Element)
-        if comEle:
-            return Control.CreateControlFromElement(comEle)
-
-    def GetPreviousSiblingControl(self):
-        """Return Control"""
-        comEle = _AutomationClient.instance().dll.GetPreviousSiblingElement(self.Element)
-        if comEle:
-            return Control.CreateControlFromElement(comEle)
-
-    def GetChildren(self):
-        """Return a list of Controls"""
-        children = []
-        child = self.GetFirstChildControl()
-        while child:
-            children.append(child)
-            child = child.GetNextSiblingControl()
-        return children
-
-    def ShowWindow(self, cmdShow, waitTime=OPERATION_WAIT_TIME):
+    def ShowWindow(self, cmdShow: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
-        cmdShow: int, a value in in class ShowWindow
-        waitTime: float
-        Get a valid Win32 window from self or ancestors and call Win32API.ShowWindow
+        Get a native handle from self or ancestors until valid and call native `ShowWindow` with cmdShow.
+        cmdShow: int, a value in in class `SW`.
+        waitTime: float.
+        Return bool, True if succeed otherwise False.
         """
-        hWnd = self.Handle
-        if not hWnd:
+        handle = self.NativeWindowHandle
+        if not handle:
             control = self
-            while not hWnd:
+            while not handle:
                 control = control.GetParentControl()
-                hWnd = control.Handle
-        if hWnd:
-            ret = Win32API.ShowWindow(hWnd, cmdShow)
+                handle = control.NativeWindowHandle
+        if handle:
+            ret = ShowWindow(handle, cmdShow)
             time.sleep(waitTime)
             return ret
 
-    def Show(self, waitTime=OPERATION_WAIT_TIME):
+    def Show(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
+        Call native `ShowWindow(SW.Show)`.
+        Return bool, True if succeed otherwise False.
+        """
+        return self.ShowWindow(SW.Show, waitTime)
+
+    def Hide(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Call native `ShowWindow(SW.Hide)`.
         waitTime: float
-        Call ShowWindow(ShowWindow.Show).
+        Return bool, True if succeed otherwise False.
         """
-        return self.ShowWindow(ShowWindow.Show, waitTime)
+        return self.ShowWindow(SW.Hide, waitTime)
 
-    def Hide(self, waitTime=OPERATION_WAIT_TIME):
+    def MoveWindow(self, x: int, y: int, width: int, height: int, repaint: bool = True) -> bool:
         """
-        waitTime: float
-        Call ShowWindow(ShowWindow.Hide).
+        Call native MoveWindow if control has a valid native handle.
+        x: int.
+        y: int.
+        width: int.
+        height: int.
+        repaint: bool.
+        Return bool, True if succeed otherwise False.
         """
-        return self.ShowWindow(ShowWindow.Hide, waitTime)
+        handle = self.NativeWindowHandle
+        if handle:
+            return MoveWindow(handle, x, y, width, height, int(repaint))
+        return False
 
-    def MoveWindow(self, x, y, width, height, repaint=1):
+    def GetWindowText(self) -> str:
         """
-        x: int
-        y: int
-        width: int
-        height: int
-        repaint: int, use 1 or 0
-        Only work if Handle is valid
+        Call native GetWindowText if control has a valid native handle.
         """
-        hWnd = self.Handle
-        if hWnd:
-            return Win32API.MoveWindow(hWnd, x, y, width, height, repaint)
+        handle = self.NativeWindowHandle
+        if handle:
+            return GetWindowText(handle)
 
-    def GetWindowText(self):
+    def SetWindowText(self, text: str) -> bool:
         """
-        Return str
-        Only work if Handle is valid
+        Call native SetWindowText if control has a valid native handle.
         """
-        hWnd = self.Handle
-        if hWnd:
-            return Win32API.GetWindowText(hWnd)
+        handle = self.NativeWindowHandle
+        if handle:
+            return SetWindowText(handle, text)
+        return False
 
-    def SetWindowText(self, text):
+    def SendKey(self, key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
-        text: str
-        Only work if Handle is valid
-        """
-        hWnd = self.Handle
-        if hWnd:
-            return Win32API.SetWindowText(hWnd, text)
-
-    def SendKey(self, key, waitTime=OPERATION_WAIT_TIME):
-        """
-        key: int, a value in class Keys
-        waitTime: float
-        Try to make control have focus first(if it doesn't have focus, you may need to call Click) and type a key
+        Make control have focus first and type a key.
+        `self.SetFocus` may not work for some controls, you may need to click it to make it have focus.
+        key: int, a key code value in class Keys.
+        waitTime: float.
         """
         self.SetFocus()
-        Win32API.SendKey(key, waitTime)
+        SendKey(key, waitTime)
 
-    def SendKeys(self, keys, interval=0.01, waitTime=OPERATION_WAIT_TIME):
+    def SendKeys(self, keys: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
-        keys: str, keys to type, see the docstring of Win32API.SendKeys
-        interval: float, seconds between keys
-        Try to make control have focus first(if it doesn't have focus, you may need to call Click) and type keys
+        Make control have focus first and type keys.
+        `self.SetFocus` may not work for some controls, you may need to click it to make it have focus.
+        keys: str, keys to type, see the docstring of `SendKeys`.
+        interval: float, seconds between keys.
         """
         self.SetFocus()
-        Win32API.SendKeys(keys, interval, waitTime)
+        SendKeys(keys, interval, waitTime)
 
-    def GetPixelColor(self, x, y):
+    def GetPixelColor(self, x: int, y: int) -> int:
         """
-        x: int
-        y: int
+        Call native `GetPixelColor` if control has a valid native handle.
+        Use `self.ToBitmap` if control doesn't have a valid native handle or you get many pixels.
+        x: int, internal x position.
+        y: int, internal y position.
         Return int, a color value in bgr.
-        Only work if Handle is valid"""
-        hWnd = self.Handle
-        if hWnd:
-            return Win32API.GetPixelColor(x, y, hWnd)
-
-    def ToBitmap(self, x=0, y=0, width=0, height=0):
+        r = bgr & 0x0000FF
+        g = (bgr & 0x00FF00) >> 8
+        b = (bgr & 0xFF0000) >> 16
         """
-        Capture control to a Bitmap object
-        x, y: int, the point in control's internal position(from 0,0)
-        width, height: int, image's width and height from x, y, use 0 for entire area,
-        If width(or height) < 0, image size will be control's width(or height) - width(or height)
+        handle = self.NativeWindowHandle
+        if handle:
+            return GetPixelColor(x, y, handle)
+
+    def ToBitmap(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> Bitmap:
+        """
+        Capture control to a Bitmap object.
+        x, y: int, the point in control's internal position(from 0,0).
+        width, height: int, image's width and height from x, y, use 0 for entire area.
+                       If width(or height) < 0, image size will be control's width(or height) - width(or height).
         """
         bitmap = Bitmap()
         bitmap.FromControl(self, x, y, width, height)
         return bitmap
 
-    def CaptureToImage(self, savePath, x=0, y=0, width=0, height=0):
+    def CaptureToImage(self, savePath: str, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> bool:
         """
-        Capture control to a image file
-        savePath: str, shoud end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff
-        x, y: int, the point in control's internal position(from 0,0)
-        width, height: int, image's width and height from x, y, use 0 for entire area,
-        If width(or height) < 0, image size will be control's width(or height) - width(or height)
+        Capture control to a image file.
+        savePath: str, should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff.
+        x, y: int, the point in control's internal position(from 0,0).
+        width, height: int, image's width and height from x, y, use 0 for entire area.
+                       If width(or height) < 0, image size will be control's width(or height) - width(or height).
+        Return bool, True if succeed otherwise False.
         """
         bitmap = Bitmap()
         if bitmap.FromControl(self, x, y, width, height):
             return bitmap.ToFile(savePath)
+        return False
 
-    def Convert(self):
-        """
-        Return an instance of the control's real type
-        For example: if self's ControlType is EditControl, return an EditControl
-        """
-        return Control.CreateControlFromControl(self)
+    def IsTopLevel(self) -> bool:
+        """Determine whether current control is top level."""
+        handle = self.NativeWindowHandle
+        if handle:
+            return GetAncestor(handle, GAFlag.Root) == handle
+        return False
 
-    @staticmethod
-    def CreateControlFromElement(element):
+    def GetTopLevelControl(self):
         """
-        element: int, the value of IUIAutomationElement
-        Return an instance of the control's real type
+        Get the top level control which current control lays.
+        If current control is top level, return self.
+        If current control is root control, return None.
+        Return `PaneControl` or `WindowControl` or None.
         """
-        if element:
-            controlType = _AutomationClient.instance().dll.GetElementControlType(element)
-            if controlType in ControlDict:
-                return ControlDict[controlType](element)
+        handle = self.NativeWindowHandle
+        if handle:
+            topHandle = GetAncestor(handle, GAFlag.Root)
+            if topHandle:
+                if topHandle == handle:
+                    return self
+                else:
+                    return ControlFromHandle(topHandle)
             else:
-                Logger.WriteLine("GetElementControlType returns {}, invalid ControlType!".format(controlType), ConsoleColor.Red)  #rarely happens
-
-    @staticmethod
-    def CreateControlFromControl(control):
-        """
-        control: Control, will add ref for control's element
-        Return an instance of the control's real type
-        For example: if control's ControlType is EditControl, return an EditControl
-        """
-        newControl = Control.CreateControlFromElement(control.Element)
-        _AutomationClient.instance().dll.ElementAddRef(control.Element)
-        return newControl
-
-    def __str__(self):
-        if IsPy3:
-            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle)
+                #self is root control
+                pass
         else:
-            strClassName = self.ClassName.encode('gbk')
-            strAutomationId = self.AutomationId.encode('gbk')
-            try:
-                strName = self.Name.encode('gbk')
-            except Exception:
-                strName = 'Error occured: Name can\'t be converted to gbk, try unicode'
-            return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, strClassName, strAutomationId, self.BoundingRectangle, strName, self.Handle)
-
-
-    # def __repr__(self):
-        # return '[{0}]'.format(self)
-
-    def __unicode__(self):
-        return u'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.Handle)
-
-
-#Patterns -----
-
-class DockPattern:
-    def IsDockPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_DockPatternId) != 0
-    #todo
-
-
-class ExpandCollapsePattern:
-    def IsExpandCollapsePatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId) != 0
-
-    def Expand(self, waitTime=OPERATION_WAIT_TIME):
-        """waitTime: float"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
-        if pattern:
-            _AutomationClient.instance().dll.ExpandCollapsePatternExpand(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            time.sleep(waitTime)
-        else:
-            Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
-
-    def Collapse(self, waitTime=OPERATION_WAIT_TIME):
-        """waitTime: float"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
-        if pattern:
-            _AutomationClient.instance().dll.ExpandCollapsePatternCollapse(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            time.sleep(waitTime)
-        else:
-            Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentExpandCollapseState(self):
-        """Return an int value in class ExpandCollapseState """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ExpandCollapsePatternId)
-        if pattern:
-            state = _AutomationClient.instance().dll.ExpandCollapsePatternCurrentExpandCollapseState(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return state
-        else:
-            Logger.WriteLine('ExpandCollapsePattern is not supported!', ConsoleColor.Yellow)
-
-
-class GridItemPattern:
-    def IsGridItemPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId) != 0
-
-    def CurrentContainingGrid(self):
-        """Return Control"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
-        if pattern:
-            element = _AutomationClient.instance().dll.GridItemPatternCurrentContainingGrid(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if element:
-                return Control.CreateControlFromElement(element)
-        else:
-            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentRow(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.GridItemPatternCurrentRow(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentColumn(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.GridItemPatternCurrentColumn(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentRowSpan(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.GridItemPatternCurrentRowSpan(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentColumnSpan(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridItemPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.GridItemPatternCurrentColumnSpan(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('GridItemPattern is not supported!', ConsoleColor.Yellow)
-
-
-class GridPattern:
-    def IsGridPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId) != 0
-
-    def GetItem(self, row, column):
-        """Return Control"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
-        if pattern:
-            element = _AutomationClient.instance().dll.GridPatternGetItem(pattern, row, column)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if element:
-                return Control.CreateControlFromElement(element)
-        else:
-            Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentRowCount(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.GridPatternCurrentRowCount(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentColumnCount(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_GridPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.GridPatternCurrentColumnCount(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('GridPattern is not supported!', ConsoleColor.Yellow)
-
-
-class InvokePattern:
-    def IsInvokePatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId) != 0
-
-    def Invoke(self, waitTime=OPERATION_WAIT_TIME):
-        """waitTime: float"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_InvokePatternId)
-        if pattern:
-            _AutomationClient.instance().dll.InvokePatternInvoke(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            time.sleep(waitTime)
-        else:
-            Logger.WriteLine('InvokePattern is not supported!', ConsoleColor.Yellow)
-
-
-class MultipleViewPattern:
-    def IsMultipleViewPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_MultipleViewPatternId) != 0
-    #todo
-
-
-class ScrollItemPattern:
-    def IsScrollItemPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId) != 0
-
-    def ScrollIntoView(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Scroll the control into view, so it can be seen.
-        """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollItemPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.ScrollItemPatternScrollIntoView(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('ScrollItemPattern is not supported!', ConsoleColor.Yellow)
-
-
-class ScrollPattern:
-    def IsScrollPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId) != 0
-
-    def CurrentHorizontallyScrollable(self):
-        """Return bool"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
-        if pattern:
-            scroll = _AutomationClient.instance().dll.ScrollPatternCurrentHorizontallyScrollable(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return scroll
-        else:
-            Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentHorizontalViewSize(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
-        if pattern:
-            size = _AutomationClient.instance().dll.ScrollPatternCurrentHorizontalViewSize(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return size
-        else:
-            Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentHorizontalScrollPercent(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
-        if pattern:
-            percent = _AutomationClient.instance().dll.ScrollPatternCurrentHorizontalScrollPercent(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return percent
-        else:
-            Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentVerticallyScrollable(self):
-        """Return bool"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
-        if pattern:
-            scroll = _AutomationClient.instance().dll.ScrollPatternCurrentVerticallyScrollable(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return scroll
-        else:
-            Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentVerticalViewSize(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
-        if pattern:
-            size = _AutomationClient.instance().dll.ScrollPatternCurrentVerticalViewSize(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return size
-        else:
-            Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentVerticalScrollPercent(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
-        if pattern:
-            percent = _AutomationClient.instance().dll.ScrollPatternCurrentVerticalScrollPercent(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return percent
-        else:
-            Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
-
-    def SetScrollPercent(self, horizontalPercent, verticalPercent):
-        """
-        horizontalPercent: int, in range [0,100]
-        verticalPercent: int, in range [0,100]
-        """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ScrollPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.ScrollPatternSetScrollPercent(pattern, horizontalPercent, verticalPercent)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('ScrollPattern is not supported!', ConsoleColor.Yellow)
-
-
-class SelectionItemPattern:
-    def IsSelectionItemPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId) != 0
-
-    def Select(self, waitTime=OPERATION_WAIT_TIME):
-        """waitTime: float"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.SelectionItemPatternSelect(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
-
-    def AddToSelection(self):
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.SelectionItemPatternAddToSelection(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
-
-    def RemoveFromSelection(self):
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.SelectionItemPatternRemoveFromSelection(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentIsSelected(self):
-        """Return bool"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionItemPatternId)
-        if pattern:
-            isSelect = _AutomationClient.instance().dll.SelectionItemPatternCurrentIsSelected(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return bool(isSelect)
-        else:
-            Logger.WriteLine('SelectionItemPattern is not supported!', ConsoleColor.Yellow)
-
-
-class SelectionPattern:
-    def IsSelectionPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId) != 0
-
-    def GetCurrentSelection(self):
-        """Return int, pointer of an IUIAutomationElementArray"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_SelectionPatternId)
-        if pattern:
-            pElementArray = _AutomationClient.instance().dll.SelectionPatternGetCurrentSelection(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return pElementArray
-        else:
-            Logger.WriteLine('SelectionPattern is not supported!', ConsoleColor.Yellow)
-
-
-class RangeValuePattern:
-    def IsRangeValuePatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId) != 0
-
-    def RangeValuePatternCurrentValue(self):
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.RangeValuePatternCurrentValue(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
-
-    def RangeValuePatternSetValue(self, value):
-        """value: int, in range [0,100]"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
-        if pattern:
-            _AutomationClient.instance().dll.RangeValuePatternSetValue(pattern, value)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentMaximum(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.RangeValuePatternCurrentMaximum(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentMinimum(self):
-        """Return int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_RangeValuePatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.RangeValuePatternCurrentMinimum(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('RangeValuePattern is not supported!', ConsoleColor.Yellow)
-
-
-class TableItemPattern:
-    def IsTableItemPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId) != 0
-
-    def CurrentRowHeaderItems(self):
-        """Return a list of Control"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId)
-        if pattern:
-            lists = []
-            iUIAutomationElementArray = _AutomationClient.instance().dll.TableItemPatternCurrentRowHeaderItems(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if iUIAutomationElementArray:
-                length = _AutomationClient.instance().dll.ElementArrayGetLength(iUIAutomationElementArray)
-                for i in range(length):
-                    lists.append(Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
-                _AutomationClient.instance().dll.ReleaseElementArray(iUIAutomationElementArray)
-            return lists
-        else:
-            Logger.WriteLine('TableItemPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentColumnHeaderItems(self):
-        """Return a list of Control"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TableItemPatternId)
-        if pattern:
-            lists = []
-            iUIAutomationElementArray = _AutomationClient.instance().dll.TableItemPatternCurrentColumnHeaderItems(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if iUIAutomationElementArray:
-                length = _AutomationClient.instance().dll.ElementArrayGetLength(iUIAutomationElementArray)
-                for i in range(length):
-                    lists.append(Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
-                _AutomationClient.instance().dll.ReleaseElementArray(iUIAutomationElementArray)
-            return lists
-        else:
-            Logger.WriteLine('TableItemPattern is not supported!', ConsoleColor.Yellow)
-
-
-class TablePattern:
-    def IsTablePatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId) != 0
-
-    def CurrentRowHeaders(self):
-        """Return a list of Control"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
-        if pattern:
-            lists = []
-            iUIAutomationElementArray = _AutomationClient.instance().dll.TablePatternCurrentRowHeaders(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if iUIAutomationElementArray:
-                length = _AutomationClient.instance().dll.ElementArrayGetLength(iUIAutomationElementArray)
-                for i in range(length):
-                    lists.append(Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
-                _AutomationClient.instance().dll.ReleaseElementArray(iUIAutomationElementArray)
-            return lists
-        else:
-            Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentColumnHeaders(self):
-        """Return a list of Control"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
-        if pattern:
-            lists = []
-            iUIAutomationElementArray = _AutomationClient.instance().dll.TablePatternCurrentColumnHeaders(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            if iUIAutomationElementArray:
-                length = _AutomationClient.instance().dll.ElementArrayGetLength(iUIAutomationElementArray)
-                for i in range(length):
-                    lists.append(Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
-                _AutomationClient.instance().dll.ReleaseElementArray(iUIAutomationElementArray)
-            return lists
-        else:
-            Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentRowOrColumnMajor(self):
-        """Return int, a value in RowOrColumnMajor"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TablePatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.TablePatternCurrentRowOrColumnMajor(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('TablePattern is not supported!', ConsoleColor.Yellow)
-
-
-class TextPattern:
-    def IsTextPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TextPatternId) != 0
-    #todo
-
-
-class TogglePattern:
-    def IsTogglePatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId) != 0
-
-    def Toggle(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Toggle or UnToggle the control
-        """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
-        if pattern:
-            _AutomationClient.instance().dll.TogglePatternToggle(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            time.sleep(waitTime)
-        else:
-            Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentToggleState(self):
-        """Return an int value in class ToggleState"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TogglePatternId)
-        if pattern:
-            state = _AutomationClient.instance().dll.TogglePatternCurrentToggleState(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return state
-        else:
-            Logger.WriteLine('TogglePattern is not supported!', ConsoleColor.Yellow)
-
-
-class TransformPattern:
-    def IsTransformPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId) != 0
-
-    def Move(self, x, y):
-        """
-        x: int
-        y: int
-        """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.TransformPatternMove(pattern, x, y)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('TransformPattern is not supported!', ConsoleColor.Yellow)
-
-    def Resize(self, width, height):
-        """
-        width: int
-        height: int
-        """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.TransformPatternResize(pattern, width, height)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('TransformPattern is not supported!', ConsoleColor.Yellow)
-
-    def Rotate(self, degrees):
-        """degrees: int"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TransformPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.TransformPatternRotate(pattern, degrees)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-        else:
-            Logger.WriteLine('TransformPattern is not supported!', ConsoleColor.Yellow)
-
-
-class TransformPattern2:
-    def IsTransformPattern2Available(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_TransformPattern2Id) != 0
-
-
-class ValuePattern:
-    def IsValuePatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId) != 0
-
-    def CurrentValue(self):
-        """Return str"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
-        if pattern:
-            bstrValue = _AutomationClient.instance().dll.ValuePatternCurrentValue(pattern)
-            if bstrValue:
-                cValue = ctypes.c_wchar_p(bstrValue)
-                value = cValue.value[:]
-                _AutomationClient.instance().dll.ReleasePattern(pattern)
-                ctypes.windll.OleAut32.SysFreeString(cValue)
-                return value
-        else:
-            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
-        return ''
-
-    def SetValue(self, value, waitTime=OPERATION_WAIT_TIME):
-        """
-        value: str
-        waitTime: float
-        """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.ValuePatternSetValue(pattern, ctypes.c_wchar_p(value))
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            time.sleep(waitTime)
-        else:
-            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentIsReadOnly(self):
-        """Return bool"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_ValuePatternId)
-        if pattern:
-            isReadOnly = _AutomationClient.instance().dll.ValuePatternCurrentIsReadOnly(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return bool(isReadOnly)
-        else:
-            Logger.WriteLine('ValuePattern is not supported!', ConsoleColor.Yellow)
-
-
-class WindowPattern:
-    def IsWindowPatternAvailable(self):
-        """Return bool"""
-        return _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId) != 0
-
-    def CurrentWindowVisualState(self):
-        """return int, a value in class WindowVisualState"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.WindowPatternCurrentWindowVisualState(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return value
-        else:
-            Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
-
-    def SetWindowVisualState(self, value, waitTime=OPERATION_WAIT_TIME):
-        """
-        value: int, a value in class WindowVisualState
-        waitTime: float
-        """
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.WindowPatternSetWindowVisualState(pattern, value)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            time.sleep(waitTime)
-        else:
-            Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentCanMaximize(self):
-        """Return bool"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.WindowPatternCurrentCanMaximize(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return bool(value)
-        else:
-            Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
-
-    def Maximize(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Set Window Maximize
-        """
-        if self.CurrentCanMaximize():
-            self.SetWindowVisualState(WindowVisualState.Maximized, waitTime)
-
-    def CurrentCanMinimize(self):
-        """Return bool"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.WindowPatternCurrentCanMinimize(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return bool(value)
-        else:
-            Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
-
-    def Minimize(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Set Window Maximize
-        """
-        if self.CurrentCanMinimize():
-            self.SetWindowVisualState(WindowVisualState.Minimized, waitTime)
-
-    def Normal(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Set Window to normal state. Similar to ShowWindow(ShowWindow.Restore)
-        """
-        self.SetWindowVisualState(WindowVisualState.Normal, waitTime)
-
-    def IsMaximize(self):
-        """Return bool"""
-        return self.CurrentWindowVisualState() == WindowVisualState.Maximized
-
-    def IsMinimize(self):
-        """Return bool"""
-        return self.CurrentWindowVisualState() == WindowVisualState.Minimized
-
-    def CurrentIsModal(self):
-        """Return bool"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.WindowPatternCurrentIsModal(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return bool(value)
-        else:
-            Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
-
-    def CurrentIsTopmost(self):
-        """Return bool"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
-        if pattern:
-            value = _AutomationClient.instance().dll.WindowPatternCurrentIsTopmost(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            return bool(value)
-        else:
-            Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
-
-    def Close(self, waitTime=OPERATION_WAIT_TIME):
-        """waitTime: float"""
-        pattern = _AutomationClient.instance().dll.GetElementPattern(self.Element, PatternId.UIA_WindowPatternId)
-        if pattern:
-            _AutomationClient.instance().dll.WindowPatternClose(pattern)
-            _AutomationClient.instance().dll.ReleasePattern(pattern)
-            time.sleep(waitTime)
-        else:
-            Logger.WriteLine('WindowPattern is not supported!', ConsoleColor.Yellow)
-
-
-#see Control Pattern Mapping for UI Automation Clients
-# https://docs.microsoft.com/en-us/dotnet/framework/ui-automation/control-pattern-mapping-for-ui-automation-clients
+            control = self
+            while True:
+                control = control.GetParentControl()
+                handle = control.NativeWindowHandle
+                if handle:
+                    topHandle = GetAncestor(handle, GAFlag.Root)
+                    return ControlFromHandle(topHandle)
+
+    def Control(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return Control(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ButtonControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ButtonControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def CalendarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return CalendarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def CheckBoxControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return CheckBoxControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ComboBoxControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ComboBoxControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def CustomControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return CustomControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def DataGridControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return DataGridControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def DataItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return DataItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def DocumentControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return DocumentControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def EditControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return EditControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def GroupControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return GroupControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def HeaderControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return HeaderControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def HeaderItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return HeaderItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def HyperlinkControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return HyperlinkControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ImageControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ImageControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ListControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ListControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ListItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ListItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def MenuControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return MenuControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def MenuBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return MenuBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def MenuItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return MenuItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def PaneControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return PaneControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ProgressBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ProgressBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def RadioButtonControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return RadioButtonControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ScrollBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ScrollBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def SemanticZoomControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return SemanticZoomControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def SeparatorControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return SeparatorControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def SliderControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return SliderControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def SpinnerControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return SpinnerControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def SplitButtonControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return SplitButtonControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def StatusBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return StatusBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def TabControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return TabControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def TabItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return TabItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def TableControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return TableControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def TextControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return TextControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ThumbControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ThumbControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def TitleBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return TitleBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ToolBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ToolBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def ToolTipControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return ToolTipControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def TreeControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return TreeControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def TreeItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return TreeItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+
+    def WindowControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties):
+        return WindowControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
 
 class AppBarControl(Control):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.AppBarControl)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.AppBarControl)
 
 
-class ButtonControl(Control, ExpandCollapsePattern, InvokePattern, TogglePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ButtonControl)
+class ButtonControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ButtonControl)
 
-
-class CalendarControl(Control, GridPattern, TablePattern, ScrollPattern, SelectionPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.CalendarControl)
-
-
-class CheckBoxControl(Control, TogglePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.CheckBoxControl)
-
-
-class ComboBoxControl(Control, ExpandCollapsePattern, SelectionPattern, ValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ComboBoxControl)
-
-    def Select(self, name, waitTime=OPERATION_WAIT_TIME):
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
         """
-        name: str
-        waitTime: float
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
+
+    def GetInvokePattern(self) -> InvokePattern:
+        """
+        Return `InvokePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.InvokePattern)
+
+    def GetTogglePattern(self) -> TogglePattern:
+        """
+        Return `TogglePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TogglePattern)
+
+
+class CalendarControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.CalendarControl)
+
+    def GetGridPattern(self) -> GridPattern:
+        """
+        Return `GridPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridPattern)
+
+    def GetTablePattern(self) -> TablePattern:
+        """
+        Return `TablePattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TablePattern)
+
+    def GetScrollPattern(self) -> ScrollPattern:
+        """
+        Return `ScrollPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollPattern)
+
+    def GetSelectionPattern(self) -> SelectionPattern:
+        """
+        Return `SelectionPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionPattern)
+
+
+class CheckBoxControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.CheckBoxControl)
+
+    def GetTogglePattern(self) -> TogglePattern:
+        """
+        Return `TogglePattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TogglePattern)
+
+
+class ComboBoxControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ComboBoxControl)
+
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
+        """
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
+
+    def GetSelectionPattern(self) -> SelectionPattern:
+        """
+        Return `SelectionPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionPattern)
+
+    def GetValuePattern(self) -> ValuePattern:
+        """
+        Return `ValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ValuePattern)
+
+    def Select(self, itemName: str = '', condition: Callable = None, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
         Show combobox's popup menu and select a item by name.
-        This is not a standard API in UIAutomation, here is a workaround.
+        itemName: str.
+        condition: Callable function(comboBoxItemName: str)->bool, if condition is valid, ignore itemName.
+        waitTime: float.
+        Some comboboxs doesn't support SelectionPattern, here is a workaround.
+        This method tries to and selection support.
         It may not work for some comboboxes, such as comboboxes in older Qt version.
-        If it doesn't work, you should write your own version Select, or it doesn't support selection at all
+        If it doesn't work, you should write your own version Select, or it doesn't support selection at all.
         """
-        supportExpandCollapse = self.IsExpandCollapsePatternAvailable()
-        if supportExpandCollapse:
-            self.Expand()
+        expandCollapsePattern = self.GetExpandCollapsePattern()
+        if expandCollapsePattern:
+            expandCollapsePattern.Expand()
         else:
             #Windows Form's ComboBoxControl doesn't support ExpandCollapsePattern
-            self.Click(-10, 0.5, False)
+            self.Click(x=-10, ratioY=0.5, simulateMove=False)
         find = False
-        listItemControl = self.ListItemControl(Name=name)
+        if condition:
+            listItemControl = self.ListItemControl(Compare=lambda c, d: condition(c.Name))
+        else:
+            listItemControl = self.ListItemControl(Name=itemName)
         if listItemControl.Exists(1):
-            listItemControl.ScrollIntoView()
+            scrollItemPattern = listItemControl.GetScrollItemPattern()
+            if scrollItemPattern:
+                scrollItemPattern.ScrollIntoView(waitTime=0.1)
             listItemControl.Click(waitTime=waitTime)
             find = True
         else:
             #ComboBox's popup window is a child of root control
             listControl = ListControl(searchDepth= 1)
             if listControl.Exists(1):
-                listItemControl = listControl.ListItemControl(Name=name)
+                if condition:
+                    listItemControl = self.ListItemControl(Compare=lambda c, d: condition(c.Name))
+                else:
+                    listItemControl = self.ListItemControl(Name=itemName)
                 if listItemControl.Exists(0, 0):
+                    scrollItemPattern = listItemControl.GetScrollItemPattern()
+                    if scrollItemPattern:
+                        scrollItemPattern.ScrollIntoView(waitTime=0.1)
                     listItemControl.Click(waitTime=waitTime)
                     find = True
         if not find:
-            Logger.ColorfulWriteLine('Can\'t find <Color=Cyan>{}</Color> in ComboBoxControl'.format(name), ConsoleColor.Yellow)
-            if supportExpandCollapse:
-                self.Collapse(waitTime)
+            Logger.ColorfulWriteLine('Can\'t find <Color=Cyan>{}</Color> in ComboBoxControl or it does not support selection.'.format(itemName), ConsoleColor.Yellow)
+            if expandCollapsePattern:
+                expandCollapsePattern.Collapse(waitTime)
             else:
-                self.Click(-10, 0.5, False, waitTime)
+                self.Click(x=-10, ratioY=0.5, simulateMove=False, waitTime=waitTime)
+        return find
 
 
 class CustomControl(Control):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.CustomControl)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.CustomControl)
 
 
-class DataGridControl(Control, GridPattern, ScrollPattern, SelectionPattern, TablePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.DataGridControl)
+class DataGridControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.DataGridControl)
+
+    def GetGridPattern(self) -> GridPattern:
+        """
+        Return `GridPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridPattern)
+
+    def GetScrollPattern(self) -> ScrollPattern:
+        """
+        Return `ScrollPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollPattern)
+
+    def GetSelectionPattern(self) -> SelectionPattern:
+        """
+        Return `SelectionPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionPattern)
+
+    def GetTablePattern(self) -> TablePattern:
+        """
+        Return `TablePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TablePattern)
 
 
-class DataItemControl(Control, SelectionItemPattern, ExpandCollapsePattern, GridItemPattern, ScrollItemPattern, TableItemPattern, TogglePattern, ValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.DataItemControl)
+class DataItemControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.DataItemControl)
+
+    def GetSelectionItemPattern(self) -> SelectionItemPattern:
+        """
+        Return `SelectionItemPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionItemPattern)
+
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
+        """
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
+
+    def GetGridItemPattern(self) -> GridItemPattern:
+        """
+        Return `GridItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridItemPattern)
+
+    def GetScrollItemPattern(self) -> ScrollItemPattern:
+        """
+        Return `ScrollItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollItemPattern)
+
+    def GetTableItemPattern(self) -> TableItemPattern:
+        """
+        Return `TableItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TableItemPattern)
+
+    def GetTogglePattern(self) -> TogglePattern:
+        """
+        Return `TogglePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TogglePattern)
+
+    def GetValuePattern(self) -> ValuePattern:
+        """
+        Return `ValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ValuePattern)
 
 
-class DocumentControl(Control, TextPattern, ScrollPattern, ValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.DocumentControl)
+class DocumentControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.DocumentControl)
+
+    def GetTextPattern(self) -> TextPattern:
+        """
+        Return `TextPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TextPattern)
+
+    def GetScrollPattern(self) -> ScrollPattern:
+        """
+        Return `ScrollPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollPattern)
+
+    def GetValuePattern(self) -> ValuePattern:
+        """
+        Return `ValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ValuePattern)
 
 
-class EditControl(Control, RangeValuePattern, TextPattern, ValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.EditControl)
+class EditControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.EditControl)
+
+    def GetRangeValuePattern(self) -> RangeValuePattern:
+        """
+        Return `RangeValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.RangeValuePattern)
+
+    def GetTextPattern(self) -> TextPattern:
+        """
+        Return `TextPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TextPattern)
+
+    def GetValuePattern(self) -> ValuePattern:
+        """
+        Return `ValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ValuePattern)
 
 
-class GroupControl(Control, ExpandCollapsePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.GroupControl)
+class GroupControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.GroupControl)
+
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
+        """
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
 
 
-class HeaderControl(Control, TransformPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.HeaderControl)
+class HeaderControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.HeaderControl)
+
+    def GetTransformPattern(self) -> TransformPattern:
+        """
+        Return `TransformPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TransformPattern)
 
 
-class HeaderItemControl(Control, InvokePattern, TransformPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.HeaderItemControl)
+class HeaderItemControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.HeaderItemControl)
+
+    def GetInvokePattern(self) -> InvokePattern:
+        """
+        Return `InvokePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.InvokePattern)
+
+    def GetTransformPattern(self) -> TransformPattern:
+        """
+        Return `TransformPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TransformPattern)
 
 
-class HyperlinkControl(Control, InvokePattern, ValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.HyperlinkControl)
+class HyperlinkControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.HyperlinkControl)
+
+    def GetInvokePattern(self) -> InvokePattern:
+        """
+        Return `InvokePattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.InvokePattern)
+
+    def GetValuePattern(self) -> ValuePattern:
+        """
+        Return `ValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ValuePattern)
 
 
-class ImageControl(Control, GridItemPattern, TableItemPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ImageControl)
+class ImageControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ImageControl)
+
+    def GetGridItemPattern(self) -> GridItemPattern:
+        """
+        Return `GridItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridItemPattern)
+
+    def GetTableItemPattern(self) -> TableItemPattern:
+        """
+        Return `TableItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TableItemPattern)
 
 
-class ListControl(Control, GridPattern, MultipleViewPattern, ScrollPattern, SelectionPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ListControl)
+class ListControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ListControl)
 
-    def GetSelectedItems(self):
-        """Return a list of Control which are selected"""
-        lists = []
-        iUIAutomationElementArray = self.GetCurrentSelection()
-        if iUIAutomationElementArray:
-            length = _AutomationClient.instance().dll.ElementArrayGetLength(iUIAutomationElementArray)
-            for i in range(length):
-                lists.append(Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementArrayGetElement(iUIAutomationElementArray, i)))
-            _AutomationClient.instance().dll.ReleaseElementArray(iUIAutomationElementArray)
-        return lists
+    def GetGridPattern(self) -> GridPattern:
+        """
+        Return `GridPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridPattern)
+
+    def GetMultipleViewPattern(self) -> MultipleViewPattern:
+        """
+        Return `MultipleViewPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.MultipleViewPattern)
+
+    def GetScrollPattern(self) -> ScrollPattern:
+        """
+        Return `ScrollPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollPattern)
+
+    def GetSelectionPattern(self) -> SelectionPattern:
+        """
+        Return `SelectionPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionPattern)
 
 
-class ListItemControl(Control, SelectionItemPattern, ExpandCollapsePattern, GridItemPattern, InvokePattern, ScrollItemPattern, TogglePattern, ValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ListItemControl)
+class ListItemControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ListItemControl)
+
+    def GetSelectionPattern(self) -> SelectionPattern:
+        """
+        Return `SelectionPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionPattern)
+
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
+        """
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
+
+    def GetGridItemPattern(self) -> GridItemPattern:
+        """
+        Return `GridItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridItemPattern)
+
+    def GetInvokePattern(self) -> InvokePattern:
+        """
+        Return `InvokePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.InvokePattern)
+
+    def GetScrollItemPattern(self) -> ScrollItemPattern:
+        """
+        Return `ScrollItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollItemPattern)
+
+    def GetTogglePattern(self) -> TogglePattern:
+        """
+        Return `TogglePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TogglePattern)
+
+    def GetValuePattern(self) -> ValuePattern:
+        """
+        Return `ValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ValuePattern)
 
 
 class MenuControl(Control):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.MenuControl)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.MenuControl)
 
 
 class MenuBarControl(Control):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.MenuBarControl)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.MenuBarControl)
+
+    def GetDockPattern(self) -> DockPattern:
+        """
+        Return `DockPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.DockPattern)
+
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
+        """
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
+
+    def GetTransformPattern(self) -> TransformPattern:
+        """
+        Return `TransformPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TransformPattern)
 
 
-class MenuItemControl(Control, ExpandCollapsePattern, InvokePattern, SelectionItemPattern, TogglePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.MenuItemControl)
+class MenuItemControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.MenuItemControl)
+
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
+        """
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
+
+    def GetInvokePattern(self) -> InvokePattern:
+        """
+        Return `InvokePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.InvokePattern)
+
+    def GetSelectionItemPattern(self) -> SelectionItemPattern:
+        """
+        Return `SelectionItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionItemPattern)
+
+    def GetTogglePattern(self) -> TogglePattern:
+        """
+        Return `TogglePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TogglePattern)
 
 
-class PaneControl(Control, DockPattern, ScrollPattern, TransformPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.PaneControl)
-
-    def SetTopmost(self, isTopmost=True, waitTime=OPERATION_WAIT_TIME):
+class TopLevel():
+    """Class TopLevel"""
+    def SetTopmost(self, isTopmost: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
-        isTopmost: bool
-        Only call this if PaneControl is a top level window
+        Set top level window topmost.
+        isTopmost: bool.
+        waitTime: float.
         """
-        ret = Win32API.SetWindowTopmost(self.Handle, isTopmost)
-        time.sleep(waitTime)
-        return ret
-
-    def CurrentIsTopmost(self):
-        """
-        Return bool
-        Only call this if PaneControl is a top level window
-        """
-        GWL_EXSTYLE = -20
-        WS_EX_TOPMOST = 0x00000008
-        return bool(Win32API.GetWindowLong(self.Handle, GWL_EXSTYLE) & WS_EX_TOPMOST)
-
-    def SwitchToThisWindow(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Only call this if PaneControl is a top level window
-        """
-        Win32API.SwitchToThisWindow(self.Handle)
-        time.sleep(waitTime)
-
-    def Maximize(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Set window Maximize. Only call this if PaneControl is a top level window
-        """
-        self.ShowWindow(ShowWindow.ShowMaximized, waitTime)
-
-    def IsMaximize(self):
-        """
-        Return bool
-        Only call this if PaneControl is a top level window
-        """
-        return bool(Win32API.IsZoomed(self.Handle))
-
-    def Minimize(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Set window Minimize. Only call this if PaneControl is a top level window
-        """
-        self.ShowWindow(ShowWindow.ShowMinimized, waitTime)
-
-    def IsMinimize(self):
-        """
-        Return bool
-        Only call this if PaneControl is a top level window
-        """
-        return bool(Win32API.IsIconic(self.Handle))
-
-    def Restore(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Restore window to normal state. Only call this if PaneControl is a top level window.
-        Similar to SwitchToThisWindow
-        """
-        Win32API.ShowWindow(self.Handle, ShowWindow.Restore)
-        time.sleep(waitTime)
-
-    def SetActive(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Only call this if PaneControl is a top level window
-        """
-        hwnd = self.Handle
-        if hwnd:
-            if Win32API.IsIconic(hwnd):
-                Win32API.ShowWindow(hwnd, ShowWindow.Restore)
-            elif not Win32API.IsWindowVisible(hwnd):
-                Win32API.ShowWindow(hwnd, ShowWindow.Show)
-            ret = Win32API.SetForegroundWindow(self.Handle)  # may fail if foreground windows's process is not python
+        if self.IsTopLevel():
+            ret = SetWindowTopmost(self.NativeWindowHandle, isTopmost)
             time.sleep(waitTime)
             return ret
+        return False
+
+    def IsTopmost(self) -> bool:
+        if self.IsTopLevel():
+            GWL_EXSTYLE = -20
+            WS_EX_TOPMOST = 0x00000008
+            return bool(GetWindowLong(self.NativeWindowHandle, GWL_EXSTYLE) & WS_EX_TOPMOST)
+        return False
+
+    def SwitchToThisWindow(self, waitTime: float = OPERATION_WAIT_TIME) -> None:
+        if self.IsTopLevel():
+            SwitchToThisWindow(self.NativeWindowHandle)
+            time.sleep(waitTime)
+
+    def Maximize(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Set top level window maximize.
+        """
+        if self.IsTopLevel():
+            return self.ShowWindow(SW.ShowMaximized, waitTime)
+        return False
+
+    def IsMaximize(self) -> bool:
+        if self.IsTopLevel():
+            return bool(IsZoomed(self.NativeWindowHandle))
+        return False
+
+    def Minimize(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        if self.IsTopLevel():
+            return self.ShowWindow(SW.Restore, waitTime)
+        return False
+
+    def IsMinimize(self) -> bool:
+        if self.IsTopLevel():
+            return bool(IsIconic(self.NativeWindowHandle))
+        return False
+
+    def Restore(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """
+        Restore window to normal state.
+        Similar to SwitchToThisWindow.
+        """
+        if self.IsTopLevel():
+            return self.ShowWindow(SW.Restore, waitTime)
+        return False
+
+    def MoveToCenter(self) -> bool:
+        """
+        Move window to screen center.
+        """
+        if self.IsTopLevel():
+            left, top, right, bottom = self.BoundingRectangle
+            width, height = right - left, bottom - top
+            screenWidth, screenHeight = Win32API.GetScreenSize()
+            x, y = (screenWidth-width)//2, (screenHeight-height)//2
+            if x < 0: x = 0
+            if y < 0: y = 0
+            return SetWindowPos(self.Handle, SWP.HWND_Top, x, y, 0, 0, SWP.SWP_NoSize)
+        return False
+
+    def SetActive(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        """Set top level window active."""
+        if self.IsTopLevel():
+            handle = self.NativeWindowHandle
+            if IsIconic(handle):
+                ret = ShowWindow(handle, SW.Restore)
+            elif not IsWindowVisible(handle):
+                ret = ShowWindow(handle, SW.Show)
+            ret = SetForegroundWindow(handle)  # may fail if foreground windows's process is not python
+            time.sleep(waitTime)
+            return ret
+        return False
 
 
-class ProgressBarControl(Control, RangeValuePattern, ValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ProgressBarControl)
+class PaneControl(Control, TopLevel):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.PaneControl)
+
+    def GetDockPattern(self) -> DockPattern:
+        """
+        Return `DockPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.DockPattern)
+
+    def GetScrollPattern(self) -> ScrollPattern:
+        """
+        Return `ScrollPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollPattern)
+
+    def GetTransformPattern(self) -> TransformPattern:
+        """
+        Return `TransformPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TransformPattern)
 
 
-class RadioButtonControl(Control, SelectionItemPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.RadioButtonControl)
+class ProgressBarControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ProgressBarControl)
+
+    def GetRangeValuePattern(self) -> RangeValuePattern:
+        """
+        Return `RangeValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.RangeValuePattern)
+
+    def GetValuePattern(self) -> ValuePattern:
+        """
+        Return `ValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ValuePattern)
 
 
-class ScrollBarControl(Control, RangeValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ScrollBarControl)
+class RadioButtonControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.RadioButtonControl)
+
+    def GetSelectionItemPattern(self) -> SelectionItemPattern:
+        """
+        Return `SelectionItemPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionItemPattern)
+
+
+class ScrollBarControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ScrollBarControl)
+
+    def GetRangeValuePattern(self) -> RangeValuePattern:
+        """
+        Return `RangeValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.RangeValuePattern)
 
 
 class SemanticZoomControl(Control):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.SemanticZoomControl)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.SemanticZoomControl)
 
 
 class SeparatorControl(Control):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.SeparatorControl)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.SeparatorControl)
 
 
-class SliderControl(Control, RangeValuePattern, SelectionPattern, ValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.SliderControl)
+class SliderControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.SliderControl)
+
+    def GetRangeValuePattern(self) -> RangeValuePattern:
+        """
+        Return `RangeValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.RangeValuePattern)
+
+    def GetSelectionPattern(self) -> SelectionPattern:
+        """
+        Return `SelectionPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionPattern)
+
+    def GetValuePattern(self) -> ValuePattern:
+        """
+        Return `ValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ValuePattern)
 
 
-class SpinnerControl(Control, RangeValuePattern, SelectionPattern, ValuePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.SpinnerControl)
+class SpinnerControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.SpinnerControl)
+
+    def GetRangeValuePattern(self) -> RangeValuePattern:
+        """
+        Return `RangeValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.RangeValuePattern)
+
+    def GetSelectionPattern(self) -> SelectionPattern:
+        """
+        Return `SelectionPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionPattern)
+
+    def GetValuePattern(self) -> ValuePattern:
+        """
+        Return `ValuePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ValuePattern)
 
 
-class SplitButtonControl(Control, ExpandCollapsePattern, InvokePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.SplitButtonControl)
+class SplitButtonControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.SplitButtonControl)
+
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
+        """
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
+
+    def GetInvokePattern(self) -> InvokePattern:
+        """
+        Return `InvokePattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.InvokePattern)
 
 
-class StatusBarControl(Control, GridPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.StatusBarControl)
+class StatusBarControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.StatusBarControl)
+
+    def GetGridPattern(self) -> GridPattern:
+        """
+        Return `GridPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridPattern)
 
 
-class TabControl(Control, SelectionPattern, ScrollPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.TabControl)
+class TabControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.TabControl)
+
+    def GetSelectionPattern(self) -> SelectionPattern:
+        """
+        Return `SelectionPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionPattern)
+
+    def GetScrollPattern(self) -> ScrollPattern:
+        """
+        Return `ScrollPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollPattern)
 
 
-class TabItemControl(Control, SelectionItemPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.TabItemControl)
+class TabItemControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.TabItemControl)
+
+    def GetSelectionItemPattern(self) -> SelectionItemPattern:
+        """
+        Return `SelectionItemPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionItemPattern)
 
 
-class TableControl(Control, GridPattern, GridItemPattern, TablePattern, TableItemPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.TableControl)
+class TableControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.TableControl)
+
+    def GetGridPattern(self) -> GridPattern:
+        """
+        Return `GridPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridPattern)
+
+    def GetGridItemPattern(self) -> GridItemPattern:
+        """
+        Return `GridItemPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridItemPattern)
+
+    def GetTablePattern(self) -> TablePattern:
+        """
+        Return `TablePattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TablePattern)
+
+    def GetTableItemPattern(self) -> TableItemPattern:
+        """
+        Return `TableItemPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TableItemPattern)
 
 
-class TextControl(Control, GridItemPattern, TableItemPattern, TextPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.TextControl)
+class TextControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.TextControl)
+
+    def GetGridItemPattern(self) -> GridItemPattern:
+        """
+        Return `GridItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.GridItemPattern)
+
+    def GetTableItemPattern(self) -> TableItemPattern:
+        """
+        Return `TableItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TableItemPattern)
+
+    def GetTextPattern(self) -> TextPattern:
+        """
+        Return `TextPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TextPattern)
 
 
-class ThumbControl(Control, TransformPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ThumbControl)
+class ThumbControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ThumbControl)
+
+    def GetTransformPattern(self) -> TransformPattern:
+        """
+        Return `TransformPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TransformPattern)
 
 
 class TitleBarControl(Control):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.TitleBarControl)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.TitleBarControl)
 
 
-class ToolBarControl(Control, DockPattern, ExpandCollapsePattern, TransformPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ToolBarControl)
+class ToolBarControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ToolBarControl)
 
-
-class ToolTipControl(Control, TextPattern, WindowPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.ToolTipControl)
-
-
-class TreeControl(Control, ScrollPattern, SelectionPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.TreeControl)
-
-
-class TreeItemControl(Control, ExpandCollapsePattern, InvokePattern, ScrollItemPattern, SelectionItemPattern, TogglePattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.TreeItemControl)
-
-
-class WindowControl(Control, TransformPattern, WindowPattern, DockPattern):
-    def __init__(self, element=0, searchFromControl=None, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, **searchPorpertyDict):
-        Control.__init__(self, element, searchFromControl, searchDepth, searchWaitTime, foundIndex, **searchPorpertyDict)
-        self.AddSearchProperty(ControlType=ControlType.WindowControl)
-
-    def SetTopmost(self, isTopmost=True, waitTime=OPERATION_WAIT_TIME):
-        """isTopmost: bool"""
-        ret = Win32API.SetWindowTopmost(self.Handle, isTopmost)
-        time.sleep(waitTime)
-        return ret
-
-    def SwitchToThisWindow(self, waitTime=OPERATION_WAIT_TIME):
-        """waitTime: float"""
-        Win32API.SwitchToThisWindow(self.Handle)
-        time.sleep(waitTime)
-
-    def Restore(self, waitTime=OPERATION_WAIT_TIME):
+    def GetDockPattern(self) -> DockPattern:
         """
-        waitTime: float
-        Restore window to normal state. Similar to Normal
+        Return `DockPattern` if it supports the pattern else None(Conditional support according to MSDN).
         """
-        return self.ShowWindow(ShowWindow.Restore, waitTime)
+        return self.GetPattern(PatternId.DockPattern)
 
-    def MoveToCenter(self):
-        left, top, right, bottom = self.BoundingRectangle
-        width, height = right - left, bottom - top
-        screenWidth, screenHeight = Win32API.GetScreenSize()
-        x, y = (screenWidth-width)//2, (screenHeight-height)//2
-        if x < 0: x = 0
-        if y < 0: y = 0
-        return Win32API.SetWindowPos(self.Handle, SWP.HWND_TOP, x, y, 0, 0, SWP.SWP_NOSIZE)
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
+        """
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
 
-    def MetroClose(self, waitTime=OPERATION_WAIT_TIME):
+    def GetTransformPattern(self) -> TransformPattern:
         """
-        waitTime: float
-        Only work in Windows 8/8.1, if current window is Metro UI
+        Return `TransformPattern` if it supports the pattern else None(Conditional support according to MSDN).
         """
-        window = WindowControl(searchDepth=1, ClassName=METRO_WINDOW_CLASS_NAME)
-        if window.Exists(0, 0):
-            screenWidth, screenHeight = Win32API.GetScreenSize()
-            Win32API.MouseMoveTo(screenWidth // 2, 0, waitTime=0)
-            Win32API.MouseDragDrop(screenWidth // 2, 0, screenWidth // 2, screenHeight, waitTime=waitTime)
+        return self.GetPattern(PatternId.TransformPattern)
+
+
+class ToolTipControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.ToolTipControl)
+
+    def GetTextPattern(self) -> TextPattern:
+        """
+        Return `TextPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TextPattern)
+
+    def GetWindowPattern(self) -> WindowPattern:
+        """
+        Return `WindowPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.WindowPattern)
+
+
+class TreeControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.TreeControl)
+
+    def GetScrollPattern(self) -> ScrollPattern:
+        """
+        Return `ScrollPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollPattern)
+
+    def GetSelectionPattern(self) -> SelectionPattern:
+        """
+        Return `SelectionPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionPattern)
+
+
+class TreeItemControl(Control):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.TreeItemControl)
+
+    def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
+        """
+        Return `ExpandCollapsePattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ExpandCollapsePattern)
+
+    def GetInvokePattern(self) -> InvokePattern:
+        """
+        Return `InvokePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.InvokePattern)
+
+    def GetScrollItemPattern(self) -> ScrollItemPattern:
+        """
+        Return `ScrollItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.ScrollItemPattern)
+
+    def GetSelectionItemPattern(self) -> SelectionItemPattern:
+        """
+        Return `SelectionItemPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.SelectionItemPattern)
+
+    def GetTogglePattern(self) -> TogglePattern:
+        """
+        Return `TogglePattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TogglePattern)
+
+
+class WindowControl(Control, TopLevel):
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+        self.AddSearchProperties(ControlType=ControlType.WindowControl)
+        self._DockPattern = None
+        self._TransformPattern = None
+
+    def GetTransformPattern(self) -> TransformPattern:
+        """
+        Return `TransformPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.TransformPattern)
+
+    def GetWindowPattern(self) -> WindowPattern:
+        """
+        Return `WindowPattern` if it supports the pattern else None(Must support according to MSDN).
+        """
+        return self.GetPattern(PatternId.WindowPattern)
+
+    def GetDockPattern(self) -> DockPattern:
+        """
+        Return `DockPattern` if it supports the pattern else None(Conditional support according to MSDN).
+        """
+        return self.GetPattern(PatternId.DockPattern)
+
+    def MetroClose(self, waitTime: float = OPERATION_WAIT_TIME) -> None:
+        """
+        Only work on Windows 8/8.1, if current window is Metro UI.
+        waitTime: float.
+        """
+        if self.ClassName == METRO_WINDOW_CLASS_NAME:
+            screenWidth, screenHeight = GetScreenSize()
+            MoveTo(screenWidth // 2, 0, waitTime=0)
+            DragDrop(screenWidth // 2, 0, screenWidth // 2, screenHeight, waitTime=waitTime)
         else:
             Logger.WriteLine('Window is not Metro!', ConsoleColor.Yellow)
 
-    def SetActive(self, waitTime=OPERATION_WAIT_TIME):
-        """
-        waitTime: float
-        Similar to SwitchToThisWindow
-        """
-        curState = self.CurrentWindowVisualState()
-        if curState == WindowVisualState.Minimized:
-            self.ShowWindow(ShowWindow.Restore)
-        elif curState == WindowVisualState.Maximized:
-            self.ShowWindow(ShowWindow.Maximize)
-        else:
-            self.ShowWindow(ShowWindow.Show)
-        ret = Win32API.SetForegroundWindow(self.Handle)  # may fail if foreground windows's process is not python
-        time.sleep(waitTime)
-        return ret
+
+ControlConstructors = {
+    ControlType.AppBarControl: AppBarControl,
+    ControlType.ButtonControl: ButtonControl,
+    ControlType.CalendarControl: CalendarControl,
+    ControlType.CheckBoxControl: CheckBoxControl,
+    ControlType.ComboBoxControl: ComboBoxControl,
+    ControlType.CustomControl: CustomControl,
+    ControlType.DataGridControl: DataGridControl,
+    ControlType.DataItemControl: DataItemControl,
+    ControlType.DocumentControl: DocumentControl,
+    ControlType.EditControl: EditControl,
+    ControlType.GroupControl: GroupControl,
+    ControlType.HeaderControl: HeaderControl,
+    ControlType.HeaderItemControl: HeaderItemControl,
+    ControlType.HyperlinkControl: HyperlinkControl,
+    ControlType.ImageControl: ImageControl,
+    ControlType.ListControl: ListControl,
+    ControlType.ListItemControl: ListItemControl,
+    ControlType.MenuBarControl: MenuBarControl,
+    ControlType.MenuControl: MenuControl,
+    ControlType.MenuItemControl: MenuItemControl,
+    ControlType.PaneControl: PaneControl,
+    ControlType.ProgressBarControl: ProgressBarControl,
+    ControlType.RadioButtonControl: RadioButtonControl,
+    ControlType.ScrollBarControl: ScrollBarControl,
+    ControlType.SemanticZoomControl: SemanticZoomControl,
+    ControlType.SeparatorControl: SeparatorControl,
+    ControlType.SliderControl: SliderControl,
+    ControlType.SpinnerControl: SpinnerControl,
+    ControlType.SplitButtonControl: SplitButtonControl,
+    ControlType.StatusBarControl: StatusBarControl,
+    ControlType.TabControl: TabControl,
+    ControlType.TabItemControl: TabItemControl,
+    ControlType.TableControl: TableControl,
+    ControlType.TextControl: TextControl,
+    ControlType.ThumbControl: ThumbControl,
+    ControlType.TitleBarControl: TitleBarControl,
+    ControlType.ToolBarControl: ToolBarControl,
+    ControlType.ToolTipControl: ToolTipControl,
+    ControlType.TreeControl: TreeControl,
+    ControlType.TreeItemControl: TreeItemControl,
+    ControlType.WindowControl: WindowControl,
+}
 
 
-ControlDict = {
-            ControlType.AppBarControl : AppBarControl,
-            ControlType.ButtonControl : ButtonControl,
-            ControlType.CalendarControl : CalendarControl,
-            ControlType.CheckBoxControl : CheckBoxControl,
-            ControlType.ComboBoxControl : ComboBoxControl,
-            ControlType.CustomControl : CustomControl,
-            ControlType.DataGridControl : DataGridControl,
-            ControlType.DataItemControl : DataItemControl,
-            ControlType.DocumentControl : DocumentControl,
-            ControlType.EditControl : EditControl,
-            ControlType.GroupControl : GroupControl,
-            ControlType.HeaderControl : HeaderControl,
-            ControlType.HeaderItemControl : HeaderItemControl,
-            ControlType.HyperlinkControl : HyperlinkControl,
-            ControlType.ImageControl : ImageControl,
-            ControlType.ListControl : ListControl,
-            ControlType.ListItemControl : ListItemControl,
-            ControlType.MenuBarControl : MenuBarControl,
-            ControlType.MenuControl : MenuControl,
-            ControlType.MenuItemControl : MenuItemControl,
-            ControlType.PaneControl : PaneControl,
-            ControlType.ProgressBarControl : ProgressBarControl,
-            ControlType.RadioButtonControl : RadioButtonControl,
-            ControlType.ScrollBarControl : ScrollBarControl,
-            ControlType.SemanticZoomControl : SemanticZoomControl,
-            ControlType.SeparatorControl : SeparatorControl,
-            ControlType.SliderControl : SliderControl,
-            ControlType.SpinnerControl : SpinnerControl,
-            ControlType.SplitButtonControl : SplitButtonControl,
-            ControlType.StatusBarControl : StatusBarControl,
-            ControlType.TabControl : TabControl,
-            ControlType.TabItemControl : TabItemControl,
-            ControlType.TableControl : TableControl,
-            ControlType.TextControl : TextControl,
-            ControlType.ThumbControl : ThumbControl,
-            ControlType.TitleBarControl : TitleBarControl,
-            ControlType.ToolBarControl : ToolBarControl,
-            ControlType.ToolTipControl : ToolTipControl,
-            ControlType.TreeControl : TreeControl,
-            ControlType.TreeItemControl : TreeItemControl,
-            ControlType.WindowControl : WindowControl,
-        }
-
-
-class Logger:
-    FileName = '@AutomationLog.txt'
-    LineSep = '\n'
-    ColorName2Value = {
-        "Black"       : ConsoleColor.Black          ,
-        "DarkBlue"    : ConsoleColor.DarkBlue       ,
-        "DarkGreen"   : ConsoleColor.DarkGreen      ,
-        "DarkCyan"    : ConsoleColor.DarkCyan       ,
-        "DarkRed"     : ConsoleColor.DarkRed        ,
-        "DarkMagenta" : ConsoleColor.DarkMagenta    ,
-        "DarkYellow"  : ConsoleColor.DarkYellow     ,
-        "Gray"        : ConsoleColor.Gray           ,
-        "DarkGray"    : ConsoleColor.DarkGray       ,
-        "Blue"        : ConsoleColor.Blue           ,
-        "Green"       : ConsoleColor.Green          ,
-        "Cyan"        : ConsoleColor.Cyan           ,
-        "Red"         : ConsoleColor.Red            ,
-        "Magenta"     : ConsoleColor.Magenta        ,
-        "Yellow"      : ConsoleColor.Yellow         ,
-        "White"       : ConsoleColor.White          ,
-    }
-
-    @staticmethod
-    def SetLogFile(path):
-        """path: str"""
-        Logger.FileName = path
-
-    @staticmethod
-    def Write(log, consoleColor=ConsoleColor.Default, writeToFile=True, printToStdout=True, logFile=None, printTruncateLen=0):
-        """
-        log: any type
-        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        writeToFile: bool
-        printToStdout: bool
-        logFile: str, log file path
-        printTruncateLen: int
-        """
-        if IsPy3:
-            if not isinstance(log, str):
-                log = str(log)
-        else:
-            if not isinstance(log, str) and not isinstance(log, unicode):
-                log = unicode(log)
-        if printToStdout and sys.stdout:
-            isValidColor = (consoleColor >= ConsoleColor.Black and consoleColor <= ConsoleColor.White)
-            if isValidColor:
-                Win32API.SetConsoleColor(consoleColor)
-            try:
-                if printTruncateLen > 0 and len(log) > printTruncateLen:
-                    sys.stdout.write(log[:printTruncateLen] + '...')
-                else:
-                    sys.stdout.write(log)
-            except Exception as ex:
-                Win32API.SetConsoleColor(ConsoleColor.Red)
-                isValidColor = True
-                sys.stdout.write(ex.__class__.__name__ + ': can\'t print the log!')
-                if log.endswith(Logger.LineSep):
-                    sys.stdout.write(Logger.LineSep)
-            if isValidColor:
-                Win32API.ResetConsoleColor()
-            sys.stdout.flush()
-        if not writeToFile:
-            return
-        fileName = logFile if logFile else Logger.FileName
-        try:
-            fout = None
-            if IsPy3:
-                fout = open(fileName, 'a+', encoding='utf-8')
-            else:
-                fout = codecs.open(fileName, 'a+', 'utf-8')
-            fout.write(log)
-        except Exception as ex:
-            if sys.stdout:
-                sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
-        finally:
-            if fout:
-                fout.close()
-
-    @staticmethod
-    def WriteLine(log, consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
-        """
-        log: any type
-        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        writeToFile: bool
-        printToStdout: bool
-        logFile: str, log file path
-        """
-        if IsPy3:
-            if not isinstance(log, str):
-                log = str(log)
-        else:
-            if not isinstance(log, str) and not isinstance(log, unicode):
-                log = unicode(log)
-        Logger.Write(log + Logger.LineSep, consoleColor, writeToFile, printToStdout, logFile)
-
-    @staticmethod
-    def ColorfulWrite(log, consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
-        """
-        log: any type
-        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        writeToFile: bool
-        printToStdout: bool
-        logFile: str, log file path
-        ColorfulWrite('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorName2Value
-        """
-        text = []
-        start = 0
-        while True:
-            index1 = log.find('<Color=', start)
-            if index1 >= 0:
-                if index1 > start:
-                    text.append((log[start:index1], consoleColor))
-                index2 = log.find('>', index1)
-                colorName = log[index1+7:index2]
-                index3 = log.find('</Color>', index2 + 1)
-                text.append((log[index2+1:index3], Logger.ColorName2Value[colorName]))
-                start = index3 + 8
-            else:
-                if start < len(log):
-                    text.append((log[start:], consoleColor))
-                break
-        for t, c in text:
-            Logger.Write(t, c, writeToFile, printToStdout, logFile)
-
-    @staticmethod
-    def ColorfulWriteLine(log, consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
-        """
-        log: any type
-        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        writeToFile: bool
-        printToStdout: bool
-        logFile: str, log file path
-        ColorfulWriteLine('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorName2Value
-        """
-        Logger.ColorfulWrite(log + Logger.LineSep, consoleColor, writeToFile, printToStdout, logFile)
-
-    @staticmethod
-    def Log(log='', consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
-        """
-        log: any type
-        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        writeToFile: bool
-        printToStdout: bool
-        logFile: str, log file path
-        """
-        t = datetime.datetime.now()
-        frame = sys._getframe(1)
-        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}{}'.format(t.year, t.month, t.day,
-            t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log, Logger.LineSep)
-        Logger.Write(log, consoleColor, writeToFile, printToStdout, logFile)
-
-    @staticmethod
-    def ColorfulLog(log='', consoleColor=-1, writeToFile=True, printToStdout=True, logFile=None):
-        """
-        log: any type
-        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen
-        writeToFile: bool
-        printToStdout: bool
-        logFile: str, log file path
-        ColorfulLog('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorName2Value
-        """
-        t = datetime.datetime.now()
-        frame = sys._getframe(1)
-        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}{}'.format(t.year, t.month, t.day,
-            t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log, Logger.LineSep)
-        Logger.ColorfulWrite(log, consoleColor, writeToFile, printToStdout, logFile)
-
-    @staticmethod
-    def DeleteLog():
-        if os.path.exists(Logger.FileName):
-            os.remove(Logger.FileName)
-
-
-def SetGlobalSearchTimeOut(seconds):
+def SetGlobalSearchTimeout(seconds: float) -> None:
     """
-    seconds: float
+    seconds: float.
     To make this available, you need explicitly import uiautomation:
-    from uiautomation import uiautomation as auto
-    auto.SetGlobalSearchTimeOut(10)
+        from uiautomation import uiautomation as auto
+        auto.SetGlobalSearchTimeout(10)
     """
     global TIME_OUT_SECOND
     TIME_OUT_SECOND = seconds
 
 
-def GetClipboardText():
-    """Return str"""
-    return Win32API.GetClipboardText()
-
-
-def SetClipboardText(text):
-    """text: str"""
-    Win32API.SetClipboardText(text)
-
-
-def Click(x, y, waitTime=OPERATION_WAIT_TIME):
+def WaitForExist(control: Control, timeout: float) -> bool:
     """
-    x: int
-    y: int
-    waitTime: float
-    """
-    Win32API.MouseClick(x, y, waitTime)
-
-
-def RightClick(x, y, waitTime=OPERATION_WAIT_TIME):
-    """
-    x: int
-    y: int
-    waitTime: float
-    """
-    Win32API.MouseRightClick(x, y, waitTime)
-
-
-def MiddleClick(x, y, waitTime=OPERATION_WAIT_TIME):
-    """
-    x: int
-    y: int
-    waitTime: float
-    """
-    Win32API.MouseMiddleClick(x, y, waitTime)
-
-
-def MoveTo(x, y, waitTime=OPERATION_WAIT_TIME):
-    """
-    x: int
-    y: int
-    waitTime: float
-    """
-    Win32API.MouseMoveTo(x, y, waitTime)
-
-
-def WheelDown(wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
-    """
-    wheelTimes: int
-    waitTime: float
-    """
-    Win32API.MouseWheelDown(wheelTimes, waitTime)
-
-
-def WheelUp(wheelTimes=1, waitTime=OPERATION_WAIT_TIME):
-    """
-    wheelTimes: int
-    waitTime: float
-    """
-    Win32API.MouseWheelUp(wheelTimes, waitTime)
-
-
-def DragDrop(x1, y1, x2, y2, moveSpeed=1, waitTime=OPERATION_WAIT_TIME):
-    """
-    x1: int
-    y1: int
-    x2: int
-    y2: int
-    moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster
-    waitTime: float
-    """
-    Win32API.MouseDragDrop(x1, y1, x2, y2, moveSpeed, waitTime)
-
-
-def KeyDown(key, waitTime=OPERATION_WAIT_TIME):
-    """
-    key: int, a value in class Keys
-    waitTime: float
-    Simulate a key down for key
-    """
-    Win32API.KeyDown(key, waitTime)
-
-
-def KeyUp(key, waitTime=OPERATION_WAIT_TIME):
-    """
-    key: int, a value in class Keys
-    waitTime: float
-    Simulate a key up for key
-    """
-    Win32API.KeyUp(key, waitTime)
-
-
-def SendKey(key, waitTime=OPERATION_WAIT_TIME):
-    """
-    key: int, a value in class Keys
-    Simulate typing a key
-    """
-    Win32API.SendKey(key, waitTime)
-
-
-def SendKeys(keys, interval=0.01, waitTime=OPERATION_WAIT_TIME, debug=False):
-    """
-    text: str, keys to type
-    interval: float, seconds between keys
-    waitTime: float
-    debug: bool, if True, print the keys
-    Simulate typing keys on keyboard
-    Examples:
-    {Ctrl}, {Delete} ... are special keys' name in Win32API.SpecialKeyDict
-    SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
-    SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
-    SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
-    SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
-    SendKeys('{{}Hello{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {Hello}abc abc test}}}!a ()()
-    SendKeys('0123456789{Enter}')
-    SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{Enter}')
-    SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
-    SendKeys('`~!@#$%^&*()-_=+{Enter}')
-    SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
-    """
-    Win32API.SendKeys(keys, interval, waitTime, debug)
-
-
-def WaitForExist(control, timeout):
-    """
-    control: Control or subclasses
-    timeout: float
+    Check if control exists in timeout seconds.
+    control: `Control` or its subclass.
+    timeout: float.
+    Return bool.
     """
     return control.Exists(timeout, 1)
 
 
-def WaitForDisappear(control, timeout):
+def WaitForDisappear(control: Control, timeout: float) -> bool:
     """
-    control: Control or subclasses
-    timeout: float
+    Check if control disappears in timeout seconds.
+    control: `Control` or its subclass.
+    timeout: float.
+    Return bool.
     """
     return control.Disappears(timeout, 1)
 
 
-def WalkTree(top, getChildrenFunc=None, getFirstChildFunc=None, getNextSiblingFunc=None, yieldConditionFunc=None, includeTop=False, maxDepth=0xFFFFFFFF):
+def WalkTree(top, getChildren: Callable = None, getFirstChild: Callable = None, getNextSibling: Callable = None, yieldCondition: Callable = None, includeTop: bool = False, maxDepth: int = 0xFFFFFFFF):
     """
-    Walk a tree not using recursive algorithm
-    If getChildrenFunc is valid, ignore getFirstChildFunc and getNextSiblingFunc
-        yield 3 items tuple: (item, depth, remain children count in current depth)
-    If getChildrenFunc is not valid, using getFirstChildFunc and getNextSiblingFunc
-        yield 2 items tuple: (item, depth)
-    If yieldConditionFunc is not None, only yield items that yieldConditionFunc(item, depth) returns True
-    For example:
-    def GetDirChildren(dir):
-        if os.path.isdir(dir):
-            return [os.path.join(dir, it) for it in os.listdir(dir)]
+    Walk a tree not using recursive algorithm.
+    top: a tree node.
+    getChildren: function(treeNode) -> list.
+    getNextSibling: function(treeNode) -> treeNode.
+    getNextSibling: function(treeNode) -> treeNode.
+    yieldCondition: function(treeNode, depth) -> bool.
+    includeTop: bool, if True yield top first.
+    maxDepth: int, enum depth.
 
-    for it, depth, count in WalkTree('D:\\', getChildrenFunc= GetDirChildren):
+    If getChildren is valid, ignore getFirstChild and getNextSibling,
+        yield 3 items tuple: (treeNode, depth, remain children count in current depth).
+    If getChildren is not valid, using getFirstChild and getNextSibling,
+        yield 2 items tuple: (treeNode, depth).
+    If condition is not None, only yield tree nodes that condition(treeNode, depth)->bool returns True.
+
+    For example:
+    def GetDirChildren(dir_):
+        if os.path.isdir(dir_):
+            return [os.path.join(dir_, it) for it in os.listdir(dir_)]
+    for it, depth, count in WalkTree('D:\\', getChildren= GetDirChildren):
         print(it, depth, count)
     """
     if maxDepth <= 0:
         return
     depth = 0
-    if getChildrenFunc:
+    if getChildren:
         if includeTop:
-            if not yieldConditionFunc or yieldConditionFunc(top, 0):
+            if not yieldCondition or yieldCondition(top, 0):
                 yield top, 0, 0
-        children = getChildrenFunc(top)
+        children = getChildren(top)
         childList = [children]
         while depth >= 0:   #or while childList:
             lastItems = childList[-1]
             if lastItems:
-                if not yieldConditionFunc or yieldConditionFunc(lastItems[0], depth + 1):
+                if not yieldCondition or yieldCondition(lastItems[0], depth + 1):
                     yield lastItems[0], depth + 1, len(lastItems) - 1
                 if depth + 1 < maxDepth:
-                    children = getChildrenFunc(lastItems[0])
+                    children = getChildren(lastItems[0])
                     if children:
                         depth += 1
                         childList.append(children)
@@ -4823,21 +7261,21 @@ def WalkTree(top, getChildrenFunc=None, getFirstChildFunc=None, getNextSiblingFu
             else:
                 del childList[depth]
                 depth -= 1
-    elif getFirstChildFunc and getNextSiblingFunc:
+    elif getFirstChild and getNextSibling:
         if includeTop:
-            if not yieldConditionFunc or yieldConditionFunc(top, 0):
+            if not yieldCondition or yieldCondition(top, 0):
                 yield top, 0
-        child = getFirstChildFunc(top)
+        child = getFirstChild(top)
         childList = [child]
         while depth >= 0:  #or while childList:
             lastItem = childList[-1]
             if lastItem:
-                if not yieldConditionFunc or yieldConditionFunc(lastItem, depth + 1):
+                if not yieldCondition or yieldCondition(lastItem, depth + 1):
                     yield lastItem, depth + 1
-                child = getNextSiblingFunc(lastItem)
+                child = getNextSibling(lastItem)
                 childList[depth] = child
                 if depth + 1 < maxDepth:
-                    child = getFirstChildFunc(lastItem)
+                    child = getFirstChild(lastItem)
                     if child:
                         depth += 1
                         childList.append(child)
@@ -4846,31 +7284,28 @@ def WalkTree(top, getChildrenFunc=None, getFirstChildFunc=None, getNextSiblingFu
                 depth -= 1
 
 
-def ControlsAreSame(control1, control2):
+_RootControl = None
+
+
+def GetRootControl() -> PaneControl:
     """
-    control1: Control or subclasses
-    control2: Control or subclasses
-    Return 1 if control1 and control2 are the same control, otherwise return 0
+    Get root control, the Desktop window.
+    Return `PaneControl`.
     """
-    return _AutomationClient.instance().dll.CompareElements(control1.Element, control2.Element)
+    global _RootControl
+    if not _RootControl:
+        _RootControl = Control.CreateControlFromElement(_AutomationClient.instance().IUIAutomation.GetRootElement())
+    return _RootControl
 
 
-def GetRootControl():
-    """Return Control"""
-    global _rootControl
-    if not _rootControl:
-        _rootControl = Control.CreateControlFromElement(_AutomationClient.instance().dll.GetRootElement())
-    return _rootControl
+def GetFocusedControl() -> Control:
+    """Return `Control` subclass."""
+    return Control.CreateControlFromElement(_AutomationClient.instance().IUIAutomation.GetFocusedElement())
 
 
-def GetFocusedControl():
-    """Return Control"""
-    return Control.CreateControlFromElement(_AutomationClient.instance().dll.GetFocusedElement())
-
-
-def GetForegroundControl():
-    """Return Control"""
-    return ControlFromHandle(Win32API.GetForegroundWindow())
+def GetForegroundControl() -> Control:
+    """Return `Control` subclass."""
+    return ControlFromHandle(GetForegroundWindow())
     #another implement
     #focusedControl = GetFocusedControl()
     #parentControl = focusedControl
@@ -4885,57 +7320,70 @@ def GetForegroundControl():
     #return parentControl
 
 
-def GetConsoleWindow():
-    """Return Control, a console window that runs python"""
-    title = Win32API.GetConsoleTitle()
-    consoleWindow = WindowControl(searchDepth=1, Name=title)
-    if consoleWindow.Exists(0, 0):
-        return consoleWindow
+def GetConsoleWindow() -> WindowControl:
+    """Return `WindowControl`, a console window that runs python."""
+    return ControlFromHandle(ctypes.windll.kernel32.GetConsoleWindow())
 
 
-def ControlFromPoint(x, y):
+def ControlFromPoint(x: int, y: int) -> Control:
     """
-    Return Control or None
-    Use IUIAutomation ElementFromPoint x,y, may return 0 if mouse is over cmd's title bar icon
+    Call IUIAutomation ElementFromPoint x,y. May return None if mouse is over cmd's title bar icon.
+    Return `Control` subclass or None.
     """
-    element = _AutomationClient.instance().dll.ElementFromPoint(x, y)
+    element = _AutomationClient.instance().IUIAutomation.ElementFromPoint(ctypes.wintypes.POINT(x, y))
     return Control.CreateControlFromElement(element)
 
 
-def ControlFromPoint2(x, y):
+def ControlFromPoint2(x: int, y: int) -> Control:
     """
-    Return Control or None
-    Use Win32API.WindowFromPoint x,y
+    Get a native handle from point x,y and call IUIAutomation.ElementFromHandle.
+    Return `Control` subclass.
     """
-    return Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementFromHandle(Win32API.WindowFromPoint(x, y)))
+    return Control.CreateControlFromElement(_AutomationClient.instance().IUIAutomation.ElementFromHandle(WindowFromPoint(x, y)))
 
 
-def ControlFromCursor():
-    """Return Control"""
-    x, y = Win32API.GetCursorPos()
+def ControlFromCursor() -> Control:
+    """
+    Call ControlFromPoint with current cursor point.
+    Return `Control` subclass.
+    """
+    x, y = GetCursorPos()
     return ControlFromPoint(x, y)
 
 
-def ControlFromCursor2():
-    """Return Control"""
-    x, y = Win32API.GetCursorPos()
+def ControlFromCursor2() -> Control:
+    """
+    Call ControlFromPoint2 with current cursor point.
+    Return `Control` subclass.
+    """
+    x, y = GetCursorPos()
     return ControlFromPoint2(x, y)
 
 
-def ControlFromHandle(handle):
+def ControlFromHandle(handle: int) -> Control:
     """
-    handle: int, a Win32 Window's handle
-    Return Control
+    Call IUIAutomation.ElementFromHandle with a native handle.
+    handle: int, a native window handle.
+    Return `Control` subclass.
     """
-    return Control.CreateControlFromElement(_AutomationClient.instance().dll.ElementFromHandle(handle))
+    return Control.CreateControlFromElement(_AutomationClient.instance().IUIAutomation.ElementFromHandle(handle))
+
+
+def ControlsAreSame(control1: Control, control2: Control) -> bool:
+    """
+    control1: `Control` or its subclass.
+    control2: `Control` or its subclass.
+    Return bool, True if control1 and control2 represent the same control otherwise False.
+    """
+    return bool(_AutomationClient.instance().IUIAutomation.CompareElements(control1.Element, control2.Element))
 
 
 def WalkControl(control, includeTop=False, maxDepth=0xFFFFFFFF):
     """
-    control: Control
-    includeTop: false
-    maxDepth: int
-    Yield 2 items tuple(control: Control, depth: int)
+    control: `Control` or its subclass.
+    includeTop: bool, if True, yield (control, 0) first.
+    maxDepth: int, enum depth.
+    Yield 2 items tuple(control: Control, depth: int).
     """
     if includeTop:
         yield control, 0
@@ -4960,12 +7408,12 @@ def WalkControl(control, includeTop=False, maxDepth=0xFFFFFFFF):
             depth -= 1
 
 
-def LogControl(control, depth=0, showAllName=True, showMore=False):
+def LogControl(control: Control, depth: int = 0, showAllName: bool = True) -> None:
     """
-    control: Control
-    depth: int
-    showAllName: bool
-    showMore: bool
+    Print and log control's properties.
+    control: `Control` or its subclass.
+    depth: int, current depth.
+    showAllName: bool, if False, print the first 30 characters of control.Name.
     """
     def getKeyName(theDict, theValue):
         for key in theDict:
@@ -4979,91 +7427,88 @@ def LogControl(control, depth=0, showAllName=True, showMore=False):
     Logger.Write('    AutomationId: ')
     Logger.Write(control.AutomationId, ConsoleColor.DarkGreen)
     Logger.Write('    Rect: ')
-    left, top, right, bottom = control.BoundingRectangle
-    Logger.Write('({},{},{},{}){}x{}'.format(left, top, right, bottom, right - left, bottom - top), ConsoleColor.DarkGreen)
+    Logger.Write(control.BoundingRectangle, ConsoleColor.DarkGreen)
     Logger.Write('    Name: ')
     Logger.Write(control.Name, ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
     Logger.Write('    Handle: ')
-    Logger.Write('0x{0:X}({0})'.format(control.Handle), ConsoleColor.DarkGreen)
+    Logger.Write('0x{0:X}({0})'.format(control.NativeWindowHandle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
-    Logger.Write(str(depth), ConsoleColor.DarkGreen)
-    if ((isinstance(control, ValuePattern) and control.IsValuePatternAvailable())):
-        Logger.Write('    Value: ')
-        Logger.Write(control.CurrentValue(), ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
-    if ((isinstance(control, RangeValuePattern) and control.IsRangeValuePatternAvailable())):
-        Logger.Write('    RangeValue: ')
-        Logger.Write(str(control.RangeValuePatternCurrentValue()), ConsoleColor.DarkGreen)
-    if isinstance(control, TogglePattern) and control.IsTogglePatternAvailable():
-        Logger.Write('    CurrentToggleState: ')
-        Logger.Write('ToggleState.' + getKeyName(ToggleState.__dict__, control.CurrentToggleState()), ConsoleColor.DarkGreen)
-    if isinstance(control, SelectionItemPattern) and control.IsSelectionItemPatternAvailable():
-        Logger.Write('    CurrentIsSelected: ')
-        Logger.Write(str(control.CurrentIsSelected()), ConsoleColor.DarkGreen)
-    if isinstance(control, ExpandCollapsePattern) and control.IsExpandCollapsePatternAvailable():
-        Logger.Write('    CurrentExpandCollapseState: ')
-        Logger.Write('ExpandCollapseState.' + getKeyName(ExpandCollapseState.__dict__, control.CurrentExpandCollapseState()), ConsoleColor.DarkGreen)
-    if isinstance(control, ScrollPattern) and control.IsScrollPatternAvailable():
-        Logger.Write('    CurrentHorizontalViewSize: ')
-        Logger.Write(str(control.CurrentHorizontalViewSize()), ConsoleColor.DarkGreen)
-        Logger.Write('    CurrentVerticalViewSize: ')
-        Logger.Write(str(control.CurrentVerticalViewSize()), ConsoleColor.DarkGreen)
-        Logger.Write('    CurrentHorizontalScrollPercent: ')
-        Logger.Write(str(control.CurrentHorizontalScrollPercent()), ConsoleColor.DarkGreen)
-        Logger.Write('    CurrentVerticalScrollPercent: ')
-        Logger.Write(str(control.CurrentVerticalScrollPercent()), ConsoleColor.DarkGreen)
-    if isinstance(control, GridPattern) and control.IsGridPatternAvailable():
-        Logger.Write('    RowCount: ')
-        Logger.Write(str(control.CurrentRowCount()), ConsoleColor.DarkGreen)
-        Logger.Write('    ColumnCount: ')
-        Logger.Write(str(control.CurrentColumnCount()), ConsoleColor.DarkGreen)
-    if isinstance(control, GridItemPattern) and control.IsGridItemPatternAvailable():
-        Logger.Write('    Row: ')
-        Logger.Write(str(control.CurrentRow()), ConsoleColor.DarkGreen)
-        Logger.Write('    Column: ')
-        Logger.Write(str(control.CurrentColumn()), ConsoleColor.DarkGreen)
-    if showMore:
-        Logger.Write('    SupportedPattern:')
-        for key in PatternDict:
-            pattern = _AutomationClient.instance().dll.GetElementPattern(control.Element, key)
-            if pattern:
-                _AutomationClient.instance().dll.ReleasePattern(pattern)
-                Logger.Write(' ' + PatternDict[key], ConsoleColor.DarkGreen)
-    Logger.Write(Logger.LineSep)
+    Logger.Write(depth, ConsoleColor.DarkGreen)
+    supportedPatterns = list(filter(lambda t: t[0], ((control.GetPattern(id_), name) for id_, name in PatternIdNames.items())))
+    for pt, name in supportedPatterns:
+        if isinstance(pt, ValuePattern):
+            Logger.Write('    ValuePattern.Value: ')
+            Logger.Write(pt.Value, ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
+        elif isinstance(pt, RangeValuePattern):
+            Logger.Write('    RangeValuePattern.Value: ')
+            Logger.Write(pt.Value, ConsoleColor.DarkGreen)
+        elif isinstance(pt, TogglePattern):
+            Logger.Write('    TogglePattern.ToggleState: ')
+            Logger.Write('ToggleState.' + getKeyName(ToggleState.__dict__, pt.ToggleState), ConsoleColor.DarkGreen)
+        elif isinstance(pt, SelectionItemPattern):
+            Logger.Write('    SelectionItemPattern.IsSelected: ')
+            Logger.Write(pt.IsSelected, ConsoleColor.DarkGreen)
+        elif isinstance(pt, ExpandCollapsePattern):
+            Logger.Write('    ExpandCollapsePattern.ExpandCollapseState: ')
+            Logger.Write('ExpandCollapseState.' + getKeyName(ExpandCollapseState.__dict__, pt.ExpandCollapseState), ConsoleColor.DarkGreen)
+        elif isinstance(pt, ScrollPattern):
+            Logger.Write('    ScrollPattern.HorizontalScrollPercent: ')
+            Logger.Write(pt.HorizontalScrollPercent, ConsoleColor.DarkGreen)
+            Logger.Write('    ScrollPattern.VerticalScrollPercent: ')
+            Logger.Write(pt.VerticalScrollPercent, ConsoleColor.DarkGreen)
+        elif isinstance(pt, GridPattern):
+            Logger.Write('    GridPattern.RowCount: ')
+            Logger.Write(pt.RowCount, ConsoleColor.DarkGreen)
+            Logger.Write('    GridPattern.ColumnCount: ')
+            Logger.Write(pt.ColumnCount, ConsoleColor.DarkGreen)
+        elif isinstance(pt, GridItemPattern):
+            Logger.Write('    GridItemPattern.Row: ')
+            Logger.Write(pt.Column, ConsoleColor.DarkGreen)
+            Logger.Write('    GridItemPattern.Column: ')
+            Logger.Write(pt.Column, ConsoleColor.DarkGreen)
+        elif isinstance(pt, TextPattern):
+            Logger.Write('    TextPattern.Text: ')
+            Logger.Write(pt.DocumentRange.GetText(30), ConsoleColor.DarkGreen)
+    Logger.Write('    SupportedPattern:')
+    for pt, name in supportedPatterns:
+        Logger.Write(' ' + name, ConsoleColor.DarkGreen)
+    Logger.Write('\n')
 
 
-def EnumAndLogControlAncestors(control, showAllName=True, showMore=False):
+def EnumAndLogControl(control: Control, maxDepth: int = 0xFFFFFFFF, showAllName: bool = True, startDepth: int = 0) -> None:
     """
-    control: Control or subclasses
-    showAllName: bool
-    showMore: bool
+    Print and log control and its descendants' propertyies.
+    control: `Control` or its subclass.
+    maxDepth: int, enum depth.
+    showAllName: bool, if False, print the first 30 characters of control.Name.
+    startDepth: int, control's current depth.
+    """
+    for c, d in WalkControl(control, True, maxDepth):
+        LogControl(c, d + startDepth, showAllName)
+
+
+def EnumAndLogControlAncestors(control: Control, showAllName: bool = True) -> None:
+    """
+    Print and log control and its ancestors' propertyies.
+    control: `Control` or its subclass.
+    showAllName: bool, if False, print the first 30 characters of control.Name.
     """
     lists = []
     while control:
         lists.insert(0, control)
         control = control.GetParentControl()
-    for (i, control) in enumerate(lists):
-        LogControl(control, i, showAllName, showMore)
+    for i, control in enumerate(lists):
+        LogControl(control, i, showAllName)
 
 
-def EnumAndLogControl(control, maxDepth=0xFFFFFFFF, showAllName=True, showMore=False, startIndent=0):
+def FindControl(control: Control, compare: Callable, maxDepth: int = 0xFFFFFFFF, findFromSelf: bool = False, foundIndex: int = 1) -> Control:
     """
-    control: Control or subclasses
-    maxDepth: int
-    showAllName: bool
-    showMore: bool
-    startIndent: int
-    """
-    for c, d in WalkControl(control, True, maxDepth):
-        LogControl(c, d + startIndent, showAllName, showMore)
-
-
-def FindControl(control, compareFunc, maxDepth=0xFFFFFFFF, findFromSelf=False, foundIndex=1):
-    """
-    control: Control or subclasses
-    compareFunc: compare function with parameters (control: Control, depth: int), should return True or False
-    maxDepth: int
-    findFromSelf: bool
-    foundIndex: int, must >= 1
+    control: `Control` or its subclass.
+    compare: compare function with parameters (control: Control, depth: int) which returns bool.
+    maxDepth: int, enum depth.
+    findFromSelf: bool, if False, do not compare self.
+    foundIndex: int, starts with 1, >= 1.
+    Return `Control` subclass or None if not find.
     """
     foundCount = 0
     if not control:
@@ -5071,15 +7516,15 @@ def FindControl(control, compareFunc, maxDepth=0xFFFFFFFF, findFromSelf=False, f
     traverseCount = 0
     for child, depth in WalkControl(control, findFromSelf, maxDepth):
         traverseCount += 1
-        if compareFunc(child, depth):
+        if compare(child, depth):
             foundCount += 1
             if foundCount == foundIndex:
                 child.traverseCount = traverseCount
                 return child
 
 
-def ShowDesktop(waitTime=1):
-    """Show the desktop by pressing win + d"""
+def ShowDesktop(waitTime: float = 1) -> None:
+    """Show Desktop by pressing win + d"""
     SendKeys('{Win}d')
     time.sleep(waitTime)
     #another implement
@@ -5088,38 +7533,38 @@ def ShowDesktop(waitTime=1):
         #WM_COMMAND = 0x111
         #MIN_ALL = 419
         #MIN_ALL_UNDO = 416
-        #Win32API.PostMessage(paneTray.Handle, WM_COMMAND, MIN_ALL, 0)
+        #PostMessage(paneTray.NativeWindowHandle, WM_COMMAND, MIN_ALL, 0)
         #time.sleep(1)
 
 
-def WaitHotKeyReleased(hotkey):
-    """hotkey: two int tuple"""
-    mod = {ModifierKey.MOD_ALT: Keys.VK_MENU,
-           ModifierKey.MOD_CONTROL: Keys.VK_CONTROL,
-                 ModifierKey.MOD_SHIFT: Keys.VK_SHIFT,
-                 ModifierKey.MOD_WIN: Keys.VK_LWIN
+def WaitHotKeyReleased(hotkey: tuple) -> None:
+    """hotkey: tuple, two ints tuple(modifierKey, key)"""
+    mod = {ModifierKey.Alt: Keys.VK_MENU,
+           ModifierKey.Control: Keys.VK_CONTROL,
+                 ModifierKey.Shift: Keys.VK_SHIFT,
+                 ModifierKey.Win: Keys.VK_LWIN
            }
     while True:
         time.sleep(0.05)
-        if Win32API.IsKeyPressed(hotkey[1]):
+        if IsKeyPressed(hotkey[1]):
             continue
         for k, v in mod.items():
             if k & hotkey[0]:
-                if Win32API.IsKeyPressed(v):
+                if IsKeyPressed(v):
                     break
         else:
             break
 
 
-def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_CONTROL, Keys.VK_D), waitHotKeyReleased=True):
+def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple = (ModifierKey.Control, Keys.VK_D), waitHotKeyReleased: bool = True) -> None:
     """
-    keyFunctionDict: hot key function dict, like {(uiautomation.ModifierKey.MOD_CONTROL, uiautomation.Keys.VK_1) : func}
+    Bind functions with hot key, the functions will be run or stopped in another thread when the hot key is pressed.
+    keyFunctions: hot key function dict, like {(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : func}
     stopHotKey: hot key tuple
     exitHotKey: hot key tuple
     waitHotKeyReleased: bool, if True, hot key function will be triggered after the hot key is released
-    Bind function with hot key, the function will be run or stopped in another thread when the hot key is pressed.
-    uiautomation doesn't support multi thread, so you can't use UI Control in the function.
-    You can call another script that uses UI Control.
+    uiautomation doesn't support multi thread, so you can't use UI controls in main thread and the functions thread at the same time.
+    You can call another script that uses UI controls, in multi processes mode.
 
     def main(stopEvent):
         while True:
@@ -5129,10 +7574,9 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
             n += 1
             stopEvent.wait(1)
         print('main exit')
-        print(uiautomation.GetRootControl())      # will raise exception, can't use UI Control, todo
 
-    uiautomation.RunHotKey({(uiautomation.ModifierKey.MOD_CONTROL, uiautomation.Keys.VK_1) : main}
-                        , (uiautomation.ModifierKey.MOD_CONTROL | uiautomation.ModifierKey.MOD_SHIFT, uiautomation.Keys.VK_2))
+    uiautomation.RunByHotKey({(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : main}
+                        , (uiautomation.ModifierKey.Control | uiautomation.ModifierKey.Shift, uiautomation.Keys.VK_2))
     """
     def getModName(theDict, theValue):
         name = ''
@@ -5149,8 +7593,8 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
     def releaseAllKey():
         for key, value in Keys.__dict__.items():
             if isinstance(value, int) and key.startswith('VK'):
-                if Win32API.IsKeyPressed(value):
-                    Win32API.ReleaseKey(value)
+                if IsKeyPressed(value):
+                    ReleaseKey(value)
 
     stopHotKeyId = 1
     exitHotKeyId = 2
@@ -5160,40 +7604,40 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
     id2Function = {}
     id2Thread = {}
     id2Name = {}
-    for hotkey in keyFunctionDict:
+    for hotkey in keyFunctions:
         id2HotKey[hotKeyId] = hotkey
-        id2Function[hotKeyId] = keyFunctionDict[hotkey]
+        id2Function[hotKeyId] = keyFunctions[hotkey]
         id2Thread[hotKeyId] = None
         modName = getModName(ModifierKey.__dict__, hotkey[0])
         keyName = getKeyName(Keys.__dict__, hotkey[1])
         id2Name[hotKeyId] = str((modName, keyName))
         if ctypes.windll.user32.RegisterHotKey(0, hotKeyId, hotkey[0], hotkey[1]):
-            Logger.ColorfulWriteLine('Register hot key <Color=DarkGreen>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWriteLine('Register hot key <Color=DarkGreen>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
         else:
             registed = False
-            Logger.ColorfulWriteLine('Register hot key <Color=DarkGreen>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWriteLine('Register hot key <Color=DarkGreen>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
         hotKeyId += 1
     if stopHotKey and len(stopHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, stopHotKey[0])
         keyName = getKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
-            Logger.ColorfulWriteLine('Register stop hot key <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWriteLine('Register stop hot key <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
         else:
             registed = False
-            Logger.ColorfulWriteLine('Register stop hot key <Color=Yellow>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWriteLine('Register stop hot key <Color=Yellow>{}</Color> unsuccessfully, maybe it was allready registered by another program'.format((modName, keyName)), writeToFile=False)
     if not registed:
         return
     if exitHotKey and len(exitHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, exitHotKey[0])
         keyName = getKeyName(Keys.__dict__, exitHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, exitHotKey[0], exitHotKey[1]):
-            Logger.ColorfulWriteLine('Register exit hot key <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWriteLine('Register exit hot key <Color=Yellow>{}</Color> successfully'.format((modName, keyName)), writeToFile=False)
         else:
-            Logger.ColorfulWriteLine('Register exit hot key <Color=Yellow>{}</Color> unsuccessfully'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWriteLine('Register exit hot key <Color=Yellow>{}</Color> unsuccessfully'.format((modName, keyName)), writeToFile=False)
     from threading import Thread, Event
     funcThread = None
     stopEvent = Event()
-    msg = MSG()
+    msg = ctypes.wintypes.MSG()
     def threadFunc(function, stopEvent, hotkey):
         if waitHotKeyReleased:
             WaitHotKeyReleased(hotkey)
@@ -5203,10 +7647,11 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if msg.wParam in id2HotKey:
                 if msg.lParam & 0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam >> 16 & 0x0000FFFF == id2HotKey[msg.wParam][1]:
-                    Logger.ColorfulWriteLine('----------hot key <Color=DarkGreen>{}</Color> pressed----------'.format(id2Name[msg.wParam]), writeToFile=False)
+                    Logger.ColorfullyWriteLine('----------hot key <Color=DarkGreen>{}</Color> pressed----------'.format(id2Name[msg.wParam]), writeToFile=False)
                     if not id2Thread[msg.wParam]:
                         stopEvent.clear()
                         funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam]))
+                        #funcThread.setDaemon(True)
                         funcThread.start()
                         id2Thread[msg.wParam] = funcThread
                     else:
@@ -5216,6 +7661,7 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
                             id2Thread[msg.wParam].join()
                             stopEvent.clear()
                             funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam]))
+                            #funcThread.setDaemon(True)
                             funcThread.start()
                             id2Thread[msg.wParam] = funcThread
             elif stopHotKeyId == msg.wParam:
@@ -5235,3 +7681,63 @@ def RunWithHotKey(keyFunctionDict, stopHotKey=None, exitHotKey=(ModifierKey.MOD_
         if thread:
             thread.join()
 
+
+if __name__ == '__main__':
+
+    print('\nUIAutomationCore:----')
+    for i in sorted([it for it in dir(_AutomationClient.instance().UIAutomationCore) if not it.startswith('_')]):
+        print(i)
+
+    print('\nIUIAutomation:----')
+    for i in sorted([it for it in dir(_AutomationClient.instance().IUIAutomation) if not it.startswith('_')]):
+        print(i)
+
+    print('\nViewWalker:----')
+    for i in sorted([it for it in dir(_AutomationClient.instance().ViewWalker) if not it.startswith('_')]):
+        print(i)
+
+    print()
+    for ct, ctor in ControlConstructors.items():
+        c = ctor()
+        print(type(c))
+
+    notepad = WindowControl(searchDepth=1, ClassName='Notepad')
+    if not notepad.Exists(0, 0):
+        import subprocess
+        subprocess.Popen('notepad.exe')
+    notepad.Refind()
+
+    print('\n', notepad)
+    print('Control:----')
+    for i in sorted([it for it in dir(notepad) if not it.startswith('_')]):
+        print(i)
+
+    print('\n', notepad.Element)
+    print('Control.Element:----')
+    for i in sorted([it for it in dir(notepad.Element) if not it.startswith('_')]):
+        print(i)
+
+    lp = notepad.LegacyIAccessiblePattern()
+    print('\n', lp)
+    print('Control.LegacyIAccessiblePattern:----')
+    for i in sorted([it for it in dir(lp.pattern) if not it.startswith('_')]):
+        print(i)
+
+    print('\nControl.Properties:----')
+    for k, v in PropertyIdNames.items():
+        try:
+            value = notepad.GetPropertyValue(k)
+            print('GetPropertyValue, {} = {}, type: {}'.format(v, value, type(value)))
+        except (KeyError, comtypes.COMError) as ex:
+            print('GetPropertyValue, {}, error'.format(v))
+
+    children = notepad.GetChildren()
+    print('\n notepad children:----', len(children))
+    for c in notepad.GetChildren():
+        print(c)
+
+    del lp
+    del notepad
+
+    hello = '{Ctrl}{End}{Enter}Hello World! 你好世界！'
+    SendKeys(hello)

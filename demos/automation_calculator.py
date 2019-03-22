@@ -13,6 +13,7 @@ auto.uiautomation.DEBUG_EXIST_DISAPPEAR = True  # set it to False and try again,
 auto.uiautomation.DEBUG_SEARCH_TIME = True  # set it to False and try again, default is False
 auto.uiautomation.TIME_OUT_SECOND = 10  # global time out
 
+
 def Calc(window, btns, expression):
     expression = ''.join(expression.split())
     if not expression.endswith('='):
@@ -49,7 +50,7 @@ def CalcOnXP():
     Calc(calcWindow, char2Button, '3*3+4*4')
     Calc(calcWindow, char2Button, '2*3.14159*10')
     calcWindow.Disappears(1)
-    calcWindow.Close()
+    calcWindow.GetWindowPattern().Close()
     calcWindow.Exists(1)
 
 
@@ -82,7 +83,7 @@ def CalcOnWindows7And8():
     clearBtn = calcWindow.ButtonControl(foundIndex= 8, Depth = 3)  #test foundIndex and Depth, the 8th button is clear
     if clearBtn.Exists() and clearBtn.AutomationId == '82':
         clearBtn.Click()
-    if 1:
+    if 0:
         #Desc it not a valid search property, but it can be used for debug printing
         char2Button = {key: calcWindow.ButtonControl(AutomationId=char2Id[key], Desc='Button ' + key) for key in char2Id}
     else:
@@ -96,8 +97,9 @@ def CalcOnWindows7And8():
     Calc(calcWindow, char2Button, '3*3+4*4')
     Calc(calcWindow, char2Button, '2*3.14159*10')
     calcWindow.Disappears(1)
-    calcWindow.Close()
+    calcWindow.GetWindowPattern().Close()
     calcWindow.Exists(1)
+    print('current time', auto.ProcessTime())
 
 
 def CalcOnWindows10():
@@ -143,12 +145,11 @@ def CalcOnWindows10():
     Calc(calcWindow, char2Button, '2*3.14159*10')
     calcWindow.CaptureToImage('calc.png', 7, 0, -14, -7)  # on windows 10, 7 pixels of windows border are transparent
     calcWindow.Disappears(1)
-    calcWindow.Close()
+    calcWindow.GetWindowPattern().Close()
     calcWindow.Exists(1)
 
 if __name__ == '__main__':
-    import platform
-    osVersion = int(platform.version().split('.')[0])
+    osVersion = os.sys.getwindowsversion().major
     if osVersion < 6:
         CalcOnXP()
     elif osVersion == 6:

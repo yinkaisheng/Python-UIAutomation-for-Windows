@@ -6,26 +6,25 @@ import time
 import subprocess
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-import uiautomation as automation
-
+import uiautomation as auto
 
 def CaptureControl(c, path, up = False):
     if c.CaptureToImage(path):
-        automation.Logger.WriteLine('capture image: ' + path)
+        auto.Logger.WriteLine('capture image: ' + path)
     else:
-        automation.Logger.WriteLine('capture failed', automation.ConsoleColor.Yellow)
+        auto.Logger.WriteLine('capture failed', auto.ConsoleColor.Yellow)
     if up:
-        r = automation.GetRootControl()
+        r = auto.GetRootControl()
         depth = 0
         name, ext = os.path.splitext(path)
         while True:
             c = c.GetParentControl()
-            if not c or automation.ControlsAreSame(c, r):
+            if not c or auto.ControlsAreSame(c, r):
                 break
             depth += 1
             savePath = name + '_p' * depth + ext
             if c.CaptureToImage(savePath):
-                automation.Logger.WriteLine('capture image: ' + savePath)
+                auto.Logger.WriteLine('capture image: ' + savePath)
     subprocess.Popen(path, shell = True)
 
 
@@ -34,13 +33,13 @@ def main(args):
         time.sleep(args.time)
     start = time.time()
     if args.active:
-        c = automation.GetForegroundControl()
+        c = auto.GetForegroundControl()
     elif args.cursor or args.up:
-        c = automation.ControlFromCursor()
+        c = auto.ControlFromCursor()
     elif args.fullscreen:
-        c = automation.GetRootControl()
+        c = auto.GetRootControl()
     CaptureControl(c, args.path, args.up)
-    automation.Logger.WriteLine('cost time: {:.3f} s'.format(time.time() - start))
+    auto.Logger.WriteLine('cost time: {:.3f} s'.format(time.time() - start))
 
 
 if __name__ == '__main__':
@@ -53,7 +52,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--path', type = str, default = 'capture.png', help = 'save path')
     parser.add_argument('-t', '--time', type = int, default = 0, help = 'delay time')
     args = parser.parse_args()
-    #automation.Logger.WriteLine(str(args))
+    auto.Logger.WriteLine(str(args))
     main(args)
 
 
