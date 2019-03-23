@@ -17,6 +17,7 @@
     Removed 'Func' in variable names.
     Removed 'Dict' in variable names.
     Control.Handle to Control.NativeWindowHandle
+    Control.BoundingRectangle doesn't return tuple, it returns class rect, it has 4 properties left, top, right, bottom, 5 methods width()->int, height()->int, xcenter()->int, ycenter()->int and contains(x:int,y:int)->bool.
     Control.MoveCursor to Control.MoveCursorToInnerPos
     Control.Click(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME): to Click(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
     Control.RightClick(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME): to RightClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:

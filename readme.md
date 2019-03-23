@@ -141,7 +141,8 @@ edit.SendKeys('{Ctrl}{End}{Enter}World')
 # find the first TitleBarControl in notepadWindow, 
 # then find the second ButtonControl in TitleBarControl, which is the Maximize button
 notepadWindow.TitleBarControl().ButtonControl(foundIndex=2).Click()
-# find the first button in notepadWindow whose Name is '关闭', the close button, the relative depth from Close button to Notepad window is 2
+# find the first button in notepadWindow whose Name is '关闭', the close button
+# the relative depth from Close button to Notepad window is 2
 notepadWindow.ButtonControl(searchDepth=2, Name='关闭').Click()
 # then notepad will popup a window askes you to save or not, press hotkey alt+n not to save
 auto.SendKeys('{Alt}n')
