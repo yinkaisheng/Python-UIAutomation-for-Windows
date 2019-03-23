@@ -39,9 +39,12 @@ IsNT6orHigher = os.sys.getwindowsversion().major >= 6
 ProcessTime = time.perf_counter  #this returns nearly 0 when first call it if python version <= 3.6
 ProcessTime()  # need to call it once if python version <= 3.6
 
-#add methods width, height, __str__ to ctypes.wintypes.RECT
+#add methods width, height, xcenter, ycenter, contains, __str__ to ctypes.wintypes.RECT
 ctypes.wintypes.RECT.width = lambda self: self.right - self.left
 ctypes.wintypes.RECT.height = lambda self: self.bottom - self.top
+ctypes.wintypes.RECT.xcenter = lambda self: self.left + self.width() // 2
+ctypes.wintypes.RECT.ycenter = lambda self: self.top + self.height() // 2
+ctypes.wintypes.RECT.contains = lambda self, x, y: self.left <= x < self.right and self.top <= y < self.bottom
 ctypes.wintypes.RECT.__str__ = lambda self: '({},{},{},{})[{}x{}]'.format(self.left, self.top, self.right, self.bottom, self.width(), self.height())
 
 
@@ -5093,14 +5096,14 @@ class Control():
         newControl = Control.CreateControlFromElement(control.Element)
         return newControl
 
-    def SetSearchFromControl(self, searchFromControl):
+    def SetSearchFromControl(self, searchFromControl) -> None:
         """searchFromControl: `Control` or its subclass"""
         self.searchFromControl = searchFromControl
 
-    def SetSearchDepth(self, searchDepth: int):
+    def SetSearchDepth(self, searchDepth: int) -> None:
         self.searchDepth = searchDepth
 
-    def AddSearchProperties(self, **searchProperties):
+    def AddSearchProperties(self, **searchProperties) -> None:
         """
         Add search properties using `dict.update`.
         searchProperties: dict, same as searchProperties in `Control.__init__`.
@@ -5112,20 +5115,20 @@ class Control():
             regName = searchProperties['RegexName']
             self.regexName = re.compile(regName) if regName else None
 
-    def RemoveSearchProperties(self, **searchProperties):
+    def RemoveSearchProperties(self, **searchProperties) -> None:
         """
-        searchProperties: dict, same as searchProperties `Control.__init__`.
+        searchProperties: dict, same as searchProperties in `Control.__init__`.
         """
         for key in searchProperties:
             del self.searchProperties[key]
             if key == 'RegexName':
                 self.regexName = None
 
-    def GetSearchPropertiesStr(self):
+    def GetSearchPropertiesStr(self) -> str:
         strs = ['{}: {}'.format(k, ControlTypeNames[v] if k == 'ControlType' else repr(v)) for k, v in self.searchProperties.items()]
         return '{' + ', '.join(strs) + '}'
 
-    def GetColorfulSearchPropertiesStr(self, keyColor='DarkGreen', valueColor='DarkCyan'):
+    def GetColorfulSearchPropertiesStr(self, keyColor='DarkGreen', valueColor='DarkCyan') -> str:
         """keyColor, valueColor: str, color name in class ConsoleColor"""
         strs = ['<Color={}>{}</Color>: <Color={}>{}</Color>'.format(keyColor if k in Control.ValidKeys else 'DarkYellow', k, valueColor,
                 ControlTypeNames[v] if k == 'ControlType' else repr(v)) for k, v in self.searchProperties.items()]
@@ -5216,7 +5219,8 @@ class Control():
         Property BoundingRectangle.
         Call IUIAutomationElement::get_CurrentBoundingRectangle.
         Return `ctypes.wintypes.RECT`.
-        It has 4 properties: left, top, right, bottom, 2 methods: width() and height().
+            It has 4 properties: left, top, right, bottom,
+            5 methods: width()->int, height()->int, xcenter()->int, ycenter()->int and contains(x:int,y:int)->bool.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentboundingrectangle
         """
         return self.Element.CurrentBoundingRectangle
@@ -5450,12 +5454,14 @@ class Control():
     #GetCachedPropertyValue
     #GetCachedPropertyValueEx
 
-    def GetClickablePoint(self):
+    def GetClickablePoint(self) -> tuple:
         """
         Call IUIAutomationElement::GetClickablePoint.
+        Return tuple, (x: int, y: int, gotClickable: bool), like (20, 10, True)
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getclickablepoint
         """
-        return self.Element.GetClickablePoint()
+        point, gotClickable = self.Element.GetClickablePoint()
+        return (point.x, point.y, bool(gotClickable))
 
     def GetPattern(self, patternId: int):
         """
@@ -5483,19 +5489,21 @@ class Control():
         """
         return self.Element.GetCurrentPatternAs(patternId, riid)
 
-    def GetPropertyValue(self, propertyId: int):
+    def GetPropertyValue(self, propertyId: int) -> Any:
         """
         Call IUIAutomationElement::GetCurrentPropertyValue.
         propertyId: int, a value in class `PropertyId`.
+        Return Any, corresponding type according to propertyId.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpropertyvalue
         """
         return self.Element.GetCurrentPropertyValue(propertyId)
 
-    def GetPropertyValueEx(self, propertyId: int, ignoreDefaultValue: int):
+    def GetPropertyValueEx(self, propertyId: int, ignoreDefaultValue: int) -> Any:
         """
         Call IUIAutomationElement::GetCurrentPropertyValueEx.
         propertyId: int, a value in class `PropertyId`.
         ignoreDefaultValue: int, 0 or 1.
+        Return Any, corresponding type according to propertyId.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpropertyvalueex
         """
         return self.Element.GetCurrentPropertyValueEx(propertyId, ignoreDefaultValue)
@@ -5537,8 +5545,9 @@ class Control():
 
     def GetCachedPattern(self, patternId: int, cache: bool):
         """
-        Get a pattern by patternId, return a pattern if it supports the pattern else None.
+        Get a pattern by patternId.
         patternId: int, a value in class `PatternId`.
+        Return a pattern if it supports the pattern else None.
         cache: bool, if True, store the pattern for later use, if False, get a new pattern by `self.GetPattern`.
         """
         if cache:
@@ -5712,7 +5721,7 @@ class Control():
                         Logger.ColorfullyWriteLine(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not exist.</Color>')
                     return False
 
-    def Disappears(self, maxSearchSeconds: float = 5, searchIntervalSeconds: float = SEARCH_INTERVAL, printIfNotDisappear: bool = False):
+    def Disappears(self, maxSearchSeconds: float = 5, searchIntervalSeconds: float = SEARCH_INTERVAL, printIfNotDisappear: bool = False) -> bool:
         """
         maxSearchSeconds: float
         searchIntervalSeconds: float
@@ -5746,8 +5755,8 @@ class Control():
         """
         if not self.Exists(maxSearchSeconds, searchIntervalSeconds, False if raiseException else DEBUG_EXIST_DISAPPEAR):
             if raiseException:
-                Logger.ColorfullyWriteLine('<Color=Red>Find Control Time Out: </Color>' + self.GetColorfulSearchPropertiesStr())
-                raise LookupError('Find Control Time Out: ' + self.GetSearchPropertiesStr())
+                Logger.ColorfullyWriteLine('<Color=Red>Find Control Timeout: </Color>' + self.GetColorfulSearchPropertiesStr())
+                raise LookupError('Find Control Timeout: ' + self.GetSearchPropertiesStr())
             else:
                 return False
         return True
@@ -5768,13 +5777,13 @@ class Control():
                 self.ControlTypeName, rect, self.GetColorfulSearchPropertiesStr()))
             return
         if x is None:
-            x = rect.left + int((rect.right - rect.left) * ratioX)
+            x = rect.left + int(rect.width() * ratioX)
         else:
             x = (rect.left if x >= 0 else rect.right) + x
         if y is None:
-            y = rect.top + int((rect.bottom - rect.top) * ratioY)
+            y = rect.top + int(rect.height() * ratioY)
         else:
-            y = (rect.top if x >= 0 else rect.bottom) + y
+            y = (rect.top if y >= 0 else rect.bottom) + y
         if simulateMove and MAX_MOVE_SECOND > 0:
             MoveTo(x, y, waitTime=0)
         else:
