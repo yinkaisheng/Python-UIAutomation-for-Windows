@@ -168,8 +168,14 @@ class _DllClient:
             self.dll.BitmapGetWidthAndHeight.argtypes = (ctypes.c_size_t, )
             self.dll.BitmapGetPixel.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
             self.dll.BitmapSetPixel.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_uint)
+
+            self.dll.Initialize()
         else:
+            self.dll = None
             Logger.WriteLine('Can not load dll.\nFunctionalities related to Bitmap are not available.\nYou may need to install Microsoft Visual C++ 2010/2015 Redistributable Package.', ConsoleColor.Yellow)
+    def __del__(self):
+        if self.dll:
+            self.dll.Uninitialize()
 
 
 class ControlType:
@@ -7292,18 +7298,12 @@ def WalkTree(top, getChildren: Callable = None, getFirstChild: Callable = None, 
                 depth -= 1
 
 
-_RootControl = None
-
-
 def GetRootControl() -> PaneControl:
     """
     Get root control, the Desktop window.
     Return `PaneControl`.
     """
-    global _RootControl
-    if not _RootControl:
-        _RootControl = Control.CreateControlFromElement(_AutomationClient.instance().IUIAutomation.GetRootElement())
-    return _RootControl
+    return Control.CreateControlFromElement(_AutomationClient.instance().IUIAutomation.GetRootElement())
 
 
 def GetFocusedControl() -> Control:
@@ -7545,6 +7545,25 @@ def ShowDesktop(waitTime: float = 1) -> None:
         #time.sleep(1)
 
 
+def InitializeUIAutomationInThisThread() -> None:
+    """
+    Initialize UIAutomation in a new thread.
+    If you want to use functionalities related to Controls and Patterns in a new thread.
+    You must call this function first in the thread.
+    But you cann't use use a Control or a Pattern created in a different thread.
+    So you can't create a Control or a Pattern in main thread and then pass it to a new thread and use it.
+    """
+    comtypes.CoInitializeEx()
+
+
+def UninitializeUIAutomationInThisThread() -> None:
+    """
+    Uninitialize UIAutomation in a thread after calling InitializeUIAutomationInThisThread.
+    You must call this function when the thread exits if you have called InitializeUIAutomationInThisThread in the same thread.
+    """
+    comtypes.CoUninitialize()
+
+
 def WaitHotKeyReleased(hotkey: tuple) -> None:
     """hotkey: tuple, two ints tuple(modifierKey, key)"""
     mod = {ModifierKey.Alt: Keys.VK_MENU,
@@ -7566,13 +7585,11 @@ def WaitHotKeyReleased(hotkey: tuple) -> None:
 
 def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple = (ModifierKey.Control, Keys.VK_D), waitHotKeyReleased: bool = True) -> None:
     """
-    Bind functions with hot key, the functions will be run or stopped in another thread when the hot key is pressed.
+    Bind functions with hot keys, the function will be run or stopped in another thread when the hot key is pressed.
     keyFunctions: hot key function dict, like {(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : func}
     stopHotKey: hot key tuple
     exitHotKey: hot key tuple
     waitHotKeyReleased: bool, if True, hot key function will be triggered after the hot key is released
-    uiautomation doesn't support multi thread, so you can't use UI controls in main thread and the functions thread at the same time.
-    You can call another script that uses UI controls, in multi processes mode.
 
     def main(stopEvent):
         while True:
