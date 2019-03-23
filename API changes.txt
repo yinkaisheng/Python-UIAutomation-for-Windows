@@ -27,7 +27,8 @@
     Control.WheelUp(self, wheelTimes=1, waitTime=OPERATION_WAIT_TIME) to WheelUp(self, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
     Control.GetTopWindow to Control.GetTopLevelControl
     Logger.ColorfulWrite to Logger.ColorfullyWrite
-    Logger.ColorfulWriteLine to Logger.ColorfullyWriteLIne
+    Logger.ColorfulWriteLine to Logger.ColorfullyWriteLine
+    Logger.ColorfulLog to Logger.ColorfullyLog
     SetGlobalSearchTimeOut to SetGlobalSearchTimeout
     RunWithHotKey to RunByHotKey
     
