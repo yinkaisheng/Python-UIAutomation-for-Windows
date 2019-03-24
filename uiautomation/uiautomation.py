@@ -7545,21 +7545,21 @@ def ShowDesktop(waitTime: float = 1) -> None:
         #time.sleep(1)
 
 
-def InitializeUIAutomationInThisThread() -> None:
+def InitializeUIAutomationInCurrentThread() -> None:
     """
     Initialize UIAutomation in a new thread.
     If you want to use functionalities related to Controls and Patterns in a new thread.
-    You must call this function first in the thread.
-    But you cann't use use a Control or a Pattern created in a different thread.
+    You must call this function first in the new thread.
+    But you can't use use a Control or a Pattern created in a different thread.
     So you can't create a Control or a Pattern in main thread and then pass it to a new thread and use it.
     """
     comtypes.CoInitializeEx()
 
 
-def UninitializeUIAutomationInThisThread() -> None:
+def UninitializeUIAutomationInCurrentThread() -> None:
     """
-    Uninitialize UIAutomation in a thread after calling InitializeUIAutomationInThisThread.
-    You must call this function when the thread exits if you have called InitializeUIAutomationInThisThread in the same thread.
+    Uninitialize UIAutomation in a new thread after calling InitializeUIAutomationInCurrentThread.
+    You must call this function when the new thread exits if you have called InitializeUIAutomationInThisThread in the same thread.
     """
     comtypes.CoUninitialize()
 

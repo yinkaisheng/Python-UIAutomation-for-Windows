@@ -99,7 +99,6 @@ def CalcOnWindows7And8():
     calcWindow.Disappears(1)
     calcWindow.GetWindowPattern().Close()
     calcWindow.Exists(1)
-    print('current time', auto.ProcessTime())
 
 
 def CalcOnWindows10():
@@ -156,3 +155,8 @@ if __name__ == '__main__':
         CalcOnWindows7And8()
     elif osVersion >= 10:
         CalcOnWindows10()
+
+    auto.Logger.Write('\nPress any key to exit', auto.ConsoleColor.Cyan)
+    import msvcrt
+    while not msvcrt.kbhit():
+        pass

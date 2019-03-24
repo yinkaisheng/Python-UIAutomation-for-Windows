@@ -96,4 +96,7 @@ if __name__ == '__main__':
     cmdWindow = auto.GetConsoleWindow()
     if cmdWindow:
         cmdWindow.SetActive()
-    auto.Logger.WriteLine('\npress Enter to exit\n')
+    auto.Logger.Write('\nPress any key to exit', auto.ConsoleColor.Cyan)
+    import msvcrt
+    while not msvcrt.kbhit():
+        pass
