@@ -179,3 +179,28 @@ auto.uiautomation.DEBUG_SEARCH_TIME = True
 如果加了参数**--force-renderer-accessibility**运行Chrome浏览器，就能看到Chrome的子控件了。
 这是因为Chrome实现了UI Automation Provider，并做了参数开关
 。如果一个软件是用DirectUI实现的，但没有实现UI Automation Provider，那么这个软件是不支持UIAutomation的。
+
+---
+
+一些截图:
+
+批量重命名pdf书签
+![bookmark](images/rename_pdf_bookmark.gif)
+
+
+获取Microsoft Word中的文本
+![Word](images/word.png)
+
+
+显示Qt5
+![Qt5](images/automation_Qt.png)
+
+
+显示QQ
+![QQ](images/automation_qq.png)
+
+
+打印好看的目录结果
+
+![PrettyPrint](images/pretty_print_dir.png)
+
