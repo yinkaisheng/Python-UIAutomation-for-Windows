@@ -157,8 +157,16 @@ Depth  控件相对于searchFromControl的精确深度
 Compare  自定义比较函数function(control, depth)->bool
 
 searchDepth和Depth的区别是：  
-searchDepth在指定的深度范围内（包括1~searchDepth层中的所有子孙控件）搜索第一个满足搜索条件的控件  
-Depth只在Depth所在的深度（如果Depth>1，排除1~searchDepth-1层中的所有子孙控件）搜索第一个满足搜索条件的控件
+searchDepth在指定的深度范围内（包括1\~searchDepth层中的所有子孙控件）搜索第一个满足搜索条件的控件  
+Depth只在Depth所在的深度（如果Depth>1，排除1\~searchDepth-1层中的所有子孙控件）搜索第一个满足搜索条件的控件
+
+另外可以设置DEBUG_SEARCH_TIME查看搜索控件所遍历的控件数和搜索时间。
+```python
+import uiautomation as auto
+auto.uiautomation.DEBUG_SEARCH_TIME = True
+```
+参考demos/automation_calculator.py
+
 
 目录 **demos** 中提供了一些例子，请根据这些例子学习使用uiautomation.  
 
