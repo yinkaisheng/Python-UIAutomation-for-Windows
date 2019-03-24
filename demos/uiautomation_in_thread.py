@@ -4,6 +4,8 @@ import os
 import sys
 import time
 import threading
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
 
 
@@ -19,11 +21,11 @@ def threadFunc(root):
     th = threading.currentThread()
     auto.Logger.WriteLine('\nThis is running in a new thread. {} {}'.format(th.ident, th.name), auto.ConsoleColor.Cyan)
     time.sleep(2)
-    auto.InitializeUIAutomationInThisThread()
+    auto.InitializeUIAutomationInCurrentThread()
     auto.GetConsoleWindow().CaptureToImage('console_newthread.png')
     newRoot = auto.GetRootControl()    #ok, root control created in new thread
     auto.EnumAndLogControl(newRoot, 1)
-    auto.UninitializeUIAutomationInThisThread()
+    auto.UninitializeUIAutomationInCurrentThread()
     auto.Logger.WriteLine('\nThread exits. {} {}'.format(th.ident, th.name), auto.ConsoleColor.Cyan)
 
 

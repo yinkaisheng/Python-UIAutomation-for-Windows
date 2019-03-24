@@ -13,7 +13,7 @@ def test1(stopEvent):
     """
     This function runs in a new thread triggered by hotkey.
     """
-    auto.InitializeUIAutomationInThisThread()
+    auto.InitializeUIAutomationInCurrentThread()
     n = 0
     child = None
     auto.Logger.WriteLine('Use UIAutomation in another thread:', auto.ConsoleColor.Yellow)
@@ -28,7 +28,7 @@ def test1(stopEvent):
         child = child.GetNextSiblingControl()
         n += 1
         stopEvent.wait(1)
-    auto.UninitializeUIAutomationInThisThread()
+    auto.UninitializeUIAutomationInCurrentThread()
     print('test1 exits')
 
 
