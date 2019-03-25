@@ -12,8 +12,8 @@ import uiautomation as auto
 def threadFunc(root):
     """
     If you want to use functionalities related to Controls and Patterns in a new thread.
-    You must call InitializeUIAutomationInThisThread first in the thread
-        and call UninitializeUIAutomationInThisThread when the thread exits.
+    You must call InitializeUIAutomationInCurrentThread first in the thread
+        and call UninitializeUIAutomationInCurrentThread when the thread exits.
     But you can't use use a Control or a Pattern created in a different thread.
     So you can't create a Control or a Pattern in main thread and then pass it to a new thread and use it.
     """
