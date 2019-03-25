@@ -49,11 +49,13 @@ root(Name='Desktop', Depth=0)
 　　window1(Depth=1)  
 　　　　control1-001(Depth=2)  
 　　　　control1-...(Depth=2)  
+　　　　...  
 　　　　control1-100(Depth=2)  
 　　window2(Name='window2', Depth=1)  
 　　　　control2-1(Depth=2)  
 　　　　　　control2-1-001(Depth=3)  
 　　　　　　control2-1-...(Depth=3)  
+　　　　　　...  
 　　　　　　control2-1-100(Depth=3)  
 　　　　control2-2(Depth=2)  
 　　　　control2-3(Depth=2)  
