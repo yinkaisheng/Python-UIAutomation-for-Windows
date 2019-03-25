@@ -2,7 +2,8 @@
 
 uiautomation是我业余时间开发的供我自己使用的一个模块。
 
-最新版uiautomation2.0只支持Python 3版本，依赖comtypes和typing这两个包.
+最新版uiautomation2.0只支持Python 3版本，依赖comtypes和typing这两个包。
+2.0版本之前的代码请参考[API changes](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/blob/master/API%20changes.txt)修改代码。
 
 uiautomation支持在Windows XP SP3或更高版本的Windows桌面系统上运行。
 
