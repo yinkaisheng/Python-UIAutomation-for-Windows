@@ -6,10 +6,10 @@
     Methods related to process were removed. Use psutil instead.
     Controls don't inherit patterns. Use Control.GetPattern(patterId) or Control.GetXxxPattern() to get a pattern and use pattern properties or methods.
         Because:
-        1 two patterns have the method names and a control may support the two pattern at the same time.
+        1 two patterns may have a same method name and a control may support the two patterns at the same time.
         2 LegacyIAccessiblePattern has many properties which are same to Control's properties.
         If GetPattern or GetXxxPattern returns None, it doesn't support the pattern.
-	Methods like IsXxxPatternAvailable were removed.
+    Methods like IsXxxPatternAvailable were removed.
     Value names in class SWP changed.
     Value names in class MB changed.
     Value names in class ModifierKey changed.
@@ -17,7 +17,7 @@
     Removed 'Func' in variable names.
     Removed 'Dict' in variable names.
     Control.Handle to Control.NativeWindowHandle
-    Control.BoundingRectangle doesn't return tuple, it returns class rect, it has 4 properties left, top, right, bottom, 5 methods width()->int, height()->int, xcenter()->int, ycenter()->int and contains(x:int,y:int)->bool.
+    Control.BoundingRectangle doesn't return tuple, it returns class Rect, it has 4 properties left, top, right, bottom, 5 methods width()->int, height()->int, xcenter()->int, ycenter()->int and contains(x:int,y:int)->bool.
     Control.MoveCursor to Control.MoveCursorToInnerPos
     Control.Click(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME): to Click(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
     Control.RightClick(self, ratioX=0.5, ratioY=0.5, simulateMove=True, waitTime=OPERATION_WAIT_TIME): to RightClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
