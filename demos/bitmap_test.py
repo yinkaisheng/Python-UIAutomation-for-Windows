@@ -54,6 +54,13 @@ def main():
     bitmap = root.ToBitmap(0, 0, 400, 400)
     bitmap.ToFile('desk_part.png')
 
+    width, height = 100, 100
+    colors = bitmap.GetPixelColorsOfRects([(0, 0, width, height), (100, 100, width, height), (200, 200, width, height)])
+    for i, cols in enumerate(colors):
+        bitmap = auto.Bitmap(width, height)
+        bitmap.SetPixelColorsOfRect(0, 0, width, height, cols)
+        bitmap.ToFile('desk_part{}.png'.format(i))
+
 
 if __name__ == '__main__':
     main()

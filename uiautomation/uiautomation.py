@@ -39,14 +39,6 @@ IsNT6orHigher = os.sys.getwindowsversion().major >= 6
 ProcessTime = time.perf_counter  #this returns nearly 0 when first call it if python version <= 3.6
 ProcessTime()  # need to call it once if python version <= 3.6
 
-#add methods width, height, xcenter, ycenter, contains, __str__ to ctypes.wintypes.RECT
-ctypes.wintypes.RECT.width = lambda self: self.right - self.left
-ctypes.wintypes.RECT.height = lambda self: self.bottom - self.top
-ctypes.wintypes.RECT.xcenter = lambda self: self.left + self.width() // 2
-ctypes.wintypes.RECT.ycenter = lambda self: self.top + self.height() // 2
-ctypes.wintypes.RECT.contains = lambda self, x, y: self.left <= x < self.right and self.top <= y < self.bottom
-ctypes.wintypes.RECT.__str__ = lambda self: '({},{},{},{})[{}x{}]'.format(self.left, self.top, self.right, self.bottom, self.width(), self.height())
-
 
 class _AutomationClient:
     _instance = None
@@ -2627,6 +2619,35 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
     time.sleep(waitTime)
 
 
+class Rect():
+    """
+    class Rect, like `ctypes.wintypes.RECT`.
+    """
+    def __init__(self, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0):
+        self.left = left
+        self.top = top
+        self.right = right
+        self.bottom = bottom
+
+    def width(self) -> int:
+        return self.right - self.left
+
+    def height(self) -> int:
+        return self.bottom - self.top
+
+    def xcenter(self) -> int:
+        return self.left + self.width() // 2
+
+    def ycenter(self) -> int:
+        return self.top + self.height() // 2
+
+    def contains(self, x: int, y: int) -> bool:
+        return self.left <= x < self.right and self.top <= y < self.bottom
+
+    def __str__(self) -> str:
+        return '({},{},{},{})[{}x{}]'.format(self.left, self.top, self.right, self.bottom, self.width(), self.height())
+
+
 class Logger:
     """
     Logger for print and log. Support for printing log with different colors on console.
@@ -3051,8 +3072,7 @@ class Bitmap:
         width, height = right - left, bottom - top
         allColors = self.GetPixelColorsOfRect(left, top, width, height)
         colorsOfRects = []
-        for rect in rects:
-            x, y, w, h = rect
+        for x, y, w, h in rects:
             x -= left
             y -= top
             colors = []
@@ -4388,7 +4408,7 @@ class TextRange():
         """
         Call IUIAutomationTextRange::GetBoundingRectangles.
         textAttributeId: int, a value in class `TextAttributeId`.
-        Return list, a list of `ctypes.wintypes.RECT`.
+        Return list, a list of `Rect`.
             bounding rectangles for each fully or partially visible line of text in a text range..
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getboundingrectangles
 
@@ -4398,7 +4418,7 @@ class TextRange():
         floats = self.textRange.GetBoundingRectangles()
         rects = []
         for i in range(len(floats) // 4):
-            rect = ctypes.wintypes.RECT(int(floats[i * 4]), int(floats[i * 4 + 1]),
+            rect = Rect(int(floats[i * 4]), int(floats[i * 4 + 1]),
                                         int(floats[i * 4]) + int(floats[i * 4 + 2]), int(floats[i * 4 + 1]) + int(floats[i * 4 + 3]))
             rects.append(rect)
         return rects
@@ -5079,7 +5099,7 @@ class Control():
         self.regexName = re.compile(regName) if regName else None
         self._supportedPatterns = {}
 
-    def __str__(self):
+    def __str__(self) -> str:
         rect = self.BoundingRectangle
         return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(
             self.ControlTypeName, self.ClassName, self.AutomationId, rect, self.Name, self.NativeWindowHandle)
@@ -5227,19 +5247,18 @@ class Control():
         return self.Element.CurrentAutomationId
 
     @property
-    def BoundingRectangle(self) -> ctypes.wintypes.RECT:
+    def BoundingRectangle(self) -> Rect:
         """
         Property BoundingRectangle.
         Call IUIAutomationElement::get_CurrentBoundingRectangle.
-        Return `ctypes.wintypes.RECT`.
-            It has 4 properties: left, top, right, bottom,
-            5 methods: width()->int, height()->int, xcenter()->int, ycenter()->int and contains(x:int,y:int)->bool.
+        Return `Rect`.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentboundingrectangle
 
         rect = control.BoundingRectangle
         print(rect.left, rect.top, rect.right, rect.bottom, rect.width(), rect.height(), rect.xcenter(), rect.ycenter())
         """
-        return self.Element.CurrentBoundingRectangle
+        rect = self.Element.CurrentBoundingRectangle
+        return Rect(rect.left, rect.top, rect.right, rect.bottom)
 
     @property
     def ClassName(self) -> str:
@@ -6747,13 +6766,12 @@ class TopLevel():
         Move window to screen center.
         """
         if self.IsTopLevel():
-            left, top, right, bottom = self.BoundingRectangle
-            width, height = right - left, bottom - top
-            screenWidth, screenHeight = Win32API.GetScreenSize()
-            x, y = (screenWidth-width)//2, (screenHeight-height)//2
+            rect = self.BoundingRectangle
+            screenWidth, screenHeight = GetScreenSize()
+            x, y = (screenWidth - rect.width()) // 2, (screenHeight - rect.height()) // 2
             if x < 0: x = 0
             if y < 0: y = 0
-            return SetWindowPos(self.Handle, SWP.HWND_Top, x, y, 0, 0, SWP.SWP_NoSize)
+            return SetWindowPos(self.NativeWindowHandle, SWP.HWND_Top, x, y, 0, 0, SWP.SWP_NoSize)
         return False
 
     def SetActive(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
