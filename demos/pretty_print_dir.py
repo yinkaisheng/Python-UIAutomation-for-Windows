@@ -10,7 +10,7 @@ def GetDirChildren(directory):
     if os.path.isdir(directory):
         subdirs = []
         files = []
-        for it in os.scandir(directory):
+        for it in os.listdir(directory):
             absPath = os.path.join(directory, it)
             if os.path.isdir(absPath):
                 subdirs.append(absPath)
