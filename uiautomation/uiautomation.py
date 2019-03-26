@@ -3522,7 +3522,7 @@ class ItemContainerPattern():
         """
         Call IUIAutomationItemContainerPattern::FindItemByProperty.
         control: `Control` or its subclass.
-        propertyValue: VARIANT ? todo
+        propertyValue: COM VARIANT according to propertyId? todo.
         propertyId: int, a value in class `PropertyId`.
         Return `Control` subclass, a control within a containing element, based on a specified property value.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationitemcontainerpattern-finditembyproperty
@@ -4353,12 +4353,12 @@ class TextRange():
         """
         Call IUIAutomationTextRange::FindAttribute.
         textAttributeID: int, a value in class `TextAttributeId`.
-        val: VARIANT ? todo.
-        backward: bool.
+        val: COM VARIANT according to textAttributeId? todo.
+        backward: bool, True if the last occurring text range should be returned instead of the first; otherwise False.
         return `TextRange` or None, a text range subset that has the specified text attribute value.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-findattribute
         """
-        textRange = self.textRange.FindAttribute(textAttributeID, val, int(backward))
+        textRange = self.textRange.FindAttribute(textAttributeId, val, int(backward))
         if textRange:
             return TextRange(textRange=textRange)
 
@@ -4375,26 +4375,33 @@ class TextRange():
         if textRange:
             return TextRange(textRange=textRange)
 
-    def GetAttributeValue(self, textAttributeId: int):
+    def GetAttributeValue(self, textAttributeId: int) -> ctypes.POINTER(comtypes.IUnknown):
         """
         Call IUIAutomationTextRange::GetAttributeValue.
         textAttributeId: int, a value in class `TextAttributeId`.
-        Return VARIANT ? todo, the value of the specified text attribute across the entire text range.
+        Return `ctypes.POINTER(comtypes.IUnknown)` or None, the value of the specified text attribute across the entire text range, todo.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getattributevalue
         """
-        textRange = self.textRange.GetAttributeValue(textAttributeId)
-        if textRange:
-            return TextRange(textRange=textRange)
+        return self.textRange.GetAttributeValue(textAttributeId)
 
     def GetBoundingRectangles(self) -> list:
         """
         Call IUIAutomationTextRange::GetBoundingRectangles.
         textAttributeId: int, a value in class `TextAttributeId`.
-        Return list, a list of `ctypes.wintypes.RECT`. SAFEARRAY ? todo,
+        Return list, a list of `ctypes.wintypes.RECT`.
             bounding rectangles for each fully or partially visible line of text in a text range..
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getboundingrectangles
+
+        for rect in textRange.GetBoundingRectangles():
+            print(rect.left, rect.top, rect.right, rect.bottom, rect.width(), rect.height(), rect.xcenter(), rect.ycenter())
         """
-        return self.textRange.GetBoundingRectangles()
+        floats = self.textRange.GetBoundingRectangles()
+        rects = []
+        for i in range(len(floats) // 4):
+            rect = ctypes.wintypes.RECT(int(floats[i * 4]), int(floats[i * 4 + 1]),
+                                        int(floats[i * 4]) + int(floats[i * 4 + 2]), int(floats[i * 4 + 1]) + int(floats[i * 4 + 3]))
+            rects.append(rect)
+        return rects
 
     def GetChildren(self) -> list:
         """
@@ -5228,6 +5235,9 @@ class Control():
             It has 4 properties: left, top, right, bottom,
             5 methods: width()->int, height()->int, xcenter()->int, ycenter()->int and contains(x:int,y:int)->bool.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentboundingrectangle
+
+        rect = control.BoundingRectangle
+        print(rect.left, rect.top, rect.right, rect.bottom, rect.width(), rect.height(), rect.xcenter(), rect.ycenter())
         """
         return self.Element.CurrentBoundingRectangle
 
