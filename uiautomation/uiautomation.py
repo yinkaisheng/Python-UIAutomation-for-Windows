@@ -5076,14 +5076,15 @@ class Control():
         searchWaitTime: float, wait searchWaitTime before every search(interval between searchs).
         element: `ctypes.POINTER(IUIAutomationElement)`, internal use.
         searchProperties: defines how to search, the following keys can be used:
-                            ControlType: int, a value in class ControlType.
-                            ClassName: str or unicode.
-                            AutomationId: str or unicode.
-                            Name: str or unicode.
-                            SubName: str or unicode.
-                            RegexName: str or unicode, supports regex.
-                            Depth: int, relative depth from searchFromControl, if set, searchDepth will be set to Depth too.
-                            Compare: Callable, custom compare function(control, depth) returns a bool value.
+                            ControlType: int, a value in class `ControlType`.
+                            ClassName: str.
+                            AutomationId: str.
+                            Name: str.
+                            SubName: str, a part str in Name.
+                            RegexName: str, supports regex using re.match.
+                            Depth: int, only find controls in relative depth from searchFromControl, ignore controls in depth(0~Depth-1),
+                                if set, searchDepth will be set to Depth too.
+                            Compare: Callable, custom compare function(control, depth)->bool.
 
         `Control` wraps IUIAutomationElement.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement
