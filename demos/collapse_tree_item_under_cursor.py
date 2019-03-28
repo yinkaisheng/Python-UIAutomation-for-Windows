@@ -27,10 +27,10 @@ def main():
     treeItem = auto.ControlFromCursor()
     CollapseTreeItem(treeItem)
 
-def HotKeyFunc(stopEvent):
-    scriptName = os.path.basename(__file__)
-    cmd = r'python.exe {} main {}'.format(scriptName, ' '.join(sys.argv[1:]))
-    auto.Logger.WriteLine('call ' + cmd)
+def HotKeyFunc(stopEvent: 'Event', argv: list):
+    args = [sys.executable, __file__] + argv
+    cmd = ' '.join('"{}"'.format(arg) for arg in args)
+    auto.Logger.WriteLine('call {}'.format(cmd))
     p = subprocess.Popen(cmd)
     while True:
         if None != p.poll():
@@ -46,10 +46,15 @@ def HotKeyFunc(stopEvent):
 
 
 if __name__ == '__main__':
-    if 'main' in sys.argv[1:]:
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--main', action='store_true', help='exec main')
+    args = parser.parse_args()
+
+    if args.main:
         main()
     else:
         auto.Logger.WriteLine('move mouse to a tree control and press Ctrl+3', auto.ConsoleColor.Green)
-        auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_3): HotKeyFunc},
+        auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_3): lambda event: HotKeyFunc(event, ['--main'])},
                                  (auto.ModifierKey.Control, auto.Keys.VK_4))
 

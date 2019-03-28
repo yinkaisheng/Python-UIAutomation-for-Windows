@@ -34,8 +34,9 @@ def test1(stopEvent):
 
 def test2(stopEvent):
     """This function runs in a thread triggered by hotkey"""
-    p = subprocess.Popen('python.exe automation_notepad.py')
-    auto.Logger.WriteLine('call python.exe automation_notepad.py', auto.ConsoleColor.DarkGreen)
+    cmd = '"{}" "automation_notepad.py"'.format(sys.executable)
+    p = subprocess.Popen(cmd)
+    auto.Logger.WriteLine(cmd, auto.ConsoleColor.DarkGreen)
     while True:
         if None != p.poll():
             break

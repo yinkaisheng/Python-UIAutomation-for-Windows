@@ -1148,7 +1148,7 @@ class SW:
     Show = 5
     Minimize = 6
     ShowMinNoActive = 7
-    ShowNa = 8
+    ShowNA = 8
     Restore = 9
     ShowDefault = 10
     ForceMinimize = 11
@@ -2288,6 +2288,28 @@ def IsProcess64Bit(processId: int) -> bool:
             return False if is64Bit.value else True
         else:
             ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
+
+
+def IsUserAnAdmin() -> bool:
+    """
+    IsUserAnAdmin from Win32.
+    Return bool.
+    Minimum supported OS: Windows XP, Windows Server 2003
+    """
+    return bool(ctypes.windll.shell32.IsUserAnAdmin())
+
+
+def RunScriptAsAdmin(argv: list, workingDirectory: str = None, showFlag: int = SW.ShowNormal) -> bool:
+    """
+    Run a python script as administrator.
+    System will show a popup dialog askes you whether to elevate as administrator if UAC is enabled.
+    argv: list, a str list like sys.argv, argv[0] is the python file, argv[1:] are other arguments.
+    workingDirectory: str, the working directory for the script file.
+    showFlag: int, a value in class `SW`.
+    return bool, True if succeed.
+    """
+    args = ' '.join('"{}"'.format(arg) for arg in argv)
+    return ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, args, workingDirectory, showFlag) > 32
 
 
 def SendKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
