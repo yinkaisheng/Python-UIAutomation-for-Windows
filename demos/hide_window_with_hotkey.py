@@ -37,10 +37,10 @@ def show():
             auto.Logger.WriteLine('show window: {}'.format(handle))
             window.Show()
 
-def HideWindowFunc(stopEvent):
-    scriptName = os.path.basename(__file__)
-    cmd = r'python.exe {} hide {}'.format(scriptName, ' '.join(sys.argv[1:]))
-    auto.Logger.ColorfullyWriteLine('HideWindowFunc call <Color=Green>{}</Color>'.format(cmd))
+def HotKeyFunc(stopEvent: 'Event', argv: list):
+    args = [sys.executable, __file__] + argv
+    cmd = ' '.join('"{}"'.format(arg) for arg in args)
+    auto.Logger.WriteLine('call {}'.format(cmd))
     p = subprocess.Popen(cmd)
     while True:
         if None != p.poll():
@@ -52,33 +52,26 @@ def HideWindowFunc(stopEvent):
                 p.kill()
             break
         stopEvent.wait(0.01)
-    auto.Logger.WriteLine('HideWindowFunc exit')
-
-def ShowWindowFunc(stopEvent):
-    scriptName = os.path.basename(__file__)
-    cmd = r'python.exe {} show {}'.format(scriptName, ' '.join(sys.argv[1:]))
-    auto.Logger.ColorfullyWriteLine('ShowWindowFunc call <Color=Green>{}</Color>'.format(cmd))
-    p = subprocess.Popen(cmd)
-    while True:
-        if None != p.poll():
-            break
-        if stopEvent.is_set():
-            childProcesses = [pro for pro in psutil.process_iter() if pro.ppid == p.pid or pro.pid == p.pid]
-            for pro in childProcesses:
-                auto.Logger.WriteLine('kill process: {}, {}'.format(pro.pid, pro.cmdline()), auto.ConsoleColor.Yellow)
-                p.kill()
-            break
-        stopEvent.wait(0.01)
-    auto.Logger.WriteLine('ShowWindowFunc exit')
 
 if __name__ == '__main__':
-    if 'hide' in sys.argv[1:]:
-        hide()
-    elif 'show' in sys.argv[1:]:
-        show()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--main', action='store_true', help='exec main')
+    parser.add_argument('--hide', action='store_true', help='hide window')
+    parser.add_argument('--show', action='store_true', help='show window')
+    args = parser.parse_args()
+
+    if args.main:
+        if args.hide:
+            hide()
+        elif args.show:
+            show()
     else:
         subprocess.Popen('notepad')
         auto.GetConsoleWindow().SetActive()
-        auto.Logger.ColorfullyWriteLine('Run Notepad\nPress <Color=Green>Ctr+1</Color> to hide\nPress <Color=Green>Ctr+2</Color> to show\n')
-        auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_1): HideWindowFunc, (auto.ModifierKey.Control, auto.Keys.VK_2): ShowWindowFunc}, (auto.ModifierKey.Control, auto.Keys.VK_4)
-                         )
+        auto.Logger.ColorfullyWriteLine('Press <Color=Green>Ctr+1</Color> to hide\nPress <Color=Green>Ctr+2</Color> to show\n')
+        auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_1): lambda e: HotKeyFunc(e, ['--main', '--hide']),
+                            (auto.ModifierKey.Control, auto.Keys.VK_2): lambda e: HotKeyFunc(e, ['--main', '--show']),
+                          },
+                           (auto.ModifierKey.Control, auto.Keys.VK_9))
+

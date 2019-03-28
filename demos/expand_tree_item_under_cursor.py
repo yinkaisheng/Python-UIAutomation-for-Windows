@@ -34,7 +34,7 @@ def GetFirstChild(item: auto.Control):
 def GetNextSibling(item: auto.Control):
     return item.GetNextSiblingControl()
 
-def ExpandTreeItem(treeItem):
+def ExpandTreeItem(treeItem: auto.TreeItemControl):
     for item, depth in auto.WalkTree(treeItem, getFirstChild=GetFirstChild, getNextSibling=GetNextSibling, includeTop=True, maxDepth=MaxExpandDepth):
         if isinstance(item, auto.TreeItemControl):  #or item.ControlType == auto.ControlType.TreeItemControl
             if PrintTree:
@@ -57,8 +57,9 @@ def main():
         auto.Logger.WriteLine('the control under cursor is not a tree control', auto.ConsoleColor.Yellow)
 
 
-def HotKeyFunc(stopEvent):
-    cmd = [sys.executable, os.path.abspath(__file__), "--main"] + sys.argv[1:]
+def HotKeyFunc(stopEvent: 'Event', argv: list):
+    args = [sys.executable, __file__] + argv
+    cmd = ' '.join('"{}"'.format(arg) for arg in args)
     auto.Logger.WriteLine('call {}'.format(cmd))
     p = subprocess.Popen(cmd)
     while True:
@@ -81,10 +82,8 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--depth', type=int, default=0xFFFFFFFF,
                         help='max expand tree depth')
     parser.add_argument('-r', '--root', action='store_true', help='expand from root')
-    # print is a keyword in py2, so send to unambiguous "dest".
     parser.add_argument('-p', '--print', action='store_true', help='print tree node text', dest="print_")
     args = parser.parse_args()
-    # auto.Logger.WriteLine(str(args))
 
     if args.main:
         ExpandFromRoot = args.root
@@ -93,6 +92,6 @@ if __name__ == '__main__':
         main()
     else:
         auto.Logger.WriteLine('move mouse to a tree control and press Ctrl+1', auto.ConsoleColor.Green)
-        auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_1): HotKeyFunc},
+        auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_1): lambda event: HotKeyFunc(event, ['--main'] + sys.argv[1:])},
                                  (auto.ModifierKey.Control, auto.Keys.VK_2))
 
