@@ -7631,7 +7631,7 @@ def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple 
     uiautomation.RunByHotKey({(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : main}
                         , (uiautomation.ModifierKey.Control | uiautomation.ModifierKey.Shift, uiautomation.Keys.VK_2))
     """
-    from threading import Thread, Event
+    from threading import Thread, Event, currentThread
     import traceback
 
     def getModName(theDict, theValue):
@@ -7662,8 +7662,8 @@ def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple 
             print(traceback.format_exc())
         finally:
             releaseAllKey()  #need to release keys if some keys were pressed
-            Logger.ColorfullyWrite('Thread for function <Color=DarkCyan>{}</Color> exits, hotkey <Color=DarkCyan>{}</Color>\n'.format(
-                function.__name__, hotkeyName), ConsoleColor.DarkYellow, writeToFile=False)
+            Logger.ColorfullyWrite('{} for function <Color=DarkCyan>{}</Color> exits, hotkey <Color=DarkCyan>{}</Color>\n'.format(
+                currentThread(), function.__name__, hotkeyName), ConsoleColor.DarkYellow, writeToFile=False)
 
     stopHotKeyId = 1
     exitHotKeyId = 2
@@ -7714,22 +7714,20 @@ def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple 
                     if not id2Thread[msg.wParam]:
                         stopEvent.clear()
                         funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam], id2Name[msg.wParam]))
-                        #funcThread.setDaemon(True)
                         funcThread.start()
                         id2Thread[msg.wParam] = funcThread
                     else:
                         if id2Thread[msg.wParam].is_alive():
-                            Logger.WriteLine('There is a thread that is already running for hot key {}'.format(id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile=False)
+                            Logger.WriteLine('There is a {} that is already running for hot key {}'.format(id2Thread[msg.wParam], id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile=False)
                         else:
                             id2Thread[msg.wParam].join()
                             stopEvent.clear()
                             funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam], id2Name[msg.wParam]))
-                            #funcThread.setDaemon(True)
                             funcThread.start()
                             id2Thread[msg.wParam] = funcThread
             elif stopHotKeyId == msg.wParam:
                 if msg.lParam & 0x0000FFFF == stopHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == stopHotKey[1]:
-                    Logger.Write('----------stop hot key pressed----------\n', writeToFile=False)
+                    Logger.Write('----------stop hot key pressed----------\n', ConsoleColor.DarkYellow, writeToFile=False)
                     stopEvent.set()
                     for id_ in id2Thread:
                         if id2Thread[id_]:
@@ -7737,12 +7735,17 @@ def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple 
                             id2Thread[id_] = None
             elif exitHotKeyId == msg.wParam:
                 if msg.lParam & 0x0000FFFF == exitHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == exitHotKey[1]:
-                    stopEvent.set()
                     Logger.Write('Exit hot key pressed. Exit\n', ConsoleColor.DarkYellow, writeToFile=False)
+                    stopEvent.set()
+                    for id_ in id2Thread:
+                        if id2Thread[id_]:
+                            id2Thread[id_].join()
+                            id2Thread[id_] = None
                     break
     for id_, thread in id2Thread.items():
         if thread:
-            thread.join()
+            Logger.ColorfullyWrite('join {} for function <Color=DarkCyan>{}</Color>, hotkey <Color=DarkCyan>{}</Color>\n'.format(thread, id2Function[id_].__name__, id2Name[id_]), ConsoleColor.DarkYellow)
+            thread.join(2)
 
 
 if __name__ == '__main__':
