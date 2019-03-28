@@ -5082,7 +5082,8 @@ class Control():
                             Name: str.
                             SubName: str, a part str in Name.
                             RegexName: str, supports regex using re.match.
-                            Depth: int, only find controls in relative depth from searchFromControl, ignore controls in depth(0~Depth-1),
+                                You can only use one of Name, SubName, RegexName in searchProperties.
+                            Depth: int, only search controls in relative depth from searchFromControl, ignore controls in depth(0~Depth-1),
                                 if set, searchDepth will be set to Depth too.
                             Compare: Callable, custom compare function(control, depth)->bool.
 
