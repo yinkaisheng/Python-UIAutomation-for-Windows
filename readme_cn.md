@@ -152,12 +152,12 @@ searchWaitTime = SEARCH_INTERVAL, 搜索间隔
 foundIndex = 1 ，搜索到的满足搜索条件的控件索引，索引从1开始  
 Name  控件名字  
 SubName  控件部分名字  
-RegexName  符合正则表达式的名字，Name,SubName,RegexName只能使用一个，不能同时使用  
+RegexName  使用re.match匹配符合正则表达式的名字，Name,SubName,RegexName只能使用一个，不能同时使用  
 ClassName 类名字  
 AutomationId  控件AutomationId  
 ControlType  控件类型  
 Depth  控件相对于searchFromControl的精确深度  
-Compare  自定义比较函数function(control, depth)->bool
+Compare  自定义比较函数function(control: Control, depth: int)->bool
 
 searchDepth和Depth的区别是：  
 searchDepth在指定的深度范围内（包括1\~searchDepth层中的所有子孙控件）搜索第一个满足搜索条件的控件  
