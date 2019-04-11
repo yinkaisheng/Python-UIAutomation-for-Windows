@@ -19,7 +19,6 @@ setup(
     long_description='Python UIAutomation for Windows. Supports Python3.4+, x86, x64',
     zip_safe=False,
     classifiers=[
-        "License :: OSI Approved :: Apache 2.0",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",

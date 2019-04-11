@@ -1233,6 +1233,16 @@ class MB:
     IdTimeout = 32000
 
 
+class GWL:
+    ExStyle = -20
+    HInstance = -6
+    HwndParent = -8
+    ID = -12
+    Style = -16
+    UserData = -21
+    WndProc = -4
+
+
 class Keys:
     """Key codes from Win32."""
     VK_LBUTTON = 0x01                       #Left mouse button
@@ -1906,16 +1916,9 @@ def MoveTo(x: int, y: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAI
     time.sleep(waitTime)
 
 
-def DragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
-    """
-    Simulate mouse drag from point x1, y1 drop to point x2, y2.
-    x1: int.
-    y1: int.
-    x2: int.
-    y2: int.
-    moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster.
-    waitTime: float.
-    """
+def _DragDrop(x1: int, y1: int, x2: int, y2: int, isLeftButton: bool = True, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    down = MouseEventFlag.LeftDown if isLeftButton else MouseEventFlag.RightDown
+    up = MouseEventFlag.LeftUp if isLeftButton else MouseEventFlag.RightUp
     if moveSpeed <= 0:
         moveTime = 0
     else:
@@ -1931,7 +1934,7 @@ def DragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime:
         moveTime = moveTime * maxPoint * 1.0 / maxSide
     stepCount = maxPoint // 4  # step should be smaller
     SetCursorPos(x1, y1)
-    mouse_event(MouseEventFlag.LeftDown | MouseEventFlag.Absolute, x1 * 65536 // screenWidth, y1 * 65536 // screenHeight, 0, 0)
+    mouse_event(down | MouseEventFlag.Absolute, x1 * 65536 // screenWidth, y1 * 65536 // screenHeight, 0, 0)
     if stepCount > 1:
         xStep = (x2 - x1) * 1.0 / stepCount
         yStep = (y2 - y1) * 1.0 / stepCount
@@ -1943,9 +1946,35 @@ def DragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime:
             SetCursorPos(int(x1), int(y1))
     else:
         time.sleep(0.05)
-    mouse_event(MouseEventFlag.Absolute | MouseEventFlag.LeftUp, x2 * 65536 // screenWidth, y2 * 65536 // screenHeight, 0, 0)
+    mouse_event(up | MouseEventFlag.Absolute, x2 * 65536 // screenWidth, y2 * 65536 // screenHeight, 0, 0)
     SetCursorPos(x2, y2)
     time.sleep(waitTime)
+
+
+def DragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse left button drag from point x1, y1 drop to point x2, y2.
+    x1: int.
+    y1: int.
+    x2: int.
+    y2: int.
+    moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster.
+    waitTime: float.
+    """
+    _DragDrop(x1, y1, x2, y2, True, moveSpeed, waitTime)
+
+
+def RightDragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse right button drag from point x1, y1 drop to point x2, y2.
+    x1: int.
+    y1: int.
+    x2: int.
+    y2: int.
+    moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster.
+    waitTime: float.
+    """
+    _DragDrop(x1, y1, x2, y2, False, moveSpeed, waitTime)
 
 
 def WheelDown(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
@@ -2069,6 +2098,17 @@ def GetWindowLong(handle: int, index: int) -> int:
     index: int.
     """
     return ctypes.windll.user32.GetWindowLongW(ctypes.c_void_p(handle), index)
+
+
+def SetWindowLong(handle: int, index: int, value: int) -> int:
+    """
+    SetWindowLong from Win32.
+    handle: int, the handle of a native window.
+    index: int.
+    value: int.
+    Return int, the previous value before set.
+    """
+    return ctypes.windll.user32.SetWindowLongW(ctypes.c_void_p(handle), index, value)
 
 
 def IsIconic(handle: int) -> bool:
@@ -2303,10 +2343,10 @@ def RunScriptAsAdmin(argv: list, workingDirectory: str = None, showFlag: int = S
     """
     Run a python script as administrator.
     System will show a popup dialog askes you whether to elevate as administrator if UAC is enabled.
-    argv: list, a str list like sys.argv, argv[0] is the python file, argv[1:] are other arguments.
+    argv: list, a str list like sys.argv, argv[0] is the script file, argv[1:] are other arguments.
     workingDirectory: str, the working directory for the script file.
     showFlag: int, a value in class `SW`.
-    return bool, True if succeed.
+    Return bool, True if succeed.
     """
     args = ' '.join('"{}"'.format(arg) for arg in argv)
     return ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, args, workingDirectory, showFlag) > 32
@@ -6743,9 +6783,8 @@ class TopLevel():
 
     def IsTopmost(self) -> bool:
         if self.IsTopLevel():
-            GWL_EXSTYLE = -20
             WS_EX_TOPMOST = 0x00000008
-            return bool(GetWindowLong(self.NativeWindowHandle, GWL_EXSTYLE) & WS_EX_TOPMOST)
+            return bool(GetWindowLong(self.NativeWindowHandle, GWL.ExStyle) & WS_EX_TOPMOST)
         return False
 
     def SwitchToThisWindow(self, waitTime: float = OPERATION_WAIT_TIME) -> None:
@@ -7637,15 +7676,15 @@ def WaitHotKeyReleased(hotkey: tuple) -> None:
 
 def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple = (ModifierKey.Control, Keys.VK_D), waitHotKeyReleased: bool = True) -> None:
     """
-    Bind functions with hot keys, the function will be run or stopped in another thread when the hot key is pressed.
-    keyFunctions: hot key function dict, like {(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : func}
-    stopHotKey: hot key tuple
-    exitHotKey: hot key tuple
-    waitHotKeyReleased: bool, if True, hot key function will be triggered after the hot key is released
+    Bind functions with hotkeys, the function will be run or stopped in another thread when the hotkey is pressed.
+    keyFunctions: hotkey function dict, like {(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : func}
+    stopHotKey: hotkey tuple
+    exitHotKey: hotkey tuple
+    waitHotKeyReleased: bool, if True, hotkey function will be triggered after the hotkey is released
 
     def main(stopEvent):
         while True:
-            if stopEvent.is_set(): # must check stopEvent.is_set() if you want to stop when stop hot key is pressed
+            if stopEvent.is_set(): # must check stopEvent.is_set() if you want to stop when stop hotkey is pressed
                 break
             print(n)
             n += 1
@@ -7705,36 +7744,37 @@ def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple 
         keyName = getKeyName(Keys.__dict__, hotkey[1])
         id2Name[hotKeyId] = str((modName, keyName))
         if ctypes.windll.user32.RegisterHotKey(0, hotKeyId, hotkey[0], hotkey[1]):
-            Logger.ColorfullyWrite('Register hot key <Color=DarkGreen>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWrite('Register hotkey <Color=DarkGreen>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
         else:
             registed = False
-            Logger.ColorfullyWrite('Register hot key <Color=DarkGreen>{}</Color> unsuccessfully, maybe it was allready registered by another program\n'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWrite('Register hotkey <Color=DarkGreen>{}</Color> unsuccessfully, maybe it was allready registered by another program\n'.format((modName, keyName)), writeToFile=False)
         hotKeyId += 1
     if stopHotKey and len(stopHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, stopHotKey[0])
         keyName = getKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
-            Logger.ColorfullyWrite('Register stop hot key <Color=DarkYellow>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWrite('Register stop hotkey <Color=DarkYellow>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
         else:
             registed = False
-            Logger.ColorfullyWrite('Register stop hot key <Color=DarkYellow>{}</Color> unsuccessfully, maybe it was allready registered by another program\n'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWrite('Register stop hotkey <Color=DarkYellow>{}</Color> unsuccessfully, maybe it was allready registered by another program\n'.format((modName, keyName)), writeToFile=False)
     if not registed:
         return
     if exitHotKey and len(exitHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, exitHotKey[0])
         keyName = getKeyName(Keys.__dict__, exitHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, exitHotKey[0], exitHotKey[1]):
-            Logger.ColorfullyWrite('Register exit hot key <Color=DarkYellow>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWrite('Register exit hotkey <Color=DarkYellow>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
         else:
-            Logger.ColorfullyWrite('Register exit hot key <Color=DarkYellow>{}</Color> unsuccessfully\n'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWrite('Register exit hotkey <Color=DarkYellow>{}</Color> unsuccessfully\n'.format((modName, keyName)), writeToFile=False)
     funcThread = None
+    livingThreads = []
     stopEvent = Event()
     msg = ctypes.wintypes.MSG()
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), ctypes.c_void_p(0), 0, 0) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if msg.wParam in id2HotKey:
                 if msg.lParam & 0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam >> 16 & 0x0000FFFF == id2HotKey[msg.wParam][1]:
-                    Logger.ColorfullyWrite('----------hot key <Color=DarkGreen>{}</Color> pressed----------\n'.format(id2Name[msg.wParam]), writeToFile=False)
+                    Logger.ColorfullyWrite('----------hotkey <Color=DarkGreen>{}</Color> pressed----------\n'.format(id2Name[msg.wParam]), writeToFile=False)
                     if not id2Thread[msg.wParam]:
                         stopEvent.clear()
                         funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam], id2Name[msg.wParam]))
@@ -7742,34 +7782,36 @@ def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple 
                         id2Thread[msg.wParam] = funcThread
                     else:
                         if id2Thread[msg.wParam].is_alive():
-                            Logger.WriteLine('There is a {} that is already running for hot key {}'.format(id2Thread[msg.wParam], id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile=False)
+                            Logger.WriteLine('There is a {} that is already running for hotkey {}'.format(id2Thread[msg.wParam], id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile=False)
                         else:
-                            id2Thread[msg.wParam].join()
                             stopEvent.clear()
                             funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam], id2Name[msg.wParam]))
                             funcThread.start()
                             id2Thread[msg.wParam] = funcThread
             elif stopHotKeyId == msg.wParam:
                 if msg.lParam & 0x0000FFFF == stopHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == stopHotKey[1]:
-                    Logger.Write('----------stop hot key pressed----------\n', ConsoleColor.DarkYellow, writeToFile=False)
+                    Logger.Write('----------stop hotkey pressed----------\n', ConsoleColor.DarkYellow, writeToFile=False)
                     stopEvent.set()
                     for id_ in id2Thread:
                         if id2Thread[id_]:
-                            id2Thread[id_].join()
+                            if id2Thread[id_].is_alive():
+                                livingThreads.append((id2Thread[id_], id2Name[id_]))
                             id2Thread[id_] = None
             elif exitHotKeyId == msg.wParam:
                 if msg.lParam & 0x0000FFFF == exitHotKey[0] and msg.lParam >> 16 & 0x0000FFFF == exitHotKey[1]:
-                    Logger.Write('Exit hot key pressed. Exit\n', ConsoleColor.DarkYellow, writeToFile=False)
+                    Logger.Write('Exit hotkey pressed. Exit\n', ConsoleColor.DarkYellow, writeToFile=False)
                     stopEvent.set()
                     for id_ in id2Thread:
                         if id2Thread[id_]:
-                            id2Thread[id_].join()
+                            if id2Thread[id_].is_alive():
+                                livingThreads.append((id2Thread[id_], id2Name[id_]))
                             id2Thread[id_] = None
                     break
-    for id_, thread in id2Thread.items():
-        if thread:
-            Logger.ColorfullyWrite('join {} for function <Color=DarkCyan>{}</Color>, hotkey <Color=DarkCyan>{}</Color>\n'.format(thread, id2Function[id_].__name__, id2Name[id_]), ConsoleColor.DarkYellow)
+    for thread, hotkeyName in livingThreads:
+        if thread.is_alive():
+            Logger.Write('join {} triggered by hotkey {}\n'.format(thread, hotkeyName), ConsoleColor.DarkYellow, writeToFile=False)
             thread.join(2)
+    os._exit(0)
 
 
 if __name__ == '__main__':
@@ -7795,7 +7837,7 @@ if __name__ == '__main__':
     if not notepad.Exists(0, 0):
         import subprocess
         subprocess.Popen('notepad.exe')
-    notepad.Refind()
+        notepad.Refind()
 
     print('\n', notepad)
     print('Control:----')
