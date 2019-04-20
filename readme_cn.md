@@ -203,7 +203,7 @@ auto.uiautomation.DEBUG_SEARCH_TIME = True
 ![QQ](images/automation_qq.png)
 
 
-打印好看的目录结果
+打印好看的目录结构
 
 ![PrettyPrint](images/pretty_print_dir.png)
 
