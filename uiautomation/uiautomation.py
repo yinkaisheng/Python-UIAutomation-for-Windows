@@ -5693,7 +5693,7 @@ class Control():
     def GetAncestorControl(self, condition: Callable) -> 'Control':
         """
         Get a ancestor control that matches the condition.
-        condition: Callable, comapre function (control: Control, depth: int)->bool,
+        condition: Callable, function (control: Control, depth: int)->bool,
                    depth starts with -1 and decreses when search goes up.
         Return `Control` subclass or None.
         """
@@ -5742,6 +5742,31 @@ class Control():
         """
         ele = _AutomationClient.instance().ViewWalker.GetPreviousSiblingElement(self.Element)
         return Control.CreateControlFromElement(ele)
+
+    def GetSiblingControl(self, condition: Callable, forward: bool = True) -> 'Control':
+        """
+        Find a SiblingControl by condition(control: Control)->bool.
+        forward: bool, if True, only search next siblings, if False, search pervious siblings first, then search next siblings.
+        condition: Callable, function (control: Control)->bool.
+        Return `Control` subclass or None.
+        """
+        if not forward:
+            prev = self
+            while True:
+                prev = prev.GetPreviousSiblingControl()
+                if prev:
+                    if condition(prev):
+                        return prev
+                else:
+                    break
+        next_ = self
+        while True:
+            next_ = next_.GetNextSiblingControl()
+            if next_:
+                if condition(next_):
+                    return next_
+            else:
+                break
 
     def GetChildren(self) -> list:
         """
