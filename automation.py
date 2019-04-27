@@ -17,7 +17,7 @@ def usage():
 <Color=Cyan>-c</Color>      enumerate the control under <Color=Cyan>cursor</Color>, if depth is < 0, enumerate from its ancestor up to depth
 <Color=Cyan>-a</Color>      show <Color=Cyan>ancestors</Color> of the control under cursor
 <Color=Cyan>-n</Color>      show control full <Color=Cyan>name</Color>, if it is null, show first 30 characters of control's name in console,
-        allways show full name in log file @AutomationLog.txt
+        always show full name in log file @AutomationLog.txt
 
 if <Color=Red>UnicodeError</Color> or <Color=Red>LookupError</Color> occurred when printing,
 try to change the active code page of console window by using <Color=Cyan>chcp</Color> or see the log file <Color=Cyan>@AutomationLog.txt</Color>
