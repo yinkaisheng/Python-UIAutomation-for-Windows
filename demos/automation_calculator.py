@@ -30,7 +30,8 @@ def Calc(window, btns, expression):
 
 def CalcOnXP():
     chars = '0123456789.+-*/=()'
-    calcWindow = auto.WindowControl(searchDepth=1, ClassName='SciCalc')
+    #Desc is not a valid search property, but it can be used for debug printing
+    calcWindow = auto.WindowControl(searchDepth=1, ClassName='SciCalc', Desc='Calculator Window')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
@@ -38,7 +39,6 @@ def CalcOnXP():
     clearBtn = calcWindow.ButtonControl(Name = 'CE')  #
     clearBtn.Click()
     if 0:
-        #Desc it not a valid search property, but it can be used for debug printing
         char2Button = {key: calcWindow.ButtonControl(Name=key, Desc='Button ' + key) for key in chars}
     else:
         #Run faster because it only walk calc window once
@@ -75,7 +75,8 @@ def CalcOnWindows7And8():
         '(' : '128',
         ')' : '129',
     }
-    calcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'CalcFrame')
+    #Desc is not a valid search property, but it can be used for debug printing
+    calcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'CalcFrame', Desc='Calculator Window')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
@@ -84,7 +85,6 @@ def CalcOnWindows7And8():
     if clearBtn.Exists() and clearBtn.AutomationId == '82':
         clearBtn.Click()
     if 0:
-        #Desc it not a valid search property, but it can be used for debug printing
         char2Button = {key: calcWindow.ButtonControl(AutomationId=char2Id[key], Desc='Button ' + key) for key in char2Id}
     else:
         #Run faster because it only walk calc window once
@@ -122,7 +122,8 @@ def CalcOnWindows10():
         '(' : 'openParanthesisButton',
         ')' : 'closeParanthesisButton',
     }
-    calcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'ApplicationFrameWindow', Name = 'Calculator')
+    #Desc is not a valid search property, but it can be used for debug printing
+    calcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'ApplicationFrameWindow', Name = 'Calculator', Desc='Calculator Window')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
@@ -130,7 +131,6 @@ def CalcOnWindows10():
     calcWindow.ListItemControl(Name = 'Scientific Calculator').Click()
     calcWindow.ButtonControl(AutomationId='clearButton').Click()
     if 1:
-        #Desc it not a valid search property, but it can be used for debug printing
         char2Button = {key: calcWindow.ButtonControl(AutomationId=char2Id[key], Desc='Button ' + key) for key in char2Id}
     else:
         #Run faster because it only walk calc window once
