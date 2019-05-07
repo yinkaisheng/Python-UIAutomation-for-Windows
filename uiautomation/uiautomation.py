@@ -883,7 +883,7 @@ class DockPosition:
 
 class ScrollAmount:
     """
-    DockPosition from IUIAutomation.
+    ScrollAmount from IUIAutomation.
     Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-scrollamount
     """
     LargeDecrement = 0
@@ -895,7 +895,7 @@ class ScrollAmount:
 
 class StyleId:
     """
-    DockPosition from IUIAutomation.
+    StyleId from IUIAutomation.
     Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-style-identifiers
     """
     Custom = 70000
@@ -968,7 +968,7 @@ class TextPatternRangeEndpoint:
 
 class TextAttributeId:
     """
-    TextPatternRangeEndpoint from IUIAutomation.
+    TextAttributeId from IUIAutomation.
     Refer https://docs.microsoft.com/zh-cn/windows/desktop/WinAuto/uiauto-textattribute-ids
     """
     AfterParagraphSpacingAttribute = 40042
@@ -3229,7 +3229,7 @@ def GetPatternIdInterface(patternId: int):
             PatternId.WindowPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationWindowPattern,
         }
         debug = False
-        #the following patterns dosn't exist on Windows 7 or lower
+        #the following patterns doesn't exist on Windows 7 or lower
         try:
             _PatternIdInterfaces[PatternId.AnnotationPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationAnnotationPattern
         except:
@@ -3501,7 +3501,7 @@ class ExpandCollapsePattern():
         Call IUIAutomationExpandCollapsePattern::Expand.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-collapse
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-expand
         """
         ret = self.pattern.Expand() == S_OK
         time.sleep(waitTime)
@@ -3832,7 +3832,7 @@ class MultipleViewPattern():
         Set the view of the control.
         view: int, the control-specific view identifier.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-getviewname
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-setcurrentview
         """
         return self.pattern.SetCurrentView(view) == S_OK
 
@@ -5032,7 +5032,7 @@ class WindowPattern():
         Property CanMinimize.
         Call IUIAutomationWindowPattern::get_CurrentCanMinimize.
         Return bool, indicates whether the window can be minimized.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentismodal
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentcanminimize
         """
         return bool(self.pattern.CurrentCanMinimize)
 
@@ -5042,7 +5042,7 @@ class WindowPattern():
         Property IsModal.
         Call IUIAutomationWindowPattern::get_CurrentIsModal.
         Return bool, indicates whether the window is modal.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentistopmost
+        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentismodal
         """
         return bool(self.pattern.CurrentIsModal)
 
