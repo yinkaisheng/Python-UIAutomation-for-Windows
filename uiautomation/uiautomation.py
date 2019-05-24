@@ -7894,7 +7894,7 @@ if __name__ == '__main__':
     for i in sorted([it for it in dir(notepad.Element) if not it.startswith('_')]):
         print(i)
 
-    lp = notepad.LegacyIAccessiblePattern()
+    lp = notepad.GetLegacyIAccessiblePattern()
     print('\n', lp)
     print('Control.LegacyIAccessiblePattern:----')
     for i in sorted([it for it in dir(lp.pattern) if not it.startswith('_')]):
