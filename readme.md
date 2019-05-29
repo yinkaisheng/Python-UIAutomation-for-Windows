@@ -3,7 +3,7 @@
 :cn:[中文版介绍](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/blob/master/readme_cn.md)
 
 This module is for [UIAutomation](https://docs.microsoft.com/en-us/windows/desktop/WinAuto/windows-automation-api-portal) on Windows(Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10).
-It supports UIAutomation for the applications which implmented UIAutomation Provider, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt(Partly), Firefox(**version<=56 or >=60**) and Chrome(requires **--force-renderer-accessibility** command line parameter).
+It supports UIAutomation for the applications which implmented UIAutomation Provider, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt(Partly), Firefox(**version<=56 or >=60**), Chrome and Electron based apps(require **--force-renderer-accessibility** command line parameter).
 
 I developed it in my spare time and for my personal use.
 
