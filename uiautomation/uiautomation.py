@@ -2450,22 +2450,42 @@ def SendInput(*inputs) -> int:
     Return int, the number of events that it successfully inserted into the keyboard or mouse input stream.
                 If the function returns zero, the input was already blocked by another thread.
     """
-    nInputs = len(inputs)
-    LPINPUT = INPUT * nInputs
-    pInputs = LPINPUT(*inputs)
     cbSize = ctypes.c_int(ctypes.sizeof(INPUT))
-    return ctypes.windll.user32.SendInput(nInputs, pInputs, cbSize)
+    for ip in inputs:
+        ret = ctypes.windll.user32.SendInput(1, ctypes.byref(ip), cbSize)
+    return ret
+    #or one call
+    #nInputs = len(inputs)
+    #LPINPUT = INPUT * nInputs
+    #pInputs = LPINPUT(*inputs)
+    #cbSize = ctypes.c_int(ctypes.sizeof(INPUT))
+    #return ctypes.windll.user32.SendInput(nInputs, ctypes.byref(pInputs), cbSize)
 
 
-def SendUnicodeChar(char: str) -> int:
+def SendUnicodeChar(char: str, charMode: bool = True) -> int:
     """
     Type a single unicode char.
     char: str, len(char) must equal to 1.
+    charMode: bool, if False, the char typied is depend on the input method if a input method is on.
     Return int, the number of events that it successfully inserted into the keyboard or mouse input stream.
                 If the function returns zero, the input was already blocked by another thread.
     """
-    return SendInput(KeyboardInput(0, ord(char), KeyboardEventFlag.KeyUnicode | KeyboardEventFlag.KeyDown),
-                     KeyboardInput(0, ord(char), KeyboardEventFlag.KeyUnicode | KeyboardEventFlag.KeyUp))
+    if charMode:
+        vk = 0
+        scan = ord(char)
+        flag = KeyboardEventFlag.KeyUnicode
+    else:
+        res = ctypes.windll.user32.VkKeyScanW(ctypes.wintypes.WCHAR(char))
+        if (res >> 8) & 0xFF == 0:
+            vk = res & 0xFF
+            scan = 0
+            flag = 0
+        else:
+            vk = 0
+            scan = ord(char)
+            flag = KeyboardEventFlag.KeyUnicode
+    return SendInput(KeyboardInput(vk, scan, flag | KeyboardEventFlag.KeyDown),
+                     KeyboardInput(vk, scan, flag | KeyboardEventFlag.KeyUp))
 
 
 _SCKeys = {
@@ -2513,12 +2533,13 @@ def _VKtoSC(key: int) -> int:
     return scanCode
 
 
-def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, debug: bool = False) -> None:
+def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, charMode: bool = True, debug: bool = False) -> None:
     """
     Simulate typing keys on keyboard.
     text: str, keys to type.
     interval: float, seconds between keys.
     waitTime: float.
+    charMode: bool, if False, the text typied is depend on the input method if a input method is on.
     debug: bool, if True, print the keys.
     Examples:
     {Ctrl}, {Delete} ... are special keys' name in SpecialKeyNames.
@@ -2654,7 +2675,7 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
     hotkeyInterval = 0.01
     for i, key in enumerate(keys):
         if key[1] == 'UnicodeChar':
-            SendUnicodeChar(key[0])
+            SendUnicodeChar(key[0], charMode)
             time.sleep(interval)
             if debug:
                 Logger.ColorfullyWrite('<Color=DarkGreen>{}</Color>, sleep({})\n'.format(printKeys[i], interval), writeToFile=False)
@@ -6110,15 +6131,17 @@ class Control():
         self.SetFocus()
         SendKey(key, waitTime)
 
-    def SendKeys(self, keys: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def SendKeys(self, text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, charMode: bool = True) -> None:
         """
         Make control have focus first and type keys.
         `self.SetFocus` may not work for some controls, you may need to click it to make it have focus.
-        keys: str, keys to type, see the docstring of `SendKeys`.
+        text: str, keys to type, see the docstring of `SendKeys`.
         interval: float, seconds between keys.
+        waitTime: float.
+        charMode: bool, if False, the text typied is depend on the input method if a input method is on.
         """
         self.SetFocus()
-        SendKeys(keys, interval, waitTime)
+        SendKeys(text, interval, waitTime, charMode)
 
     def GetPixelColor(self, x: int, y: int) -> int:
         """
