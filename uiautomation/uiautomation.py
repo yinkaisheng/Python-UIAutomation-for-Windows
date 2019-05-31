@@ -60,55 +60,18 @@ class _AutomationClient:
             Logger.WriteLine('Can not load UIAutomationCore.dll.\nYou may need to install Windows Update KB971513.\nhttps://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation', ConsoleColor.Yellow)
             raise ex
         #Windows dll
-        ctypes.cdll.msvcrt.wcsncpy.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_size_t)
-        ctypes.windll.winmm.PlaySoundW.argtypes = (ctypes.c_wchar_p, ctypes.c_void_p, ctypes.c_uint)
-        #ctypes.windll.OleAut32.SysFreeString.argtypes = (ctypes.c_wchar_p, )
         ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
-        ctypes.windll.user32.GetWindowDC.argtypes = (ctypes.c_void_p, )
         ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
-        ctypes.windll.user32.ReleaseDC.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
-        ctypes.windll.user32.OpenDesktopW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_int, ctypes.c_uint)
         ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
-        ctypes.windll.user32.WindowFromPoint.argtypes = (ctypes.wintypes.POINT, )
         ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
-        ctypes.windll.user32.SwitchDesktop.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.user32.CloseDesktop.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.user32.GetMessageW.argtypes = (ctypes.POINTER(ctypes.wintypes.MSG), ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint)
-        ctypes.windll.user32.SetClipboardData.argtypes = (ctypes.c_uint, ctypes.c_void_p)
-        ctypes.windll.user32.PostMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.wintypes.WPARAM, ctypes.wintypes.LPARAM)
-        ctypes.windll.user32.SendMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.wintypes.WPARAM, ctypes.wintypes.LPARAM)
         ctypes.windll.user32.SendMessageW.restype = ctypes.wintypes.LONG
-        ctypes.windll.user32.GetCursorPos.argtypes = (ctypes.POINTER(ctypes.wintypes.POINT), )
-        ctypes.windll.user32.MessageBoxW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint)
-        ctypes.windll.user32.GetAncestor.argtypes = (ctypes.c_void_p, ctypes.c_int)
-        ctypes.windll.user32.SetForegroundWindow.argtypes = (ctypes.c_void_p, )
         ctypes.windll.user32.GetForegroundWindow.restype = ctypes.c_void_p
-        ctypes.windll.user32.BringWindowToTop.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.user32.IsIconic.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.user32.IsZoomed.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.user32.IsWindowVisible.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.user32.SwitchToThisWindow.argtypes = (ctypes.c_void_p, ctypes.c_int)
-        ctypes.windll.user32.GetWindowLongW.argtypes = (ctypes.c_void_p, ctypes.c_int)
         ctypes.windll.user32.GetWindowLongW.restype = ctypes.wintypes.LONG
-        ctypes.windll.user32.ShowWindow.argtypes = (ctypes.c_void_p, ctypes.c_int)
-        ctypes.windll.user32.MoveWindow.argtypes = (ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
-        ctypes.windll.user32.SetWindowPos.argtypes = (ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint)
-        ctypes.windll.user32.GetWindowTextW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_int)
-        ctypes.windll.user32.SetWindowTextW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p)
-        ctypes.windll.kernel32.GetConsoleTitleW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint)
-        ctypes.windll.kernel32.SetConsoleTitleW.argtypes = (ctypes.c_wchar_p, )
-        ctypes.windll.kernel32.SetConsoleTextAttribute.argtypes = (ctypes.c_void_p, ctypes.c_ushort)
-        ctypes.windll.kernel32.GlobalLock.argtypes = (ctypes.c_void_p, )
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.GlobalUnlock.argtypes = (ctypes.c_void_p, )
         ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
         ctypes.windll.kernel32.GetStdHandle.restype = ctypes.c_void_p
         ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.CloseHandle.argtypes = (ctypes.c_void_p, )
-        ctypes.windll.kernel32.TerminateProcess.argtypes = (ctypes.c_void_p, ctypes.c_uint)
-        if IsNT6orHigher:
-            ctypes.windll.kernel32.GetConsoleOriginalTitleW.argtypes = (ctypes.c_wchar_p, ctypes.c_uint)
 
 
 class _DllClient:
@@ -1705,7 +1668,7 @@ class INPUT(ctypes.Structure):
 
 
 _StdOutputHandle = -11
-_ConsoleOutputHandle = None
+_ConsoleOutputHandle = ctypes.c_void_p(0)
 _DefaultConsoleColor = None
 
 
@@ -1713,9 +1676,9 @@ def GetClipboardText() -> str:
     if ctypes.windll.user32.OpenClipboard(0):
         if ctypes.windll.user32.IsClipboardFormatAvailable(13): # CF_TEXT=1, CF_UNICODETEXT=13
             hClipboardData = ctypes.windll.user32.GetClipboardData(13)
-            hText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
+            hText = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipboardData))
             text = ctypes.c_wchar_p(hText).value[:]
-            ctypes.windll.kernel32.GlobalUnlock(hClipboardData)
+            ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
             ctypes.windll.user32.CloseClipboard()
             return text
     return ''
@@ -1729,12 +1692,12 @@ def SetClipboardText(text: str) -> bool:
         ctypes.windll.user32.EmptyClipboard()
         textByteLen = (len(text) + 1) * 2
         hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0, textByteLen)  # GMEM_FIXED=0
-        hDestText = ctypes.windll.kernel32.GlobalLock(hClipboardData)
-        ctypes.cdll.msvcrt.wcsncpy(ctypes.c_wchar_p(hDestText), ctypes.c_wchar_p(text), textByteLen // 2)
-        ctypes.windll.kernel32.GlobalUnlock(hClipboardData)
+        hDestText = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipboardData))
+        ctypes.cdll.msvcrt.wcsncpy(ctypes.c_wchar_p(hDestText), ctypes.c_wchar_p(text), ctypes.c_size_t(textByteLen // 2))
+        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
         # system owns hClipboardData after calling SetClipboardData,
         # application can not write to or free the data once ownership has been transferred to the system
-        ctypes.windll.user32.SetClipboardData(13, hClipboardData)  # CF_TEXT=1, CF_UNICODETEXT=13
+        ctypes.windll.user32.SetClipboardData(ctypes.c_uint(13), ctypes.c_void_p(hClipboardData))  # CF_TEXT=1, CF_UNICODETEXT=13
         ctypes.windll.user32.CloseClipboard()
         return True
     return False
@@ -1750,13 +1713,13 @@ def SetConsoleColor(color: int) -> bool:
     global _DefaultConsoleColor
     if not _DefaultConsoleColor:
         if not _ConsoleOutputHandle:
-            _ConsoleOutputHandle = ctypes.windll.kernel32.GetStdHandle(_StdOutputHandle)
+            _ConsoleOutputHandle = ctypes.c_void_p(ctypes.windll.kernel32.GetStdHandle(_StdOutputHandle))
         bufferInfo = ConsoleScreenBufferInfo()
         ctypes.windll.kernel32.GetConsoleScreenBufferInfo(_ConsoleOutputHandle, ctypes.byref(bufferInfo))
         _DefaultConsoleColor = int(bufferInfo.wAttributes & 0xFF)
     if sys.stdout:
         sys.stdout.flush()
-    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, color))
+    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(color)))
 
 
 def ResetConsoleColor() -> bool:
@@ -1766,7 +1729,7 @@ def ResetConsoleColor() -> bool:
     """
     if sys.stdout:
         sys.stdout.flush()
-    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, _DefaultConsoleColor))
+    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(_DefaultConsoleColor)))
 
 
 def WindowFromPoint(x: int, y: int) -> int:
@@ -1822,7 +1785,7 @@ def PostMessage(handle: int, msg: int, wParam: int, lParam: int) -> bool:
     PostMessage from Win32.
     Return bool, True if succeed otherwise False.
     """
-    return bool(ctypes.windll.user32.PostMessageW(ctypes.c_void_p(handle), msg, wParam, lParam))
+    return bool(ctypes.windll.user32.PostMessageW(ctypes.c_void_p(handle), ctypes.c_uint(msg), ctypes.wintypes.WPARAM(wParam), ctypes.wintypes.LPARAM(lParam)))
 
 
 def SendMessage(handle: int, msg: int, wParam: int, lParam: int) -> int:
@@ -1831,7 +1794,7 @@ def SendMessage(handle: int, msg: int, wParam: int, lParam: int) -> int:
     Return int, the return value specifies the result of the message processing;
                 it depends on the message sent.
     """
-    return ctypes.windll.user32.SendMessageW(ctypes.c_void_p(handle), msg, wParam, lParam)
+    return ctypes.windll.user32.SendMessageW(ctypes.c_void_p(handle), ctypes.c_uint(msg), ctypes.wintypes.WPARAM(wParam), ctypes.wintypes.LPARAM(lParam))
 
 
 def Click(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
@@ -2050,7 +2013,7 @@ def GetPixelColor(x: int, y: int, handle: int = 0) -> int:
     """
     hdc = ctypes.windll.user32.GetWindowDC(ctypes.c_void_p(handle))
     bgr = ctypes.windll.gdi32.GetPixel(hdc, x, y)
-    ctypes.windll.user32.ReleaseDC(ctypes.c_void_p(handle), hdc)
+    ctypes.windll.user32.ReleaseDC(ctypes.c_void_p(handle), ctypes.c_void_p(hdc))
     return bgr
 
 
@@ -2062,7 +2025,7 @@ def MessageBox(content: str, title: str, flags: int = MB.Ok) -> int:
     flags: int, a value or some combined values in class `MB`.
     Return int, a value in MB whose name starts with Id, such as MB.IdOk
     """
-    return ctypes.windll.user32.MessageBoxW(ctypes.c_void_p(0), ctypes.c_wchar_p(content), ctypes.c_wchar_p(title), flags)
+    return ctypes.windll.user32.MessageBoxW(ctypes.c_void_p(0), ctypes.c_wchar_p(content), ctypes.c_wchar_p(title), ctypes.c_uint(flags))
 
 
 def SetForegroundWindow(handle: int) -> bool:
@@ -2088,7 +2051,7 @@ def SwitchToThisWindow(handle: int) -> None:
     SwitchToThisWindow from Win32.
     handle: int, the handle of a native window.
     """
-    ctypes.windll.user32.SwitchToThisWindow(ctypes.c_void_p(handle), 1) #void function, no return
+    ctypes.windll.user32.SwitchToThisWindow(ctypes.c_void_p(handle), ctypes.c_int(1)) #void function, no return
 
 
 def GetAncestor(handle: int, flag: int) -> int:
@@ -2098,7 +2061,7 @@ def GetAncestor(handle: int, flag: int) -> int:
     index: int, a value in class `GAFlag`.
     Return int, a native window handle.
     """
-    return ctypes.windll.user32.GetAncestor(ctypes.c_void_p(handle), flag)
+    return ctypes.windll.user32.GetAncestor(ctypes.c_void_p(handle), ctypes.c_int(flag))
 
 
 def IsTopLevelWindow(handle: int) -> bool:
@@ -2117,7 +2080,7 @@ def GetWindowLong(handle: int, index: int) -> int:
     handle: int, the handle of a native window.
     index: int.
     """
-    return ctypes.windll.user32.GetWindowLongW(ctypes.c_void_p(handle), index)
+    return ctypes.windll.user32.GetWindowLongW(ctypes.c_void_p(handle), ctypes.c_int(index))
 
 
 def SetWindowLong(handle: int, index: int, value: int) -> int:
@@ -2167,7 +2130,7 @@ def ShowWindow(handle: int, cmdShow: int) -> bool:
     cmdShow: int, a value in clas `SW`.
     Return bool, True if succeed otherwise False.
     """
-    return ctypes.windll.user32.ShowWindow(ctypes.c_void_p(handle), cmdShow)
+    return ctypes.windll.user32.ShowWindow(ctypes.c_void_p(handle), ctypes.c_int(cmdShow))
 
 
 def MoveWindow(handle: int, x: int, y: int, width: int, height: int, repaint: int = 1) -> bool:
@@ -2181,7 +2144,7 @@ def MoveWindow(handle: int, x: int, y: int, width: int, height: int, repaint: in
     repaint: int, use 1 or 0.
     Return bool, True if succeed otherwise False.
     """
-    return bool(ctypes.windll.user32.MoveWindow(ctypes.c_void_p(handle), x, y, width, height, repaint))
+    return bool(ctypes.windll.user32.MoveWindow(ctypes.c_void_p(handle), ctypes.c_int(x), ctypes.c_int(y), ctypes.c_int(width), ctypes.c_int(height), ctypes.c_int(repaint)))
 
 
 def SetWindowPos(handle: int, hWndInsertAfter: int, x: int, y: int, width: int, height: int, flags: int) -> bool:
@@ -2196,7 +2159,7 @@ def SetWindowPos(handle: int, hWndInsertAfter: int, x: int, y: int, width: int, 
     flags: int, values whose name starts with 'SWP' in class `SWP`.
     Return bool, True if succeed otherwise False.
     """
-    return ctypes.windll.user32.SetWindowPos(ctypes.c_void_p(handle), ctypes.c_void_p(hWndInsertAfter), x, y, width, height, flags)
+    return ctypes.windll.user32.SetWindowPos(ctypes.c_void_p(handle), ctypes.c_void_p(hWndInsertAfter), ctypes.c_int(x), ctypes.c_int(y), ctypes.c_int(width), ctypes.c_int(height), ctypes.c_uint(flags))
 
 
 def SetWindowTopmost(handle: int, isTopmost: bool) -> bool:
@@ -2217,7 +2180,7 @@ def GetWindowText(handle: int) -> str:
     """
     arrayType = ctypes.c_wchar * MAX_PATH
     values = arrayType()
-    ctypes.windll.user32.GetWindowTextW(ctypes.c_void_p(handle), values, MAX_PATH)
+    ctypes.windll.user32.GetWindowTextW(ctypes.c_void_p(handle), values, ctypes.c_int(MAX_PATH))
     return values.value
 
 
@@ -2253,7 +2216,7 @@ def GetConsoleOriginalTitle() -> str:
     if IsNT6orHigher:
         arrayType = ctypes.c_wchar * MAX_PATH
         values = arrayType()
-        ctypes.windll.kernel32.GetConsoleOriginalTitleW(values, MAX_PATH)
+        ctypes.windll.kernel32.GetConsoleOriginalTitleW(values, ctypes.c_uint(MAX_PATH))
         return values.value
     else:
         raise RuntimeError('GetConsoleOriginalTitle is not supported on Windows XP or lower.')
@@ -2266,7 +2229,7 @@ def GetConsoleTitle() -> str:
     """
     arrayType = ctypes.c_wchar * MAX_PATH
     values = arrayType()
-    ctypes.windll.kernel32.GetConsoleTitleW(values, MAX_PATH)
+    ctypes.windll.kernel32.GetConsoleTitleW(values, ctypes.c_uint(MAX_PATH))
     return values.value
 
 
@@ -2294,10 +2257,10 @@ def IsDesktopLocked() -> bool:
     Desktop is locked if press Win+L, Ctrl+Alt+Del or in remote desktop mode.
     """
     isLocked = False
-    desk = ctypes.windll.user32.OpenDesktopW(ctypes.c_wchar_p('Default'), 0, 0, 0x0100)  # DESKTOP_SWITCHDESKTOP = 0x0100
+    desk = ctypes.windll.user32.OpenDesktopW(ctypes.c_wchar_p('Default'), ctypes.c_uint(0), ctypes.c_int(0), ctypes.c_uint(0x0100))  # DESKTOP_SWITCHDESKTOP = 0x0100
     if desk:
-        isLocked = not ctypes.windll.user32.SwitchDesktop(desk)
-        ctypes.windll.user32.CloseDesktop(desk)
+        isLocked = not ctypes.windll.user32.SwitchDesktop(ctypes.c_void_p(desk))
+        ctypes.windll.user32.CloseDesktop(ctypes.c_void_p(desk))
     return isLocked
 
 
@@ -2320,9 +2283,9 @@ def PlayWaveFile(filePath: str = r'C:\Windows\Media\notify.wav', isAsync: bool =
         if isLoop:
             flags |= SND_LOOP
             flags |= SND_ASYNC
-        return bool(ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(filePath), ctypes.c_void_p(0), flags))
+        return bool(ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(filePath), ctypes.c_void_p(0), ctypes.c_uint(flags)))
     else:
-        return bool(ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(0), ctypes.c_void_p(0), 0))
+        return bool(ctypes.windll.winmm.PlaySoundW(ctypes.c_wchar_p(0), ctypes.c_void_p(0), ctypes.c_uint(0)))
 
 
 def IsProcess64Bit(processId: int) -> bool:
@@ -2337,13 +2300,12 @@ def IsProcess64Bit(processId: int) -> bool:
         return False
     try:
         IsWow64Process = ctypes.windll.kernel32.IsWow64Process
-        IsWow64Process.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
     except Exception as ex:
         return False
     hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  #PROCESS_QUERY_INFORMATION=0x0400,PROCESS_QUERY_LIMITED_INFORMATION=0x1000
     if hProcess:
         is64Bit = ctypes.c_int32()
-        if IsWow64Process(hProcess, ctypes.byref(is64Bit)):
+        if IsWow64Process(ctypes.c_void_p(hProcess), ctypes.byref(is64Bit)):
             ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
             return False if is64Bit.value else True
         else:
@@ -7838,7 +7800,7 @@ def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple 
     livingThreads = []
     stopEvent = Event()
     msg = ctypes.wintypes.MSG()
-    while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), ctypes.c_void_p(0), 0, 0) != 0:
+    while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), ctypes.c_void_p(0), ctypes.c_uint(0), ctypes.c_uint(0)) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if msg.wParam in id2HotKey:
                 if msg.lParam & 0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam >> 16 & 0x0000FFFF == id2HotKey[msg.wParam][1]:
