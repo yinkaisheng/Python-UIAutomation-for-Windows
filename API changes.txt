@@ -1,3 +1,10 @@
+2.0.2
+    Control.WheelDown(self, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None
+        to WheelDown(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None
+    Control.WheelUp(self, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None
+        to WheelUp(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None
+    Control.SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, debug: bool = False) -> None
+        to SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, charMode: bool = True, debug: bool = False) -> None
 2.0.0
     Only supports Python3.
     Depends on modules comtypes and typing.

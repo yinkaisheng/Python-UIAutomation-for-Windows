@@ -5992,29 +5992,37 @@ class Control():
         Click(x, y, GetDoubleClickTime() * 1.0 / 2000)
         Click(x, y, waitTime)
 
-    def WheelDown(self, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def WheelDown(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
-        Make control have focus first, move cursor to center and mouse wheel down.
+        Make control have focus first, move cursor to the specified position and mouse wheel down.
+        x: int, if < 0, move x cursor to self.BoundingRectangle.right + x, if not None, ignore ratioX.
+        y: int, if < 0, move y cursor to self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
+        ratioX: float.
+        ratioY: float.
         wheelTimes: int.
         interval: float.
         waitTime: float.
         """
         x, y = GetCursorPos()
         self.SetFocus()
-        self.MoveCursorToMyCenter(False)
+        self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove=False)
         WheelDown(wheelTimes, interval, waitTime)
         SetCursorPos(x, y)
 
-    def WheelUp(self, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def WheelUp(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
-        Make control have focus first, move cursor to center and mouse wheel up.
+        Make control have focus first, move cursor to the specified position and mouse wheel up.
+        x: int, if < 0, move x cursor to self.BoundingRectangle.right + x, if not None, ignore ratioX.
+        y: int, if < 0, move y cursor to self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
+        ratioX: float.
+        ratioY: float.
         wheelTimes: int.
         interval: float.
         waitTime: float.
         """
         x, y = GetCursorPos()
         self.SetFocus()
-        self.MoveCursorToMyCenter(False)
+        self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove=False)
         WheelUp(wheelTimes, interval, waitTime)
         SetCursorPos(x, y)
 
