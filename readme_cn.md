@@ -2,6 +2,9 @@
 
 uiautomation是我业余时间开发的供我自己使用的一个模块。
 
+uiautomation封装了微软UIAutomation API，支持自动化Win32，MFC，WPF，Modern UI(Metro UI), Qt, IE, Firefox(**version<=56 or >=60**), 
+Chrome和基于Electron开发的应用程序(Chrome浏览器和Electron应用需要加启动参数--force-renderer-accessibility才能支持UIAutomation).
+
 最新版uiautomation2.0只支持Python 3版本，依赖comtypes和typing这两个包。
 2.0版本之前的代码请参考[API changes](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/blob/master/API%20changes.txt)修改代码。
 
@@ -14,7 +17,7 @@ uiautomation支持在Windows XP SP3或更高版本的Windows桌面系统上运�
 否则uiautomation运行时很多函数可能会执行失败。
 或者先以管理员权限运行cmd.exe，在cmd中再调用Python，如下图中cmd窗口标题中显示了**管理员**。
 
-安装uiautomation后，在Python的Scripts(比如C:\Python37\Scripts)目录中会有一个文件automation.py，
+安装pip install uiautomation后，在Python的Scripts(比如C:\Python37\Scripts)目录中会有一个文件automation.py，
 或者使用源码根目录里的automation.py。automation.py是用来枚举控件树结构的一个脚本。
 
 运行'**automation.py -h**'，查看命令帮助，写自动化代码时要根据它的输出结果来写对应的代码。
@@ -179,7 +182,7 @@ auto.uiautomation.DEBUG_SEARCH_TIME = True
 微软提供的标准控件默认支持UIAutomation。
 
 比如Chrome浏览器，默认你只能看到最外层的PaneControl Chrome_WidgetWin_1，看不到Chrome具体的子控件，
-如果加了参数**--force-renderer-accessibility**运行Chrome浏览器，就能看到Chrome的子控件了。
+如果加了参数--force-renderer-accessibility运行Chrome浏览器，就能看到Chrome的子控件了。
 这是因为Chrome实现了UI Automation Provider，并做了参数开关
 。如果一个软件是用DirectUI实现的，但没有实现UI Automation Provider，那么这个软件是不支持UIAutomation的。
 
