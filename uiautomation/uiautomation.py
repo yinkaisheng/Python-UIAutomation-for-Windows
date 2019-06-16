@@ -6003,11 +6003,11 @@ class Control():
         interval: float.
         waitTime: float.
         """
-        x, y = GetCursorPos()
+        cursorX, cursorY = GetCursorPos()
         self.SetFocus()
         self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove=False)
         WheelDown(wheelTimes, interval, waitTime)
-        SetCursorPos(x, y)
+        SetCursorPos(cursorX, cursorY)
 
     def WheelUp(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
@@ -6020,11 +6020,11 @@ class Control():
         interval: float.
         waitTime: float.
         """
-        x, y = GetCursorPos()
+        cursorX, cursorY = GetCursorPos()
         self.SetFocus()
         self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove=False)
         WheelUp(wheelTimes, interval, waitTime)
-        SetCursorPos(x, y)
+        SetCursorPos(cursorX, cursorY)
 
     def ShowWindow(self, cmdShow: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
