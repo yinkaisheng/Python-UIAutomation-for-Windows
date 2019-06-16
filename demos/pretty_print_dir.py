@@ -39,7 +39,7 @@ def main(directory, maxDepth = 0xFFFFFFFF):
         texts.append(file)
         texts.append('\n')
         auto.Logger.Write(prefixPrint, writeToFile=False)
-        auto.Logger.WriteLine(file, auto.ConsoleColor.Cyan if os.path.isdir(it) else auto.ConsoleColor.Default, writeToFile=False)
+        auto.Logger.WriteLine(file, auto.ConsoleColor.Cyan if isDir else auto.ConsoleColor.Default, writeToFile=False)
     allText = ''.join(texts)
     auto.Logger.WriteLine(allText, printToStdout=False)
     ret = input('\npress Y to save dir tree to clipboard, press other keys to exit')
