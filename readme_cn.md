@@ -197,15 +197,15 @@ auto.uiautomation.DEBUG_SEARCH_TIME = True
 ![Word](images/word.png)
 
 
-显示Qt5
-![Qt5](images/automation_Qt.png)
-
-
-Wireshark3.0
+Wireshark 3.0 (Qt 5.12)
 ![Wireshark](images/wireshark3.0.gif)
 
 
-显示QQ
+GitHub Desktop (Electron App)
+![GitHubDesktop](images/github_desktop.png)
+
+
+显示QQ        
 ![QQ](images/automation_qq.png)
 
 
