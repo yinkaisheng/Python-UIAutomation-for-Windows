@@ -196,22 +196,17 @@ Batch rename pdf bookmark
 ![bookmark](images/rename_pdf_bookmark.gif)
 
 
-Microsoft Word
+Microsoft Word        
 ![Word](images/word.png)
 
 
-Qt5
-![Qt5](images/automation_Qt.png)
-
-
-Wireshark3.0
+Wireshark 3.0 (Qt 5.12)
 ![Wireshark](images/wireshark3.0.gif)
 
 
-QQ
-![QQ](images/automation_qq.png)
+GitHub Desktop (Electron App)
+![GitHubDesktop](images/github_desktop.png)
 
 
-Pretty print dir
-
+Pretty print dir        
 ![PrettyPrint](images/pretty_print_dir.png)
