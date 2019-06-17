@@ -17,11 +17,12 @@ import sys
 import time
 import datetime
 import re
-from typing import Any, Callable, Iterable    #need pip install typing for Python3.4 or lower
+from typing import (Any, Callable, Iterable, Tuple, List, Dict)  # need pip install typing for Python3.4 or lower
 import ctypes
 import ctypes.wintypes
 import comtypes #need pip install comtypes
 import comtypes.client
+TreeNode = Any
 
 
 AUTHOR_MAIL = 'yinkaisheng@live.com'
@@ -1740,11 +1741,11 @@ def WindowFromPoint(x: int, y: int) -> int:
     return ctypes.windll.user32.WindowFromPoint(ctypes.wintypes.POINT(x, y))
 
 
-def GetCursorPos() -> tuple:
+def GetCursorPos() -> Tuple[int, int]:
     """
     GetCursorPos from Win32.
     Get current mouse cursor positon.
-    Return tuple, two ints tuple (x, y).
+    Return Tuple[int, int], two ints tuple (x, y).
     """
     point = ctypes.wintypes.POINT(0, 0)
     ctypes.windll.user32.GetCursorPos(ctypes.byref(point))
@@ -1986,8 +1987,8 @@ def WheelUp(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERA
     time.sleep(waitTime)
 
 
-def GetScreenSize() -> tuple:
-    """Return tuple, two ints tuple (width, height)."""
+def GetScreenSize() -> Tuple[int, int]:
+    """Return Tuple[int, int], two ints tuple (width, height)."""
     SM_CXSCREEN = 0
     SM_CYSCREEN = 1
     w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN)
@@ -2321,11 +2322,11 @@ def IsUserAnAdmin() -> bool:
     return bool(ctypes.windll.shell32.IsUserAnAdmin())
 
 
-def RunScriptAsAdmin(argv: list, workingDirectory: str = None, showFlag: int = SW.ShowNormal) -> bool:
+def RunScriptAsAdmin(argv: List[str], workingDirectory: str = None, showFlag: int = SW.ShowNormal) -> bool:
     """
     Run a python script as administrator.
     System will show a popup dialog askes you whether to elevate as administrator if UAC is enabled.
-    argv: list, a str list like sys.argv, argv[0] is the script file, argv[1:] are other arguments.
+    argv: List[str], a str list like sys.argv, argv[0] is the script file, argv[1:] are other arguments.
     workingDirectory: str, the working directory for the script file.
     showFlag: int, a value in class `SW`.
     Return bool, True if succeed.
@@ -3048,12 +3049,12 @@ class Bitmap:
         _DllClient.instance().dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
-    def SetPixelColorsHorizontally(self, x: int, y: int, colors: Iterable) -> bool:
+    def SetPixelColorsHorizontally(self, x: int, y: int, colors: Iterable[int]) -> bool:
         """
         Set pixel colors form x,y horizontally.
         x: int.
         y: int.
-        colors: Iterable, an iterable list of int color values in argb.
+        colors: Iterable[int], an iterable list of int color values in argb.
         Return bool, True if succeed otherwise False.
         """
         count = len(colors)
@@ -3073,12 +3074,12 @@ class Bitmap:
         _DllClient.instance().dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
-    def SetPixelColorsVertically(self, x: int, y: int, colors: Iterable) -> bool:
+    def SetPixelColorsVertically(self, x: int, y: int, colors: Iterable[int]) -> bool:
         """
         Set pixel colors form x,y vertically.
         x: int.
         y: int.
-        colors: Iterable, an iterable list of int color values in argb.
+        colors: Iterable[int], an iterable list of int color values in argb.
         Return bool, True if succeed otherwise False.
         """
         count = len(colors)
@@ -3113,23 +3114,23 @@ class Bitmap:
         _DllClient.instance().dll.BitmapGetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, values)
         return values
 
-    def SetPixelColorsOfRect(self, x: int, y: int, width: int, height: int, colors: Iterable) -> bool:
+    def SetPixelColorsOfRect(self, x: int, y: int, width: int, height: int, colors: Iterable[int]) -> bool:
         """
         x: int.
         y: int.
         width: int.
         height: int.
-        colors: Iterable, an iterable list of int values, it's length must equal to width*height.
-        Return `ctypes.Array`, an iterable array of int values in argb of the input rect.
+        colors: Iterable[int], an iterable list of int values in argb, it's length must equal to width*height.
+        Return bool.
         """
         arrayType = ctypes.c_uint32 * (width * height)
         values = arrayType(*colors)
         return bool(_DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, values))
 
-    def GetPixelColorsOfRects(self, rects: list) -> list:
+    def GetPixelColorsOfRects(self, rects: List[Tuple[int, int, int, int]]) -> List[ctypes.Array]:
         """
-        rects: a list of rects, such as [(0,0,10,10), (10,10,20,20),(x,y,width,height)].
-        Return list, a list whose elements are ctypes.Array which is an iterable array of int values in argb.
+        rects: List[Tuple[int, int, int, int]], such as [(0,0,10,10), (10,10,20,20), (x,y,width,height)].
+        Return List[ctypes.Array], a list whose elements are ctypes.Array which is an iterable array of int values in argb.
         """
         rects2 = [(x, y, x + width, y + height) for x, y, width, height in rects]
         left, top, right, bottom = zip(*rects2)
@@ -3385,11 +3386,11 @@ class DragPattern():
         return self.pattern.CurrentDropEffect
 
     @property
-    def DropEffects(self) -> list:
+    def DropEffects(self) -> List[str]:
         """
         Property DropEffects.
         Call IUIAutomationDragPattern::get_CurrentDropEffects, todo SAFEARRAY.
-        Return list, a list of localized strings that enumerate the full set of effects
+        Return List[str], a list of localized strings that enumerate the full set of effects
                      that can happen when this element as part of a drag-and-drop operation.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdropeffects
         """
@@ -3405,10 +3406,10 @@ class DragPattern():
         """
         return bool(self.pattern.CurrentIsGrabbed)
 
-    def GetGrabbedItems(self) -> list:
+    def GetGrabbedItems(self) -> List['Control']:
         """
         Call IUIAutomationDragPattern::GetCurrentGrabbedItems.
-        Return list, a list of `Control` subclasses that represent the full set of items
+        Return List[Control], a list of `Control` subclasses that represent the full set of items
                      that the user is dragging as part of a drag operation.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-getcurrentgrabbeditems
         """
@@ -3441,11 +3442,11 @@ class DropTargetPattern():
         return self.pattern.CurrentDropTargetEffect
 
     @property
-    def DropTargetEffects(self) -> list:
+    def DropTargetEffects(self) -> List[str]:
         """
         Property DropTargetEffects.
         Call IUIAutomationDropTargetPattern::get_CurrentDropTargetEffects, todo SAFEARRAY.
-        Return list, a list of localized strings that enumerate the full set of effects
+        Return List[str], a list of localized strings that enumerate the full set of effects
                      that can happen when the user drops a grabbed element on this drop target
                      as part of a drag-and-drop operation.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdroptargeteffects
@@ -3723,10 +3724,10 @@ class LegacyIAccessiblePattern():
         time.sleep(waitTime)
         return ret
 
-    def GetSelection(self) -> list:
+    def GetSelection(self) -> List['Control']:
         """
         Call IUIAutomationLegacyIAccessiblePattern::GetCurrentSelection.
-        Return list, a list of `Control` subclasses,
+        Return List[Control], a list of `Control` subclasses,
                      the Microsoft Active Accessibility property that identifies the selected children of this element.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-getcurrentselection
         """
@@ -3792,10 +3793,10 @@ class MultipleViewPattern():
         """
         return self.pattern.CurrentCurrentView
 
-    def GetSupportedViews(self) -> list:
+    def GetSupportedViews(self) -> List[int]:
         """
         Call IUIAutomationMultipleViewPattern::GetCurrentSupportedViews, todo.
-        Return list, a list of int, control-specific view identifiers.
+        Return List[int], a list of int, control-specific view identifiers.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-getcurrentsupportedviews
         """
         return self.pattern.GetCurrentSupportedViews()
@@ -4115,10 +4116,10 @@ class SelectionPattern():
         """
         return bool(self.pattern.CurrentIsSelectionRequired)
 
-    def GetSelection(self) -> list:
+    def GetSelection(self) -> List['Control']:
         """
         Call IUIAutomationSelectionPattern::GetCurrentSelection.
-        Return list, a list of `Control` subclasses, the selected elements in the container..
+        Return List[Control], a list of `Control` subclasses, the selected elements in the container..
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-getcurrentselection
         """
         eleArray = self.pattern.GetCurrentSelection()
@@ -4148,10 +4149,10 @@ class SpreadsheetItemPattern():
         """
         return self.pattern.CurrentFormula
 
-    def GetAnnotationObjects(self) -> list:
+    def GetAnnotationObjects(self) -> List['Control']:
         """
         Call IUIAutomationSelectionPattern::GetCurrentAnnotationObjects.
-        Return list, a list of `Control` subclasses representing the annotations associated with this spreadsheet cell.
+        Return List[Control], a list of `Control` subclasses representing the annotations associated with this spreadsheet cell.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetitempattern-getcurrentannotationobjects
         """
         eleArray = self.pattern.GetCurrentAnnotationObjects()
@@ -4165,10 +4166,10 @@ class SpreadsheetItemPattern():
             return controls
         return []
 
-    def GetAnnotationTypes(self) -> list:
+    def GetAnnotationTypes(self) -> List[int]:
         """
         Call IUIAutomationSelectionPattern::GetCurrentAnnotationTypes.
-        Return list, a list of int values in class `AnnotationType`,
+        Return List[int], a list of int values in class `AnnotationType`,
                      indicating the types of annotations that are associated with this spreadsheet cell.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-getcurrentannotationtypes
         """
@@ -4286,10 +4287,10 @@ class TableItemPattern():
         """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtableitempattern"""
         self.pattern = pattern
 
-    def GetColumnHeaderItems(self) -> list:
+    def GetColumnHeaderItems(self) -> List['Control']:
         """
         Call IUIAutomationTableItemPattern::GetCurrentColumnHeaderItems.
-        Return list, a list of `Control` subclasses, the column headers associated with a table item or cell.
+        Return List[Control], a list of `Control` subclasses, the column headers associated with a table item or cell.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtableitempattern-getcurrentcolumnheaderitems
         """
         eleArray = self.pattern.GetCurrentColumnHeaderItems()
@@ -4303,10 +4304,10 @@ class TableItemPattern():
             return controls
         return []
 
-    def GetRowHeaderItems(self) -> list:
+    def GetRowHeaderItems(self) -> List['Control']:
         """
         Call IUIAutomationTableItemPattern::GetCurrentRowHeaderItems.
-        Return list, a list of `Control` subclasses, the row headers associated with a table item or cell.
+        Return List[Control], a list of `Control` subclasses, the row headers associated with a table item or cell.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtableitempattern-getcurrentrowheaderitems
         """
         eleArray = self.pattern.GetCurrentRowHeaderItems()
@@ -4336,10 +4337,10 @@ class TablePattern():
         """
         return self.pattern.CurrentRowOrColumnMajor
 
-    def GetColumnHeaders(self) -> list:
+    def GetColumnHeaders(self) -> List['Control']:
         """
         Call IUIAutomationTablePattern::GetCurrentColumnHeaders.
-        Return list, a list of `Control` subclasses, representing all the column headers in a table..
+        Return List[Control], a list of `Control` subclasses, representing all the column headers in a table..
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-getcurrentcolumnheaders
         """
         eleArray = self.pattern.GetCurrentColumnHeaders()
@@ -4353,10 +4354,10 @@ class TablePattern():
             return controls
         return []
 
-    def GetRowHeaders(self) -> list:
+    def GetRowHeaders(self) -> List['Control']:
         """
         Call IUIAutomationTablePattern::GetCurrentRowHeaders.
-        Return list, a list of `Control` subclasses, representing all the row headers in a table.
+        Return List[Control], a list of `Control` subclasses, representing all the row headers in a table.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-getcurrentrowheaders
         """
         eleArray = self.pattern.GetCurrentRowHeaders()
@@ -4469,11 +4470,11 @@ class TextRange():
         """
         return self.textRange.GetAttributeValue(textAttributeId)
 
-    def GetBoundingRectangles(self) -> list:
+    def GetBoundingRectangles(self) -> List[Rect]:
         """
         Call IUIAutomationTextRange::GetBoundingRectangles.
         textAttributeId: int, a value in class `TextAttributeId`.
-        Return list, a list of `Rect`.
+        Return List[Rect], a list of `Rect`.
             bounding rectangles for each fully or partially visible line of text in a text range..
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getboundingrectangles
 
@@ -4488,11 +4489,11 @@ class TextRange():
             rects.append(rect)
         return rects
 
-    def GetChildren(self) -> list:
+    def GetChildren(self) -> List['Control']:
         """
         Call IUIAutomationTextRange::GetChildren.
         textAttributeId: int, a value in class `TextAttributeId`.
-        Return list, a list of `Control` subclasses, embedded objects that fall within the text range..
+        Return List[Control], a list of `Control` subclasses, embedded objects that fall within the text range..
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getchildren
         """
         eleArray = self.textRange.GetChildren()
@@ -4688,10 +4689,10 @@ class TextPattern():
         """
         return bool(self.pattern.SupportedTextSelection)
 
-    def GetSelection(self) -> list:
+    def GetSelection(self) -> List[TextRange]:
         """
         Call IUIAutomationTextPattern::GetSelection.
-        Return list, a list of `TextRange`, represents the currently selected text in a text-based control.
+        Return List[TextRange], a list of `TextRange`, represents the currently selected text in a text-based control.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-getselection
         """
         eleArray = self.pattern.GetSelection()
@@ -4703,10 +4704,10 @@ class TextPattern():
             return textRanges
         return []
 
-    def GetVisibleRanges(self) -> list:
+    def GetVisibleRanges(self) -> List[TextRange]:
         """
         Call IUIAutomationTextPattern::GetVisibleRanges.
-        Return list, a list of `TextRange`, disjoint text ranges from a text-based control
+        Return List[TextRange], a list of `TextRange`, disjoint text ranges from a text-based control
                      where each text range represents a contiguous span of visible text.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-getvisibleranges
         """
@@ -5139,7 +5140,7 @@ class Control():
         searchDepth: int, max search depth from searchFromControl.
         foundIndex: int, starts with 1, >= 1.
         searchWaitTime: float, wait searchWaitTime before every search(interval between searchs).
-        element: `ctypes.POINTER(IUIAutomationElement)`, internal use.
+        element: `ctypes.POINTER(IUIAutomationElement)`, internal use only.
         searchProperties: defines how to search, the following keys can be used:
                             ControlType: int, a value in class `ControlType`.
                             ClassName: str.
@@ -5150,7 +5151,7 @@ class Control():
                                 You can only use one of Name, SubName, RegexName in searchProperties.
                             Depth: int, only search controls in relative depth from searchFromControl, ignore controls in depth(0~Depth-1),
                                 if set, searchDepth will be set to Depth too.
-                            Compare: Callable, custom compare function(control, depth)->bool.
+                            Compare: Callable[[Control, int], bool], custom compare function(control: Control, depth: int) -> bool.
 
         `Control` wraps IUIAutomationElement.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement
@@ -5556,10 +5557,10 @@ class Control():
     #GetCachedPropertyValue
     #GetCachedPropertyValueEx
 
-    def GetClickablePoint(self) -> tuple:
+    def GetClickablePoint(self) -> Tuple[int, int, bool]:
         """
         Call IUIAutomationElement::GetClickablePoint.
-        Return tuple, (x: int, y: int, gotClickable: bool), like (20, 10, True)
+        Return Tuple[int, int, bool], three items tuple (x, y, gotClickable), such as (20, 10, True)
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getclickablepoint
         """
         point, gotClickable = self.Element.GetClickablePoint()
@@ -5610,10 +5611,10 @@ class Control():
         """
         return self.Element.GetCurrentPropertyValueEx(propertyId, ignoreDefaultValue)
 
-    def GetRuntimeId(self) -> list:
+    def GetRuntimeId(self) -> List[int]:
         """
         Call IUIAutomationElement::GetRuntimeId.
-        Return list, a list of int.
+        Return List[int], a list of int.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getruntimeid
         """
         return self.Element.GetRuntimeId()
@@ -5673,10 +5674,10 @@ class Control():
         """
         return self.GetPattern(PatternId.LegacyIAccessiblePattern)
 
-    def GetAncestorControl(self, condition: Callable) -> 'Control':
+    def GetAncestorControl(self, condition: Callable[['Control', int], bool]) -> 'Control':
         """
-        Get a ancestor control that matches the condition.
-        condition: Callable, function (control: Control, depth: int)->bool,
+        Get an ancestor control that matches the condition.
+        condition: Callable[[Control, int], bool], function(control: Control, depth: int) -> bool,
                    depth starts with -1 and decreses when search goes up.
         Return `Control` subclass or None.
         """
@@ -5726,11 +5727,11 @@ class Control():
         ele = _AutomationClient.instance().ViewWalker.GetPreviousSiblingElement(self.Element)
         return Control.CreateControlFromElement(ele)
 
-    def GetSiblingControl(self, condition: Callable, forward: bool = True) -> 'Control':
+    def GetSiblingControl(self, condition: Callable[['Control'], bool], forward: bool = True) -> 'Control':
         """
-        Find a SiblingControl by condition(control: Control)->bool.
+        Get a sibling control that matches the condition.
         forward: bool, if True, only search next siblings, if False, search pervious siblings first, then search next siblings.
-        condition: Callable, function (control: Control)->bool.
+        condition: Callable[[Control], bool], function(control: Control) -> bool.
         Return `Control` subclass or None.
         """
         if not forward:
@@ -5751,9 +5752,9 @@ class Control():
             else:
                 break
 
-    def GetChildren(self) -> list:
+    def GetChildren(self) -> List['Control']:
         """
-        Return list, a list of `Control` subclasses.
+        Return List[Control], a list of `Control` subclasses.
         """
         children = []
         child = self.GetFirstChildControl()
@@ -5888,7 +5889,7 @@ class Control():
                 return False
         return True
 
-    def MoveCursorToInnerPos(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True) -> tuple:
+    def MoveCursorToInnerPos(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True) -> Tuple[int, int]:
         """
         Move cursor to control's internal position, default to center.
         x: int, if < 0, move to self.BoundingRectangle.right + x, if not None, ignore ratioX.
@@ -5896,7 +5897,8 @@ class Control():
         ratioX: float.
         ratioY: float.
         simulateMove: bool.
-        Return tuple, two ints(x,y), the cursor positon relative to screen(0,0) after moving or None if control's width or height == 0.
+        Return Tuple[int, int], two ints tuple (x, y), the cursor positon relative to screen(0, 0)
+            after moving or None if control's width or height is 0.
         """
         rect = self.BoundingRectangle
         if rect.width() == 0 or rect.height() == 0:
@@ -5917,10 +5919,10 @@ class Control():
             SetCursorPos(x, y)
         return x, y
 
-    def MoveCursorToMyCenter(self, simulateMove: bool = True) -> tuple:
+    def MoveCursorToMyCenter(self, simulateMove: bool = True) -> Tuple[int, int]:
         """
         Move cursor to control's center.
-        Return tuple, two ints tuple(x,y), the cursor positon relative to screen(0,0) after moving .
+        Return Tuple[int, int], two ints tuple (x, y), the cursor positon relative to screen(0, 0) after moving.
         """
         return self.MoveCursorToInnerPos(simulateMove=simulateMove)
 
@@ -6406,11 +6408,11 @@ class ComboBoxControl(Control):
         """
         return self.GetPattern(PatternId.ValuePattern)
 
-    def Select(self, itemName: str = '', condition: Callable = None, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+    def Select(self, itemName: str = '', condition: Callable[[str], bool] = None, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
         Show combobox's popup menu and select a item by name.
         itemName: str.
-        condition: Callable function(comboBoxItemName: str)->bool, if condition is valid, ignore itemName.
+        condition: Callable[[str], bool], function(comboBoxItemName: str) -> bool, if condition is valid, ignore itemName.
         waitTime: float.
         Some comboboxs doesn't support SelectionPattern, here is a workaround.
         This method tries to and selection support.
@@ -7357,14 +7359,16 @@ def WaitForDisappear(control: Control, timeout: float) -> bool:
     return control.Disappears(timeout, 1)
 
 
-def WalkTree(top, getChildren: Callable = None, getFirstChild: Callable = None, getNextSibling: Callable = None, yieldCondition: Callable = None, includeTop: bool = False, maxDepth: int = 0xFFFFFFFF):
+def WalkTree(top, getChildren: Callable[[TreeNode], List[TreeNode]] = None,
+             getFirstChild: Callable[[TreeNode], TreeNode] = None, getNextSibling: Callable[[TreeNode], TreeNode] = None,
+             yieldCondition: Callable[[TreeNode, int], bool] = None, includeTop: bool = False, maxDepth: int = 0xFFFFFFFF):
     """
     Walk a tree not using recursive algorithm.
     top: a tree node.
-    getChildren: function(treeNode) -> list.
-    getNextSibling: function(treeNode) -> treeNode.
-    getNextSibling: function(treeNode) -> treeNode.
-    yieldCondition: function(treeNode, depth) -> bool.
+    getChildren: Callable[[TreeNode], List[TreeNode]], function(treeNode: TreeNode) -> List[TreeNode].
+    getNextSibling: Callable[[TreeNode], TreeNode], function(treeNode: TreeNode) -> TreeNode.
+    getNextSibling: Callable[[TreeNode], TreeNode], function(treeNode: TreeNode) -> TreeNode.
+    yieldCondition: Callable[[TreeNode, int], bool], function(treeNode: TreeNode, depth: int) -> bool.
     includeTop: bool, if True yield top first.
     maxDepth: int, enum depth.
 
@@ -7372,7 +7376,7 @@ def WalkTree(top, getChildren: Callable = None, getFirstChild: Callable = None, 
         yield 3 items tuple: (treeNode, depth, remain children count in current depth).
     If getChildren is not valid, using getFirstChild and getNextSibling,
         yield 2 items tuple: (treeNode, depth).
-    If yieldCondition is not None, only yield tree nodes that yieldCondition(treeNode, depth)->bool returns True.
+    If yieldCondition is not None, only yield tree nodes that yieldCondition(treeNode: TreeNode, depth: int)->bool returns True.
 
     For example:
     def GetDirChildren(dir_):
@@ -7520,7 +7524,7 @@ def WalkControl(control: Control, includeTop: bool = False, maxDepth: int = 0xFF
     control: `Control` or its subclass.
     includeTop: bool, if True, yield (control, 0) first.
     maxDepth: int, enum depth.
-    Yield 2 items tuple(control: Control, depth: int).
+    Yield 2 items tuple (control: Control, depth: int).
     """
     if includeTop:
         yield control, 0
@@ -7638,10 +7642,10 @@ def EnumAndLogControlAncestors(control: Control, showAllName: bool = True) -> No
         LogControl(control, i, showAllName)
 
 
-def FindControl(control: Control, compare: Callable, maxDepth: int = 0xFFFFFFFF, findFromSelf: bool = False, foundIndex: int = 1) -> Control:
+def FindControl(control: Control, compare: Callable[[Control, int], bool], maxDepth: int = 0xFFFFFFFF, findFromSelf: bool = False, foundIndex: int = 1) -> Control:
     """
     control: `Control` or its subclass.
-    compare: compare function with parameters (control: Control, depth: int) which returns bool.
+    compare: Callable[[Control, int], bool], function(control: Control, depth: int) -> bool.
     maxDepth: int, enum depth.
     findFromSelf: bool, if False, do not compare self.
     foundIndex: int, starts with 1, >= 1.
@@ -7693,8 +7697,8 @@ def UninitializeUIAutomationInCurrentThread() -> None:
     comtypes.CoUninitialize()
 
 
-def WaitHotKeyReleased(hotkey: tuple) -> None:
-    """hotkey: tuple, two ints tuple(modifierKey, key)"""
+def WaitHotKeyReleased(hotkey: Tuple[int, int]) -> None:
+    """hotkey: Tuple[int, int], two ints tuple (modifierKey, key)"""
     mod = {ModifierKey.Alt: Keys.VK_MENU,
            ModifierKey.Control: Keys.VK_CONTROL,
                  ModifierKey.Shift: Keys.VK_SHIFT,
@@ -7712,10 +7716,10 @@ def WaitHotKeyReleased(hotkey: tuple) -> None:
             break
 
 
-def RunByHotKey(keyFunctions: dict, stopHotKey: tuple = None, exitHotKey: tuple = (ModifierKey.Control, Keys.VK_D), waitHotKeyReleased: bool = True) -> None:
+def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple[int, int] = None, exitHotKey: Tuple[int, int] = (ModifierKey.Control, Keys.VK_D), waitHotKeyReleased: bool = True) -> None:
     """
     Bind functions with hotkeys, the function will be run or stopped in another thread when the hotkey is pressed.
-    keyFunctions: hotkey function dict, like {(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : func}
+    keyFunctions: Dict[Tuple[int, int], Callable], such as {(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : function}
     stopHotKey: hotkey tuple
     exitHotKey: hotkey tuple
     waitHotKeyReleased: bool, if True, hotkey function will be triggered after the hotkey is released
