@@ -201,6 +201,10 @@ auto.uiautomation.DEBUG_SEARCH_TIME = True
 ![Qt5](images/automation_Qt.png)
 
 
+Wireshark3.0
+![Wireshark](images/wireshark3.0.gif)
+
+
 显示QQ
 ![QQ](images/automation_qq.png)
 
