@@ -2719,6 +2719,7 @@ class Logger:
     Logger for print and log. Support for printing log with different colors on console.
     """
     FileName = '@AutomationLog.txt'
+    _SelfFileName = None
     ColorNames = {
         "Black": ConsoleColor.Black,
         "DarkBlue": ConsoleColor.DarkBlue,
@@ -2847,10 +2848,20 @@ class Logger:
         printToStdout: bool.
         logFile: str, log file path.
         """
+        if not Logger._SelfFileName:
+            _, Logger._SelfFileName = os.path.split(__file__)
+
+        frameCount = 1
+        while True:
+            frame = sys._getframe(frameCount)
+            _, scriptFileName = os.path.split(frame.f_code.co_filename)
+            if scriptFileName != Logger._SelfFileName:
+                break
+            frameCount += 1
+
         t = datetime.datetime.now()
-        frame = sys._getframe(1)
-        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}\n'.format(t.year, t.month, t.day,
-            t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log)
+        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} {}[{}] {} -> {}\n'.format(t.year, t.month, t.day,
+            t.hour, t.minute, t.second, t.microsecond // 1000, scriptFileName, frame.f_lineno, frame.f_code.co_name, log)
         Logger.Write(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
@@ -2864,10 +2875,20 @@ class Logger:
 
         ColorfullyLog('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorNames
         """
+        if not Logger._SelfFileName:
+            _, Logger._SelfFileName = os.path.split(__file__)
+
+        frameCount = 1
+        while True:
+            frame = sys._getframe(frameCount)
+            _, scriptFileName = os.path.split(frame.f_code.co_filename)
+            if scriptFileName != Logger._SelfFileName:
+                break
+            frameCount += 1
+
         t = datetime.datetime.now()
-        frame = sys._getframe(1)
-        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} Function: {}, Line: {} -> {}\n'.format(t.year, t.month, t.day,
-            t.hour, t.minute, t.second, t.microsecond // 1000, frame.f_code.co_name, frame.f_lineno, log)
+        log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} {}[{}] {} -> {}\n'.format(t.year, t.month, t.day,
+            t.hour, t.minute, t.second, t.microsecond // 1000, scriptFileName, frame.f_lineno, frame.f_code.co_name, log)
         Logger.ColorfullyWrite(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
@@ -5825,7 +5846,7 @@ class Control():
         prev =  self.searchFromControl
         if prev and not prev._element and not prev.Exists(maxSearchSeconds, searchIntervalSeconds):
             if printIfNotExist or DEBUG_EXIST_DISAPPEAR:
-                Logger.ColorfullyWriteLine(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not exist.</Color>')
+                Logger.ColorfullyLog(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not exist.</Color>')
             return False
         startTime2 = ProcessTime()
         if DEBUG_SEARCH_TIME:
@@ -5836,7 +5857,7 @@ class Control():
                 self._element = control.Element
                 control._element = 0  # control will be destroyed, but the element needs to be stroed in self._element
                 if DEBUG_SEARCH_TIME:
-                    Logger.ColorfullyWriteLine('{} TraverseControls: <Color=Cyan>{}</Color>, SearchTime: <Color=Cyan>{:.3f}</Color>s[{} - {}]'.format(
+                    Logger.ColorfullyLog('{} TraverseControls: <Color=Cyan>{}</Color>, SearchTime: <Color=Cyan>{:.3f}</Color>s[{} - {}]'.format(
                         self.GetColorfulSearchPropertiesStr(), control.traverseCount, ProcessTime() - startTime2,
                         startDateTime.time(), datetime.datetime.now().time()))
                 return True
@@ -5846,7 +5867,7 @@ class Control():
                     time.sleep(min(remain, searchIntervalSeconds))
                 else:
                     if printIfNotExist or DEBUG_EXIST_DISAPPEAR:
-                        Logger.ColorfullyWriteLine(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not exist.</Color>')
+                        Logger.ColorfullyLog(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not exist.</Color>')
                     return False
 
     def Disappears(self, maxSearchSeconds: float = 5, searchIntervalSeconds: float = SEARCH_INTERVAL, printIfNotDisappear: bool = False) -> bool:
@@ -5870,7 +5891,7 @@ class Control():
                 time.sleep(min(remain, searchIntervalSeconds))
             else:
                 if printIfNotDisappear or DEBUG_EXIST_DISAPPEAR:
-                    Logger.ColorfullyWriteLine(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not disappear.</Color>')
+                    Logger.ColorfullyLog(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not disappear.</Color>')
                 return False
 
     def Refind(self, maxSearchSeconds: float = TIME_OUT_SECOND, searchIntervalSeconds: float = SEARCH_INTERVAL, raiseException: bool = True) -> bool:
@@ -5883,7 +5904,7 @@ class Control():
         """
         if not self.Exists(maxSearchSeconds, searchIntervalSeconds, False if raiseException else DEBUG_EXIST_DISAPPEAR):
             if raiseException:
-                Logger.ColorfullyWriteLine('<Color=Red>Find Control Timeout: </Color>' + self.GetColorfulSearchPropertiesStr())
+                Logger.ColorfullyLog('<Color=Red>Find Control Timeout: </Color>' + self.GetColorfulSearchPropertiesStr())
                 raise LookupError('Find Control Timeout: ' + self.GetSearchPropertiesStr())
             else:
                 return False
@@ -5902,7 +5923,7 @@ class Control():
         """
         rect = self.BoundingRectangle
         if rect.width() == 0 or rect.height() == 0:
-            Logger.ColorfullyWriteLine('<Color=Yellow>Can not move curosr</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
+            Logger.ColorfullyLog('<Color=Yellow>Can not move curosr</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
                 self.ControlTypeName, rect, self.GetColorfulSearchPropertiesStr()))
             return
         if x is None:
@@ -6451,7 +6472,7 @@ class ComboBoxControl(Control):
                     listItemControl.Click(waitTime=waitTime)
                     find = True
         if not find:
-            Logger.ColorfullyWriteLine('Can\'t find <Color=Cyan>{}</Color> in ComboBoxControl or it does not support selection.'.format(itemName), ConsoleColor.Yellow)
+            Logger.ColorfullyLog('Can\'t find <Color=Cyan>{}</Color> in ComboBoxControl or it does not support selection.'.format(itemName), ConsoleColor.Yellow)
             if expandCollapsePattern:
                 expandCollapsePattern.Collapse(waitTime)
             else:
@@ -7462,7 +7483,7 @@ def GetForegroundControl() -> Control:
 
 
 def GetConsoleWindow() -> WindowControl:
-    """Return `WindowControl`, a console window that runs python."""
+    """Return `WindowControl` or None, a console window that runs python."""
     return ControlFromHandle(ctypes.windll.kernel32.GetConsoleWindow())
 
 
@@ -7505,9 +7526,10 @@ def ControlFromHandle(handle: int) -> Control:
     """
     Call IUIAutomation.ElementFromHandle with a native handle.
     handle: int, a native window handle.
-    Return `Control` subclass.
+    Return `Control` subclass or None.
     """
-    return Control.CreateControlFromElement(_AutomationClient.instance().IUIAutomation.ElementFromHandle(handle))
+    if handle:
+        return Control.CreateControlFromElement(_AutomationClient.instance().IUIAutomation.ElementFromHandle(handle))
 
 
 def ControlsAreSame(control1: Control, control2: Control) -> bool:
