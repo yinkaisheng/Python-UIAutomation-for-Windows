@@ -135,7 +135,10 @@ print(auto.GetRootControl())
 subprocess.Popen('notepad.exe')
 # you should find the top level window first, then find children from the top level window
 notepadWindow = auto.WindowControl(searchDepth=1, ClassName='Notepad')
-print(notepadWindow.Name)
+if not notepadWindow.Exists(3, 1):
+    print('Can not find Notepad window')
+    exit(0)
+print(notepadWindow)
 notepadWindow.SetTopmost(True)
 # find the first EditControl in notepadWindow
 edit = notepadWindow.EditControl()
@@ -152,8 +155,8 @@ notepadWindow.ButtonControl(searchDepth=2, Name='关闭').Click()
 auto.SendKeys('{Alt}n')
 ```
 
-automation.GetRootControl() returns the root control(the Desktop window)  
-automation.WindowControl(searchDepth=1, ClassName='Notepad') creates a WindowControl, the parameters specify how to search the control  
+auto.GetRootControl() returns the root control(the Desktop window)  
+auto.WindowControl(searchDepth=1, ClassName='Notepad') creates a WindowControl, the parameters specify how to search the control  
 the following parameters can be used  
 searchFromControl = None,   
 searchDepth = 0xFFFFFFFF,   
@@ -170,6 +173,64 @@ Compare
 
 See Control.\_\_init\_\_ for the comments of the parameters.  
 See scripts in folder **demos** for more examples.  
+
+uiautomation only starts to search the control when you first call a control's method or property that indirectly calls Control.Element.  
+If Control.Element is None, uiautomation searches the control in the control tree by the properties you supply.
+uiautomation will raise a LookupError exception if it can't find the control in uiautomation.TIME_OUT_SECOND(default 10 seconds).  
+You can use Control.Exists(maxSearchSeconds, searchIntervalSeconds) to check whether a control Exists, this function doesn't raise any exception.  
+Control.Element will has a valid value if the control exists.  
+Call Control.Refind or Control.Exists to make Control.Element invalid again and uiautomation will starts a new search in the control tree.
+
+For example:  
+```python
+#!python3
+# -*- coding:utf-8 -*-
+import subprocess
+import uiautomation as auto
+auto.uiautomation.SetGlobalSearchTimeout(15)  # set new timeout 15
+
+
+def main():
+    subprocess.Popen('notepad.exe')
+    window = auto.WindowControl(searchDepth=1, ClassName='Notepad')
+    edit = window.EditControl()
+    # when calling SendKeys, uiautomation starts to search window and edit in 15 seconds
+    # because SendKeys indirectly calls Control.Element and Control.Element is None
+    # if window and edit don't exist in 15 seconds, a LookupError exception will be raised
+    try:
+        edit.SendKeys('first notepad')
+    except LookupError as ex:
+        print("The first notepad doesn't exist in 15 seconds")
+        return
+    # the second call to SendKeys doesn't trigger a search, edit should have a valid value for Control.Element
+    edit.SendKeys('{Ctrl}a{Del}')
+    window.GetWindowPattern().Close()  # close the first Notepad, window and edit become invalid
+
+    subprocess.Popen('notepad.exe')  # run second Notepad
+    window.Refind()  # need to refind window, trigger a new search
+    edit.Refind()  # need to refind edit, trigger a new search
+    edit.SendKeys('second notepad')
+    edit.SendKeys('{Ctrl}a{Del}')
+    window.GetWindowPattern().Close()  # close the second Notepad, window and edit become invalid again
+
+    subprocess.Popen('notepad.exe')  # run third Notepad
+    if window.Exists(3, 1):
+        if edit.Exists(3):
+            edit.SendKeys('third notepad')  # edit.Element has a valid value now
+            edit.SendKeys('{Ctrl}a{Del}')
+        window.GetWindowPattern().Close()
+    else:
+        print("The third notepad doesn't exist in 3 seconds")
+
+
+if __name__ == '__main__':
+    main()
+    
+```
+
+
+
+
 
 **If automation.py can't print the controls you see.
 Maybe the controls were built by DirectUI(or CustomControl), not UI Frameworks supplied by Microsoft.
