@@ -1,3 +1,5 @@
+2.0.3
+    rename searchWaitTime to searchInterval in Control.__init__
 2.0.2
     Control.WheelDown(self, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None
         to WheelDown(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None
