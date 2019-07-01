@@ -160,7 +160,7 @@ auto.WindowControl(searchDepth=1, ClassName='Notepad') creates a WindowControl, 
 the following parameters can be used  
 searchFromControl = None,   
 searchDepth = 0xFFFFFFFF,   
-searchWaitTime = SEARCH_INTERVAL,   
+searchInterval = SEARCH_INTERVAL,   
 foundIndex = 1  
 Name  
 SubName  
@@ -174,12 +174,14 @@ Compare
 See Control.\_\_init\_\_ for the comments of the parameters.  
 See scripts in folder **demos** for more examples.  
 
-uiautomation only starts to search the control when you first call a control's method or property that indirectly calls Control.Element.
-If Control.Element is None, uiautomation searches the control in the control tree by the properties you supply.
+Control.Element returns the low level COM object [IUIAutomationElement](https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement),
+Almost all methods and properties of Control are implemented via IUIAutomationElement COM API and Win32 API.
+when calling a control's method or property that indirectly calls Control.Element and Control.Element is None, 
+uiautomation starts to search the control by the properties you supply.
 uiautomation will raise a LookupError exception if it can't find the control in uiautomation.TIME_OUT_SECOND(default 10 seconds).
+Control.Element will has a valid value if uiautomation finds the control successfully.
 You can use Control.Exists(maxSearchSeconds, searchIntervalSeconds) to check whether a control Exists, this function doesn't raise any exception.
-Control.Element will has a valid value if the control exists.
-Call Control.Refind or Control.Exists to make Control.Element invalid again and uiautomation will starts a new search in the control tree.  
+Call Control.Refind or Control.Exists to make Control.Element invalid again and uiautomation will starts a new search.  
 
 For example:  
 ```python
@@ -202,9 +204,9 @@ def main():
     except LookupError as ex:
         print("The first notepad doesn't exist in 15 seconds")
         return
-    # the second call to SendKeys doesn't trigger a search, edit should have a valid value for Control.Element
+    # the second call to SendKeys doesn't trigger a search, the previous call makes sure that Control.Element is valid
     edit.SendKeys('{Ctrl}a{Del}')
-    window.GetWindowPattern().Close()  # close the first Notepad, window and edit become invalid
+    window.GetWindowPattern().Close()  # close the first Notepad, window and edit become invalid even though their Elements have a value
 
     subprocess.Popen('notepad.exe')  # run second Notepad
     window.Refind()  # need to refind window, trigger a new search
@@ -214,9 +216,9 @@ def main():
     window.GetWindowPattern().Close()  # close the second Notepad, window and edit become invalid again
 
     subprocess.Popen('notepad.exe')  # run third Notepad
-    if window.Exists(3, 1):
-        if edit.Exists(3):
-            edit.SendKeys('third notepad')  # edit.Element has a valid value now
+    if window.Exists(3, 1): # trigger a new search
+        if edit.Exists(3):  # trigger a new search
+            edit.SendKeys('third notepad')  # edit.Exists makes sure that edit.Element has a valid value now
             edit.SendKeys('{Ctrl}a{Del}')
         window.GetWindowPattern().Close()
     else:

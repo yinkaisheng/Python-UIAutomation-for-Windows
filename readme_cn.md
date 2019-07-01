@@ -150,7 +150,7 @@ automation.WindowControl(searchDepth=1, ClassName='Notepad') 创建了一个Wind
 控件的\_\_init__函数中，有下列参数可以使用：  
 searchFromControl = None,  从哪个控件开始查找，如果为None，从根节点Desktop开始查找  
 searchDepth = 0xFFFFFFFF, 搜索深度  
-searchWaitTime = SEARCH_INTERVAL, 搜索间隔  
+searchInterval = SEARCH_INTERVAL, 搜索间隔  
 foundIndex = 1 ，搜索到的满足搜索条件的控件索引，索引从1开始  
 Name  控件名字  
 SubName  控件部分名字  
@@ -165,13 +165,67 @@ searchDepth和Depth的区别是：
 searchDepth在指定的深度范围内（包括1\~searchDepth层中的所有子孙控件）搜索第一个满足搜索条件的控件  
 Depth只在Depth所在的深度（如果Depth>1，排除1\~searchDepth-1层中的所有子孙控件）搜索第一个满足搜索条件的控件
 
+Control.Element返回IUIAutomation底层COM对象[IUIAutomationElement](https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement)，
+基本上Control的所有属性或方法都是通过调用IUIAutomationElement COM API和Win32 API实现的。
+当你使用一个Control的属性或方法时，属性或方法内部调用Control.Element并且Control.Element是None时uiautomation才开始搜索控件。
+如果在uiautomation.TIME_OUT_SECOND(默认为10)秒内找不到控件，uiautomation就会抛出一个LookupError异常。
+搜索到控件后，Control.Element将会有个有效值。
+你可以调用Control.Exists(maxSearchSeconds, searchIntervalSeconds)来检查一个控件是否存在，此函数不会抛出异常。
+另外可以调用Control.Refind或Control.Exists使Control.Element无效并触发重新搜索逻辑。
+
+例子：  
+```python
+#!python3
+# -*- coding:utf-8 -*-
+import subprocess
+import uiautomation as auto
+auto.uiautomation.SetGlobalSearchTimeout(15)  # 设置全局搜索超时 15
+
+
+def main():
+    subprocess.Popen('notepad.exe')
+    window = auto.WindowControl(searchDepth=1, ClassName='Notepad')
+    edit = window.EditControl()
+    # 当第一次调用SendKeys时, uiautomation开始在15秒内搜索控件window和edit
+    # 因为SendKeys内部会间接调用Control.Element并且Control.Element值是None
+    # 如果在15秒内找不到window和edit，会抛出LookupError异常
+    try:
+        edit.SendKeys('first notepad')
+    except LookupError as ex:
+        print("The first notepad doesn't exist in 15 seconds")
+        return
+    # 第二次调用SendKeys不会触发搜索, 之前的调用保证Control.Element有效
+    edit.SendKeys('{Ctrl}a{Del}')
+    window.GetWindowPattern().Close()  # 关闭第一个Notepad, window和edit的Element虽然有值，但是无效了
+
+    subprocess.Popen('notepad.exe')  # 运行第二个Notepad
+    window.Refind()  # 必须重新搜索
+    edit.Refind()  # 必须重新搜索
+    edit.SendKeys('second notepad')
+    edit.SendKeys('{Ctrl}a{Del}')
+    window.GetWindowPattern().Close()  # 关闭第二个Notepad, window和edit的Element虽然有值，但是再次无效了
+
+    subprocess.Popen('notepad.exe')  # 运行第三个Notepad
+    if window.Exists(3, 1): # 触发重新搜索
+        if edit.Exists(3):  # 触发重新搜索
+            edit.SendKeys('third notepad')  # 之前的Exists保证edit.Element有效
+            edit.SendKeys('{Ctrl}a{Del}')
+        window.GetWindowPattern().Close()
+    else:
+        print("The third notepad doesn't exist in 3 seconds")
+
+
+if __name__ == '__main__':
+    main()
+    
+```
+
 另外可以设置DEBUG_SEARCH_TIME查看搜索控件所遍历的控件数和搜索时间。
 ```python
 import uiautomation as auto
 auto.uiautomation.DEBUG_SEARCH_TIME = True
 ```
 参考demos/automation_calculator.py
-
 
 目录 **demos** 中提供了一些例子，请根据这些例子学习使用uiautomation.  
 
