@@ -227,12 +227,8 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
 ```
-
-
-
-
+---
 
 **If automation.py can't print the controls you see.
 Maybe the controls were built by DirectUI(or CustomControl), not UI Frameworks supplied by Microsoft.
