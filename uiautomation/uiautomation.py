@@ -5155,12 +5155,12 @@ def CreatePattern(patternId: int, pattern: ctypes.POINTER(comtypes.IUnknown)):
 
 class Control():
     ValidKeys = set(['ControlType', 'ClassName', 'AutomationId', 'Name', 'SubName', 'RegexName', 'Depth', 'Compare'])
-    def __init__(self, searchFromControl: 'Control' = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+    def __init__(self, searchFromControl: 'Control' = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
         """
         searchFromControl: `Control` or its subclass, if it is None, search from root control(Desktop).
         searchDepth: int, max search depth from searchFromControl.
         foundIndex: int, starts with 1, >= 1.
-        searchWaitTime: float, wait searchWaitTime before every search(interval between searchs).
+        searchInterval: float, wait searchInterval after every search in self.Refind and self.Exists, the global timeout is TIME_OUT_SECOND.
         element: `ctypes.POINTER(IUIAutomationElement)`, internal use only.
         searchProperties: defines how to search, the following keys can be used:
                             ControlType: int, a value in class `ControlType`.
@@ -5181,7 +5181,7 @@ class Control():
         self._elementDirectAssign = True if element else False
         self.searchFromControl = searchFromControl
         self.searchDepth = searchProperties.get('Depth', searchDepth)
-        self.searchWaitTime = searchWaitTime
+        self.searchInterval = searchInterval
         self.foundIndex = foundIndex
         self.searchProperties = searchProperties
         regName = searchProperties.get('RegexName', '')
@@ -5657,7 +5657,7 @@ class Control():
         Return `ctypes.POINTER(IUIAutomationElement)`.
         """
         if not self._element:
-            self.Refind(maxSearchSeconds=TIME_OUT_SECOND, searchIntervalSeconds=self.searchWaitTime)
+            self.Refind(maxSearchSeconds=TIME_OUT_SECOND, searchIntervalSeconds=self.searchInterval)
         return self._element
 
     @property
@@ -5801,6 +5801,9 @@ class Control():
             elif 'AutomationId' == key:
                 if value != control.AutomationId:
                     return False
+            elif 'Depth' == key:
+                if value != depth:
+                    return False
             elif 'Name' == key:
                 if value != control.Name:
                     return False
@@ -5809,9 +5812,6 @@ class Control():
                     return False
             elif 'RegexName' == key:
                 if not self.regexName.match(control.Name):
-                    return False
-            elif 'Depth' == key:
-                if value != depth:
                     return False
             elif 'Compare' == key:
                 if not value(control, depth):
@@ -6210,139 +6210,139 @@ class Control():
                     topHandle = GetAncestor(handle, GAFlag.Root)
                     return ControlFromHandle(topHandle)
 
-    def Control(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'Control':
-        return Control(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def Control(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'Control':
+        return Control(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ButtonControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ButtonControl':
-        return ButtonControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ButtonControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ButtonControl':
+        return ButtonControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def CalendarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'CalendarControl':
-        return CalendarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def CalendarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'CalendarControl':
+        return CalendarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def CheckBoxControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'CheckBoxControl':
-        return CheckBoxControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def CheckBoxControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'CheckBoxControl':
+        return CheckBoxControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ComboBoxControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ComboBoxControl':
-        return ComboBoxControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ComboBoxControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ComboBoxControl':
+        return ComboBoxControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def CustomControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'CustomControl':
-        return CustomControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def CustomControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'CustomControl':
+        return CustomControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def DataGridControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'DataGridControl':
-        return DataGridControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def DataGridControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'DataGridControl':
+        return DataGridControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def DataItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'DataItemControl':
-        return DataItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def DataItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'DataItemControl':
+        return DataItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def DocumentControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'DocumentControl':
-        return DocumentControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def DocumentControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'DocumentControl':
+        return DocumentControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def EditControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'EditControl':
-        return EditControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def EditControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'EditControl':
+        return EditControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def GroupControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'GroupControl':
-        return GroupControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def GroupControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'GroupControl':
+        return GroupControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def HeaderControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'HeaderControl':
-        return HeaderControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def HeaderControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'HeaderControl':
+        return HeaderControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def HeaderItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'HeaderItemControl':
-        return HeaderItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def HeaderItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'HeaderItemControl':
+        return HeaderItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def HyperlinkControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'HyperlinkControl':
-        return HyperlinkControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def HyperlinkControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'HyperlinkControl':
+        return HyperlinkControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ImageControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ImageControl':
-        return ImageControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ImageControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ImageControl':
+        return ImageControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ListControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'listControl':
-        return ListControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ListControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'listControl':
+        return ListControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ListItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ListItemControl':
-        return ListItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ListItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ListItemControl':
+        return ListItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def MenuControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'MenuControl':
-        return MenuControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def MenuControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'MenuControl':
+        return MenuControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def MenuBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'MenuBarControl':
-        return MenuBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def MenuBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'MenuBarControl':
+        return MenuBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def MenuItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'MenuItemControl':
-        return MenuItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def MenuItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'MenuItemControl':
+        return MenuItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def PaneControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'PaneControl':
-        return PaneControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def PaneControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'PaneControl':
+        return PaneControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ProgressBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ProgressBarControl':
-        return ProgressBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ProgressBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ProgressBarControl':
+        return ProgressBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def RadioButtonControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'RadioButtonControl':
-        return RadioButtonControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def RadioButtonControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'RadioButtonControl':
+        return RadioButtonControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ScrollBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ScrollBarControl':
-        return ScrollBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ScrollBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ScrollBarControl':
+        return ScrollBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def SemanticZoomControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SemanticZoomControl':
-        return SemanticZoomControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SemanticZoomControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SemanticZoomControl':
+        return SemanticZoomControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def SeparatorControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SeparatorControl':
-        return SeparatorControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SeparatorControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SeparatorControl':
+        return SeparatorControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def SliderControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SliderControl':
-        return SliderControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SliderControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SliderControl':
+        return SliderControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def SpinnerControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SpinnerControl':
-        return SpinnerControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SpinnerControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SpinnerControl':
+        return SpinnerControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def SplitButtonControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SplitButtonControl':
-        return SplitButtonControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SplitButtonControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SplitButtonControl':
+        return SplitButtonControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def StatusBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'StatusBarControl':
-        return StatusBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def StatusBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'StatusBarControl':
+        return StatusBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def TabControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TabControl':
-        return TabControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TabControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TabControl':
+        return TabControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def TabItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TabItemControl':
-        return TabItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TabItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TabItemControl':
+        return TabItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def TableControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TableControl':
-        return TableControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TableControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TableControl':
+        return TableControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def TextControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TextControl':
-        return TextControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TextControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TextControl':
+        return TextControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ThumbControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ThumbControl':
-        return ThumbControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ThumbControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ThumbControl':
+        return ThumbControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def TitleBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TitleBarControl':
-        return TitleBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TitleBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TitleBarControl':
+        return TitleBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ToolBarControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ToolBarControl':
-        return ToolBarControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ToolBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ToolBarControl':
+        return ToolBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def ToolTipControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ToolTipControl':
-        return ToolTipControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ToolTipControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ToolTipControl':
+        return ToolTipControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def TreeControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TreeControl':
-        return TreeControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TreeControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TreeControl':
+        return TreeControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def TreeItemControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TreeItemControl':
-        return TreeItemControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TreeItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TreeItemControl':
+        return TreeItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
-    def WindowControl(self, searchDepth=0xFFFFFFFF, searchWaitTime=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'WindowControl':
-        return WindowControl(searchDepth=searchDepth, searchWaitTime=searchWaitTime, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def WindowControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'WindowControl':
+        return WindowControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
 
 
 class AppBarControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.AppBarControl)
 
 
 class ButtonControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ButtonControl)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
@@ -6365,8 +6365,8 @@ class ButtonControl(Control):
 
 
 class CalendarControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.CalendarControl)
 
     def GetGridPattern(self) -> GridPattern:
@@ -6395,8 +6395,8 @@ class CalendarControl(Control):
 
 
 class CheckBoxControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.CheckBoxControl)
 
     def GetTogglePattern(self) -> TogglePattern:
@@ -6407,8 +6407,8 @@ class CheckBoxControl(Control):
 
 
 class ComboBoxControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ComboBoxControl)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
@@ -6481,14 +6481,14 @@ class ComboBoxControl(Control):
 
 
 class CustomControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.CustomControl)
 
 
 class DataGridControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.DataGridControl)
 
     def GetGridPattern(self) -> GridPattern:
@@ -6517,8 +6517,8 @@ class DataGridControl(Control):
 
 
 class DataItemControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.DataItemControl)
 
     def GetSelectionItemPattern(self) -> SelectionItemPattern:
@@ -6565,8 +6565,8 @@ class DataItemControl(Control):
 
 
 class DocumentControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.DocumentControl)
 
     def GetTextPattern(self) -> TextPattern:
@@ -6589,8 +6589,8 @@ class DocumentControl(Control):
 
 
 class EditControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.EditControl)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
@@ -6613,8 +6613,8 @@ class EditControl(Control):
 
 
 class GroupControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.GroupControl)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
@@ -6625,8 +6625,8 @@ class GroupControl(Control):
 
 
 class HeaderControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.HeaderControl)
 
     def GetTransformPattern(self) -> TransformPattern:
@@ -6637,8 +6637,8 @@ class HeaderControl(Control):
 
 
 class HeaderItemControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.HeaderItemControl)
 
     def GetInvokePattern(self) -> InvokePattern:
@@ -6655,8 +6655,8 @@ class HeaderItemControl(Control):
 
 
 class HyperlinkControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.HyperlinkControl)
 
     def GetInvokePattern(self) -> InvokePattern:
@@ -6673,8 +6673,8 @@ class HyperlinkControl(Control):
 
 
 class ImageControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ImageControl)
 
     def GetGridItemPattern(self) -> GridItemPattern:
@@ -6691,8 +6691,8 @@ class ImageControl(Control):
 
 
 class ListControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ListControl)
 
     def GetGridPattern(self) -> GridPattern:
@@ -6721,8 +6721,8 @@ class ListControl(Control):
 
 
 class ListItemControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ListItemControl)
 
     def GetSelectionPattern(self) -> SelectionPattern:
@@ -6769,14 +6769,14 @@ class ListItemControl(Control):
 
 
 class MenuControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.MenuControl)
 
 
 class MenuBarControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.MenuBarControl)
 
     def GetDockPattern(self) -> DockPattern:
@@ -6799,8 +6799,8 @@ class MenuBarControl(Control):
 
 
 class MenuItemControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.MenuItemControl)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
@@ -6913,8 +6913,8 @@ class TopLevel():
 
 
 class PaneControl(Control, TopLevel):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.PaneControl)
 
     def GetDockPattern(self) -> DockPattern:
@@ -6937,8 +6937,8 @@ class PaneControl(Control, TopLevel):
 
 
 class ProgressBarControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ProgressBarControl)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
@@ -6955,8 +6955,8 @@ class ProgressBarControl(Control):
 
 
 class RadioButtonControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.RadioButtonControl)
 
     def GetSelectionItemPattern(self) -> SelectionItemPattern:
@@ -6967,8 +6967,8 @@ class RadioButtonControl(Control):
 
 
 class ScrollBarControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ScrollBarControl)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
@@ -6979,20 +6979,20 @@ class ScrollBarControl(Control):
 
 
 class SemanticZoomControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.SemanticZoomControl)
 
 
 class SeparatorControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.SeparatorControl)
 
 
 class SliderControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.SliderControl)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
@@ -7015,8 +7015,8 @@ class SliderControl(Control):
 
 
 class SpinnerControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.SpinnerControl)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
@@ -7039,8 +7039,8 @@ class SpinnerControl(Control):
 
 
 class SplitButtonControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.SplitButtonControl)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
@@ -7057,8 +7057,8 @@ class SplitButtonControl(Control):
 
 
 class StatusBarControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.StatusBarControl)
 
     def GetGridPattern(self) -> GridPattern:
@@ -7069,8 +7069,8 @@ class StatusBarControl(Control):
 
 
 class TabControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.TabControl)
 
     def GetSelectionPattern(self) -> SelectionPattern:
@@ -7087,8 +7087,8 @@ class TabControl(Control):
 
 
 class TabItemControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.TabItemControl)
 
     def GetSelectionItemPattern(self) -> SelectionItemPattern:
@@ -7099,8 +7099,8 @@ class TabItemControl(Control):
 
 
 class TableControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.TableControl)
 
     def GetGridPattern(self) -> GridPattern:
@@ -7129,8 +7129,8 @@ class TableControl(Control):
 
 
 class TextControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.TextControl)
 
     def GetGridItemPattern(self) -> GridItemPattern:
@@ -7153,8 +7153,8 @@ class TextControl(Control):
 
 
 class ThumbControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ThumbControl)
 
     def GetTransformPattern(self) -> TransformPattern:
@@ -7165,14 +7165,14 @@ class ThumbControl(Control):
 
 
 class TitleBarControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.TitleBarControl)
 
 
 class ToolBarControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ToolBarControl)
 
     def GetDockPattern(self) -> DockPattern:
@@ -7195,8 +7195,8 @@ class ToolBarControl(Control):
 
 
 class ToolTipControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ToolTipControl)
 
     def GetTextPattern(self) -> TextPattern:
@@ -7213,8 +7213,8 @@ class ToolTipControl(Control):
 
 
 class TreeControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.TreeControl)
 
     def GetScrollPattern(self) -> ScrollPattern:
@@ -7231,8 +7231,8 @@ class TreeControl(Control):
 
 
 class TreeItemControl(Control):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.TreeItemControl)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
@@ -7267,8 +7267,8 @@ class TreeItemControl(Control):
 
 
 class WindowControl(Control, TopLevel):
-    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchWaitTime: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchWaitTime, foundIndex, element, **searchProperties)
+    def __init__(self, searchFromControl: Control = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.WindowControl)
         self._DockPattern = None
         self._TransformPattern = None

@@ -174,12 +174,12 @@ Compare
 See Control.\_\_init\_\_ for the comments of the parameters.  
 See scripts in folder **demos** for more examples.  
 
-uiautomation only starts to search the control when you first call a control's method or property that indirectly calls Control.Element.  
+uiautomation only starts to search the control when you first call a control's method or property that indirectly calls Control.Element.
 If Control.Element is None, uiautomation searches the control in the control tree by the properties you supply.
-uiautomation will raise a LookupError exception if it can't find the control in uiautomation.TIME_OUT_SECOND(default 10 seconds).  
-You can use Control.Exists(maxSearchSeconds, searchIntervalSeconds) to check whether a control Exists, this function doesn't raise any exception.  
-Control.Element will has a valid value if the control exists.  
-Call Control.Refind or Control.Exists to make Control.Element invalid again and uiautomation will starts a new search in the control tree.
+uiautomation will raise a LookupError exception if it can't find the control in uiautomation.TIME_OUT_SECOND(default 10 seconds).
+You can use Control.Exists(maxSearchSeconds, searchIntervalSeconds) to check whether a control Exists, this function doesn't raise any exception.
+Control.Element will has a valid value if the control exists.
+Call Control.Refind or Control.Exists to make Control.Element invalid again and uiautomation will starts a new search in the control tree.  
 
 For example:  
 ```python
