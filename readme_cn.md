@@ -229,6 +229,8 @@ auto.uiautomation.DEBUG_SEARCH_TIME = True
 
 目录 **demos** 中提供了一些例子，请根据这些例子学习使用uiautomation.  
 
+---
+
 如果你发现automation.py不能打印你所看到的程序的控件，这并不是uiautomation的bug，
 是因为这个程序是使用DirectUI或自定义控件实现的，不是用微软提供的标准控件实现的，
 这个软件必须实现[UI Automation Provider](https://docs.microsoft.com/zh-cn/windows/desktop/WinAuto/uiauto-providersoverview)才能支持UIAutomation。
