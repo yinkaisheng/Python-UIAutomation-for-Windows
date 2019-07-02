@@ -24,7 +24,16 @@ def walk():
         auto.Logger.WriteLine('Can not find Wireshark', auto.ConsoleColor.Yellow)
         return
 
+    console = auto.GetConsoleWindow()
+    if console:
+        sx, sy = auto.GetScreenSize()
+        tp = console.GetTransformPattern()
+        tp.Resize(sx, sy // 4)
+        tp.Move(0, sy - sy // 4 - 50)
+        console.SetTopmost()
+
     wiresharkWindow.SetActive(waitTime=0.1)
+    wiresharkWindow.Maximize()
     auto.Logger.ColorfullyWriteLine('Press <Color=Cyan>F1</Color> to stop', auto.ConsoleColor.Yellow)
     tree = wiresharkWindow.TreeControl(searchDepth=4, ClassName='PacketList', Name='Packet list')
     rect = tree.BoundingRectangle
@@ -51,3 +60,4 @@ def walk():
 
 if __name__ == '__main__':
     walk()
+    time.sleep(2)
