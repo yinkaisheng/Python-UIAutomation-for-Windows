@@ -144,8 +144,8 @@ notepadWindow.ButtonControl(searchDepth=2, Name='关闭').Click()
 auto.SendKeys('{Alt}n')
 ```
 
-automation.GetRootControl()返回控件树的根节点(即桌面窗口Desktop)  
-automation.WindowControl(searchDepth=1, ClassName='Notepad') 创建了一个WindowControl对象, 括号中的参数指定按照什么属性在控件树中查找此控件。 
+auto.GetRootControl()返回控件树的根节点(即桌面窗口Desktop)  
+auto.WindowControl(searchDepth=1, ClassName='Notepad') 创建了一个WindowControl对象, 括号中的参数指定按照什么条件或控件属性在控件树中查找此控件。 
 
 控件的\_\_init__函数中，有下列参数可以使用：  
 searchFromControl = None,  从哪个控件开始查找，如果为None，从根节点Desktop开始查找  
