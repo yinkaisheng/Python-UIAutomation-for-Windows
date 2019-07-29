@@ -1738,7 +1738,7 @@ def WindowFromPoint(x: int, y: int) -> int:
     WindowFromPoint from Win32.
     Return int, a native window handle.
     """
-    return ctypes.windll.user32.WindowFromPoint(ctypes.wintypes.POINT(x, y))
+    return ctypes.windll.user32.WindowFromPoint(ctypes.wintypes.POINT(x, y))  # or ctypes.windll.user32.WindowFromPoint(x, y)
 
 
 def GetCursorPos() -> Tuple[int, int]:
@@ -2719,7 +2719,7 @@ class Logger:
     Logger for print and log. Support for printing log with different colors on console.
     """
     FileName = '@AutomationLog.txt'
-    _SelfFileName = None
+    _SelfFileName = os.path.split(__file__)[1]
     ColorNames = {
         "Black": ConsoleColor.Black,
         "DarkBlue": ConsoleColor.DarkBlue,
@@ -2848,9 +2848,6 @@ class Logger:
         printToStdout: bool.
         logFile: str, log file path.
         """
-        if not Logger._SelfFileName:
-            _, Logger._SelfFileName = os.path.split(__file__)
-
         frameCount = 1
         while True:
             frame = sys._getframe(frameCount)
@@ -2875,9 +2872,6 @@ class Logger:
 
         ColorfullyLog('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorNames
         """
-        if not Logger._SelfFileName:
-            _, Logger._SelfFileName = os.path.split(__file__)
-
         frameCount = 1
         while True:
             frame = sys._getframe(frameCount)
@@ -6436,7 +6430,7 @@ class ComboBoxControl(Control):
         condition: Callable[[str], bool], function(comboBoxItemName: str) -> bool, if condition is valid, ignore itemName.
         waitTime: float.
         Some comboboxs doesn't support SelectionPattern, here is a workaround.
-        This method tries to and selection support.
+        This method tries to add selection support.
         It may not work for some comboboxes, such as comboboxes in older Qt version.
         If it doesn't work, you should write your own version Select, or it doesn't support selection at all.
         """
