@@ -17,12 +17,14 @@ import sys
 import time
 import datetime
 import re
+import logging
 from typing import (Any, Callable, Iterable, Tuple, List, Dict)  # need pip install typing for Python3.4 or lower
 import ctypes
 import ctypes.wintypes
 import comtypes #need pip install comtypes
 import comtypes.client
 TreeNode = Any
+log = logging.getLogger(__name__)
 
 
 AUTHOR_MAIL = 'yinkaisheng@live.com'
@@ -5957,6 +5959,9 @@ class Control():
         point = self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove)
         if point:
             Click(point[0], point[1], waitTime)
+        else:
+            log.warning('Failed to move cursor to point at (x, y, ratioX, ratioY, simulateMove), (%s, %s, %s, %s, %s)',
+                        x, y, ratioX, ratioY, simulateMove)
 
     def MiddleClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
@@ -5974,6 +5979,9 @@ class Control():
         point = self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove)
         if point:
             MiddleClick(point[0], point[1], waitTime)
+        else:
+            log.warning('Failed to move cursor to point at (x, y, ratioX, ratioY, simulateMove), (%s, %s, %s, %s, %s)',
+                        x, y, ratioX, ratioY, simulateMove)
 
     def RightClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
@@ -5991,6 +5999,9 @@ class Control():
         point = self.MoveCursorToInnerPos(x, y, ratioX, ratioY, simulateMove)
         if point:
             RightClick(point[0], point[1], waitTime)
+        else:
+            log.warning('Failed to move cursor to point at (x, y, ratioX, ratioY, simulateMove), (%s, %s, %s, %s, %s)',
+                        x, y, ratioX, ratioY, simulateMove)
 
     def DoubleClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
