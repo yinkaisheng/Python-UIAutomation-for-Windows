@@ -5642,7 +5642,10 @@ class Control():
         Call IUIAutomationElement::SetFocus.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-setfocus
         """
-        return self.Element.SetFocus() == S_OK
+        try:
+            return self.Element.SetFocus() == S_OK
+        except comtypes.COMError as ex:
+            return False
 
     @property
     def Element(self):
