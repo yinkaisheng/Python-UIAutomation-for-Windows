@@ -102,6 +102,7 @@ def CalcOnWindows7And8():
 
 
 def CalcOnWindows10():
+    """works on Windows 10.0.18362"""
     char2Id = {
         '0' : 'num0Button',
         '1' : 'num1Button',
@@ -119,16 +120,17 @@ def CalcOnWindows10():
         '*' : 'multiplyButton',
         '/' : 'divideButton',
         '=' : 'equalButton',
-        '(' : 'openParanthesisButton',
-        ')' : 'closeParanthesisButton',
+        '(' : 'openParenthesisButton',
+        ')' : 'closeParenthesisButton',
     }
     #Desc is not a valid search property, but it can be used for debug printing
-    calcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'ApplicationFrameWindow', Name = 'Calculator', Desc='Calculator Window')
+    calcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'ApplicationFrameWindow',
+        Compare = lambda c,d : c.Name == 'Calculator' or c.Name == '¼ÆËãÆ÷', Desc='Calculator Window')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
-    calcWindow.ButtonControl(AutomationId = 'NavButton').Click()
-    calcWindow.ListItemControl(Name = 'Scientific Calculator').Click()
+    calcWindow.ButtonControl(AutomationId = 'TogglePaneButton').Click()
+    calcWindow.ListItemControl(AutomationId = 'Scientific').Click()
     calcWindow.ButtonControl(AutomationId='clearButton').Click()
     if 1:
         char2Button = {key: calcWindow.ButtonControl(AutomationId=char2Id[key], Desc='Button ' + key) for key in char2Id}
