@@ -125,7 +125,7 @@ def CalcOnWindows10():
     }
     #Desc is not a valid search property, but it can be used for debug printing
     calcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'ApplicationFrameWindow',
-        Compare = lambda c,d : c.Name == 'Calculator' or c.Name == '¼ÆËãÆ÷', Desc='Calculator Window')
+        Compare = lambda c,d : c.Name == 'Calculator' or c.Name == 'è®¡ç®—å™¨', Desc='Calculator Window')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()

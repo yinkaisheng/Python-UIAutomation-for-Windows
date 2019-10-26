@@ -34,11 +34,18 @@ def main(args):
     start = time.time()
     if args.active:
         c = auto.GetForegroundControl()
-    elif args.cursor or args.up:
+        CaptureControl(c, args.path, args.up)
+    elif args.cursor:
         c = auto.ControlFromCursor()
+        CaptureControl(c, args.path, args.up)
     elif args.fullscreen:
         c = auto.GetRootControl()
-    CaptureControl(c, args.path, args.up)
+        rects = auto.GetMonitorsRect()
+        dot = args.path.rfind('.')
+        for i, rect in enumerate(rects):
+            path = args.path[:dot] + '_' * i + args.path[dot:]
+            c.CaptureToImage(path, rect.left, rect.top, rect.width(), rect.height())
+            auto.Logger.WriteLine('capture image: ' + path)
     auto.Logger.WriteLine('cost time: {:.3f} s'.format(time.time() - start))
 
 
