@@ -95,24 +95,12 @@ class _DllClient:
                 load = True
             except OSError as ex:
                 pass
-            if not load:
-                try:
-                    self.dll = ctypes.cdll.UIAutomationClient_VC100_X64
-                    load = True
-                except OSError as ex:
-                    pass
         else:
             try:
                 self.dll = ctypes.cdll.UIAutomationClient_VC140_X86
                 load = True
             except OSError as ex:
                 pass
-            if not load:
-                try:
-                    self.dll = ctypes.cdll.UIAutomationClient_VC100_X86
-                    load = True
-                except OSError as ex:
-                    pass
         if load:
             self.dll.BitmapCreate.restype = ctypes.c_size_t
             self.dll.BitmapFromWindow.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
@@ -1668,6 +1656,35 @@ class INPUT(ctypes.Structure):
                 ('union', _INPUTUnion))
 
 
+class Rect():
+    """
+    class Rect, like `ctypes.wintypes.RECT`.
+    """
+    def __init__(self, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0):
+        self.left = left
+        self.top = top
+        self.right = right
+        self.bottom = bottom
+
+    def width(self) -> int:
+        return self.right - self.left
+
+    def height(self) -> int:
+        return self.bottom - self.top
+
+    def xcenter(self) -> int:
+        return self.left + self.width() // 2
+
+    def ycenter(self) -> int:
+        return self.top + self.height() // 2
+
+    def contains(self, x: int, y: int) -> bool:
+        return self.left <= x < self.right and self.top <= y < self.bottom
+
+    def __str__(self) -> str:
+        return '({},{},{},{})[{}x{}]'.format(self.left, self.top, self.right, self.bottom, self.width(), self.height())
+
+
 _StdOutputHandle = -11
 _ConsoleOutputHandle = ctypes.c_void_p(0)
 _DefaultConsoleColor = None
@@ -1994,6 +2011,20 @@ def GetScreenSize() -> Tuple[int, int]:
     w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN)
     h = ctypes.windll.user32.GetSystemMetrics(SM_CYSCREEN)
     return w, h
+
+
+def GetMonitorsRect() -> List[Rect]:
+    """Return monitors rect"""
+    SM_CMONITORS = 80
+    monitorsCount = ctypes.windll.user32.GetSystemMetrics(SM_CMONITORS)
+    arrayType = ctypes.c_uint32 * (monitorsCount * 4)
+    values = arrayType()
+    monitorsCount = _DllClient.instance().dll.GetMonitorsRect(values, monitorsCount * 4)
+    rects = []
+    for i in range(monitorsCount):
+        rect = Rect(values[i * 4], values[i * 4 + 1], values[i * 4 + 2], values[i * 4 + 3])
+        rects.append(rect)
+    return rects
 
 
 def GetPixelColor(x: int, y: int, handle: int = 0) -> int:
@@ -2683,35 +2714,6 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
         #Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
         #keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
     time.sleep(waitTime)
-
-
-class Rect():
-    """
-    class Rect, like `ctypes.wintypes.RECT`.
-    """
-    def __init__(self, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0):
-        self.left = left
-        self.top = top
-        self.right = right
-        self.bottom = bottom
-
-    def width(self) -> int:
-        return self.right - self.left
-
-    def height(self) -> int:
-        return self.bottom - self.top
-
-    def xcenter(self) -> int:
-        return self.left + self.width() // 2
-
-    def ycenter(self) -> int:
-        return self.top + self.height() // 2
-
-    def contains(self, x: int, y: int) -> bool:
-        return self.left <= x < self.right and self.top <= y < self.bottom
-
-    def __str__(self) -> str:
-        return '({},{},{},{})[{}x{}]'.format(self.left, self.top, self.right, self.bottom, self.width(), self.height())
 
 
 class Logger:
