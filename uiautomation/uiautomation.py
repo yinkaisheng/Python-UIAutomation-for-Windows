@@ -2017,7 +2017,7 @@ def GetMonitorsRect() -> List[Rect]:
     """Return monitors rect"""
     SM_CMONITORS = 80
     monitorsCount = ctypes.windll.user32.GetSystemMetrics(SM_CMONITORS)
-    arrayType = ctypes.c_uint32 * (monitorsCount * 4)
+    arrayType = ctypes.c_int * (monitorsCount * 4)
     values = arrayType()
     monitorsCount = _DllClient.instance().dll.GetMonitorsRect(values, monitorsCount * 4)
     rects = []
