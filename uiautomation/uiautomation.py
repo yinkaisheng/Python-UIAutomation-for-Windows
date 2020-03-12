@@ -6867,7 +6867,7 @@ class TopLevel():
 
     def Minimize(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         if self.IsTopLevel():
-            return self.ShowWindow(SW.Restore, waitTime)
+            return self.ShowWindow(SW.Minimize, waitTime)
         return False
 
     def IsMinimize(self) -> bool:
