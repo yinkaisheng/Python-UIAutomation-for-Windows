@@ -2778,6 +2778,7 @@ class Logger:
         if not writeToFile:
             return
         fileName = logFile if logFile else Logger.FileName
+        fout = None
         try:
             fout = open(fileName, 'a+', encoding='utf-8')
             fout.write(log)
