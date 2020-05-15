@@ -89,18 +89,20 @@ class _DllClient:
         binPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
         os.environ["PATH"] = binPath + os.pathsep + os.environ["PATH"]
         load = False
+        if sys.version >= '3.8':
+            os.add_dll_directory(binPath)
         if sys.maxsize > 0xFFFFFFFF:
             try:
                 self.dll = ctypes.cdll.UIAutomationClient_VC140_X64
                 load = True
             except OSError as ex:
-                pass
+                print(ex)
         else:
             try:
                 self.dll = ctypes.cdll.UIAutomationClient_VC140_X86
                 load = True
             except OSError as ex:
-                pass
+                print(ex)
         if load:
             self.dll.BitmapCreate.restype = ctypes.c_size_t
             self.dll.BitmapFromWindow.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
@@ -116,7 +118,7 @@ class _DllClient:
             self.dll.Initialize()
         else:
             self.dll = None
-            Logger.WriteLine('Can not load dll.\nFunctionalities related to Bitmap are not available.\nYou may need to install Microsoft Visual C++ 2010/2015 Redistributable Package.', ConsoleColor.Yellow)
+            Logger.WriteLine('Can not load dll.\nFunctionalities related to Bitmap are not available.\nYou may need to install Microsoft Visual C++ 2015 Redistributable Package.', ConsoleColor.Yellow)
     def __del__(self):
         if self.dll:
             self.dll.Uninitialize()
@@ -1680,6 +1682,9 @@ class Rect():
 
     def contains(self, x: int, y: int) -> bool:
         return self.left <= x < self.right and self.top <= y < self.bottom
+    
+    def __eq__(self, rect):
+        return self.left == rect.left and self.top == rect.top and self.right == rect.right and self.bottom == rect.bottom
 
     def __str__(self) -> str:
         return '({},{},{},{})[{}x{}]'.format(self.left, self.top, self.right, self.bottom, self.width(), self.height())
