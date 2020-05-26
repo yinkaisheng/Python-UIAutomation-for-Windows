@@ -2,7 +2,7 @@
 
 :cn:[中文版介绍](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/blob/master/readme_cn.md)
 
-Do not use 3.7.6 and 3.8.1, comtypes doesn't work in these two versions. Install an earlier version or wait for next version.
+Do not use 3.7.6 and 3.8.1, comtypes doesn't work in these two versions. Install an earlier version or the latest version.
 https://github.com/enthought/comtypes/issues/202
 
 
