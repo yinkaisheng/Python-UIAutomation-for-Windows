@@ -13,9 +13,10 @@ import uiautomation as auto
 def main():
     sw, sh = auto.GetScreenSize()
     cmdWindow = auto.GetConsoleWindow()
-    cmdTransformPattern = cmdWindow.GetTransformPattern()
-    cmdTransformPattern.Move(sw // 2, 0)
-    cmdTransformPattern.Resize(sw // 2, sh * 3 // 4)
+    if cmdWindow:
+        cmdTransformPattern = cmdWindow.GetTransformPattern()
+        cmdTransformPattern.Move(sw // 2, 0)
+        cmdTransformPattern.Resize(sw // 2, sh * 3 // 4)
     subprocess.Popen('mmc.exe devmgmt.msc')
     mmcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'MMCMainFrame')
     mmcTransformPattern = mmcWindow.GetTransformPattern()
@@ -89,14 +90,18 @@ def main():
     x, y = thumb.MoveCursorToMyCenter()
     auto.DragDrop(x, y, x, vScrollBarRect.bottom)
     mmcWindow.GetWindowPattern().Close()
-
-
-if __name__ == '__main__':
-    main()
-    cmdWindow = auto.GetConsoleWindow()
     if cmdWindow:
         cmdWindow.SetActive()
     auto.Logger.Write('\nPress any key to exit', auto.ConsoleColor.Cyan)
     import msvcrt
     while not msvcrt.kbhit():
         pass
+
+
+if __name__ == '__main__':
+    if auto.IsUserAnAdmin():
+        main()
+    else:
+        print('RunScriptAsAdmin', sys.executable, sys.argv)
+        auto.RunScriptAsAdmin(sys.argv)
+
