@@ -6506,9 +6506,9 @@ class ComboBoxControl(Control):
             listControl = ListControl(searchDepth= 1)
             if listControl.Exists(1):
                 if condition:
-                    listItemControl = self.ListItemControl(Compare=lambda c, d: condition(c.Name))
+                    listItemControl = listControl.ListItemControl(Compare=lambda c, d: condition(c.Name))
                 else:
-                    listItemControl = self.ListItemControl(Name=itemName)
+                    listItemControl = listControl.ListItemControl(Name=itemName)
                 if listItemControl.Exists(0, 0):
                     scrollItemPattern = listItemControl.GetScrollItemPattern()
                     if scrollItemPattern:
@@ -7758,7 +7758,7 @@ def InitializeUIAutomationInCurrentThread() -> None:
 def UninitializeUIAutomationInCurrentThread() -> None:
     """
     Uninitialize UIAutomation in a new thread after calling InitializeUIAutomationInCurrentThread.
-    You must call this function when the new thread exits if you have called InitializeUIAutomationInThisThread in the same thread.
+    You must call this function when the new thread exits if you have called InitializeUIAutomationInCurrentThread in the same thread.
     """
     comtypes.CoUninitialize()
 
