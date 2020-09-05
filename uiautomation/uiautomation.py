@@ -5234,6 +5234,24 @@ class Control():
         return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(
             self.ControlTypeName, self.ClassName, self.AutomationId, rect, self.Name, self.NativeWindowHandle)
 
+    def __getitem__(self, pos: int) -> 'Control':
+        if pos == 1:
+            return self.GetFirstChildControl()
+        elif pos == -1:
+            return self.GetLastChildControl()
+        elif pos > 1:
+            child = self.GetFirstChildControl()
+            for _ in range(pos-1):
+                child = child.GetNextSiblingControl()
+            return child
+        elif pos < -1:
+            child = self.GetLastChildControl()
+            for _ in range(-pos-1):
+                child = child.GetPreviousSiblingControl()
+            return child
+        else:
+            raise ValueError
+
     @staticmethod
     def CreateControlFromElement(element) -> 'Control':
         """
