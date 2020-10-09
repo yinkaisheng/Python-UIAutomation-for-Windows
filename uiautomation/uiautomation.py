@@ -1742,7 +1742,7 @@ def SetConsoleColor(color: int) -> bool:
         _DefaultConsoleColor = int(bufferInfo.wAttributes & 0xFF)
     if sys.stdout:
         sys.stdout.flush()
-    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(color)))
+    return bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(color)))
 
 
 def ResetConsoleColor() -> bool:
@@ -1752,7 +1752,7 @@ def ResetConsoleColor() -> bool:
     """
     if sys.stdout:
         sys.stdout.flush()
-    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(_DefaultConsoleColor)))
+    return bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(_DefaultConsoleColor)))
 
 
 def WindowFromPoint(x: int, y: int) -> int:
@@ -5967,7 +5967,7 @@ class Control():
         """
         rect = self.BoundingRectangle
         if rect.width() == 0 or rect.height() == 0:
-            Logger.ColorfullyLog('<Color=Yellow>Can not move curosr</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
+            Logger.ColorfullyLog('<Color=Yellow>Can not move cursor</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
                 self.ControlTypeName, rect, self.GetColorfulSearchPropertiesStr()))
             return
         if x is None:
