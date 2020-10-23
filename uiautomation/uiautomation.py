@@ -1689,6 +1689,9 @@ class Rect():
     def __str__(self) -> str:
         return '({},{},{},{})[{}x{}]'.format(self.left, self.top, self.right, self.bottom, self.width(), self.height())
 
+    def __repr__(self) -> str:
+        return '{}({},{},{},{})[{}x{}]'.format(self.__class__.__name__, self.left, self.top, self.right, self.bottom, self.width(), self.height())
+
 
 _StdOutputHandle = -11
 _ConsoleOutputHandle = ctypes.c_void_p(0)
