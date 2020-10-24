@@ -1689,6 +1689,9 @@ class Rect():
     def __str__(self) -> str:
         return '({},{},{},{})[{}x{}]'.format(self.left, self.top, self.right, self.bottom, self.width(), self.height())
 
+    def __repr__(self) -> str:
+        return '{}({},{},{},{})[{}x{}]'.format(self.__class__.__name__, self.left, self.top, self.right, self.bottom, self.width(), self.height())
+
 
 _StdOutputHandle = -11
 _ConsoleOutputHandle = ctypes.c_void_p(0)
@@ -1742,7 +1745,7 @@ def SetConsoleColor(color: int) -> bool:
         _DefaultConsoleColor = int(bufferInfo.wAttributes & 0xFF)
     if sys.stdout:
         sys.stdout.flush()
-    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(color)))
+    return bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(color)))
 
 
 def ResetConsoleColor() -> bool:
@@ -1752,7 +1755,7 @@ def ResetConsoleColor() -> bool:
     """
     if sys.stdout:
         sys.stdout.flush()
-    bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(_DefaultConsoleColor)))
+    return bool(ctypes.windll.kernel32.SetConsoleTextAttribute(_ConsoleOutputHandle, ctypes.c_ushort(_DefaultConsoleColor)))
 
 
 def WindowFromPoint(x: int, y: int) -> int:
@@ -1913,6 +1916,30 @@ def RightReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
+def MiddlePressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Press middle mouse.
+    x: int.
+    y: int.
+    waitTime: float.
+    """
+    SetCursorPos(x, y)
+    screenWidth, screenHeight = GetScreenSize()
+    mouse_event(MouseEventFlag.MiddleDown | MouseEventFlag.Absolute, x * 65535 // screenWidth, y * 65535 // screenHeight, 0, 0)
+    time.sleep(waitTime)
+
+
+def MiddleReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Release middle mouse.
+    waitTime: float.
+    """
+    x, y = GetCursorPos()
+    screenWidth, screenHeight = GetScreenSize()
+    mouse_event(MouseEventFlag.MiddleUp | MouseEventFlag.Absolute, x * 65535 // screenWidth, y * 65535 // screenHeight, 0, 0)
+    time.sleep(waitTime)
+
+
 def MoveTo(x: int, y: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
     """
     Simulate mouse move to point x, y from current cursor.
@@ -1981,6 +2008,21 @@ def RightDragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, wait
     RightPressMouse(x1, y1, 0.05)
     MoveTo(x2, y2, moveSpeed, 0.05)
     RightReleaseMouse(waitTime)
+
+
+def MiddleDragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    """
+    Simulate mouse middle button drag from point x1, y1 drop to point x2, y2.
+    x1: int.
+    y1: int.
+    x2: int.
+    y2: int.
+    moveSpeed: float, 1 normal speed, < 1 move slower, > 1 move faster.
+    waitTime: float.
+    """
+    MiddlePressMouse(x1, y1, 0.05)
+    MoveTo(x2, y2, moveSpeed, 0.05)
+    MiddleReleaseMouse(waitTime)
 
 
 def WheelDown(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
@@ -5928,7 +5970,7 @@ class Control():
         """
         rect = self.BoundingRectangle
         if rect.width() == 0 or rect.height() == 0:
-            Logger.ColorfullyLog('<Color=Yellow>Can not move curosr</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
+            Logger.ColorfullyLog('<Color=Yellow>Can not move cursor</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
                 self.ControlTypeName, rect, self.GetColorfulSearchPropertiesStr()))
             return
         if x is None:
@@ -6467,9 +6509,9 @@ class ComboBoxControl(Control):
             listControl = ListControl(searchDepth= 1)
             if listControl.Exists(1):
                 if condition:
-                    listItemControl = self.ListItemControl(Compare=lambda c, d: condition(c.Name))
+                    listItemControl = listControl.ListItemControl(Compare=lambda c, d: condition(c.Name))
                 else:
-                    listItemControl = self.ListItemControl(Name=itemName)
+                    listItemControl = listControl.ListItemControl(Name=itemName)
                 if listItemControl.Exists(0, 0):
                     scrollItemPattern = listItemControl.GetScrollItemPattern()
                     if scrollItemPattern:
@@ -7719,7 +7761,7 @@ def InitializeUIAutomationInCurrentThread() -> None:
 def UninitializeUIAutomationInCurrentThread() -> None:
     """
     Uninitialize UIAutomation in a new thread after calling InitializeUIAutomationInCurrentThread.
-    You must call this function when the new thread exits if you have called InitializeUIAutomationInThisThread in the same thread.
+    You must call this function when the new thread exits if you have called InitializeUIAutomationInCurrentThread in the same thread.
     """
     comtypes.CoUninitialize()
 
