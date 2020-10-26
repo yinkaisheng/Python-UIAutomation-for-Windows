@@ -30,7 +30,8 @@ def main():
     auto.DragDrop(160, 110, 900, 110, 0.2)
     auto.DragDrop(900, 110, 160, 110, 0.2)
     mmcWindow.SendKeys('{Alt}f', waitTime=1)
-    mmcWindow.SendKey(auto.Keys.VK_X)
+    mmcWindow.SendKeys('X', charMode=False)  # or mmcWindow.SendKey(auto.Keys.VK_X)
+    edit.SendKeys('{Ctrl}{End}{Enter 2}You close me.')
     auto.GetConsoleWindow().SetActive()
 
 if __name__ == '__main__':
