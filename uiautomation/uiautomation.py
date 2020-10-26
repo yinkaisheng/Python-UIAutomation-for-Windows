@@ -17,7 +17,7 @@ import sys
 import time
 import datetime
 import re
-from typing import (Any, Callable, Iterable, Tuple, List, Dict)  # need pip install typing for Python3.4 or lower
+from typing import (Any, Callable, Dict, List, NoReturn, Iterable, Tuple)  # need pip install typing for Python3.4 or lower
 import ctypes
 import ctypes.wintypes
 import comtypes #need pip install comtypes
@@ -1796,12 +1796,12 @@ def GetDoubleClickTime() -> int:
     return ctypes.windll.user32.GetDoubleClickTime()
 
 
-def mouse_event(dwFlags: int, dx: int, dy: int, dwData: int, dwExtraInfo: int) -> None:
+def mouse_event(dwFlags: int, dx: int, dy: int, dwData: int, dwExtraInfo: int) -> NoReturn:
     """mouse_event from Win32."""
     ctypes.windll.user32.mouse_event(dwFlags, dx, dy, dwData, dwExtraInfo)
 
 
-def keybd_event(bVk: int, bScan: int, dwFlags: int, dwExtraInfo: int) -> None:
+def keybd_event(bVk: int, bScan: int, dwFlags: int, dwExtraInfo: int) -> NoReturn:
     """keybd_event from Win32."""
     ctypes.windll.user32.keybd_event(bVk, bScan, dwFlags, dwExtraInfo)
 
@@ -1823,7 +1823,7 @@ def SendMessage(handle: int, msg: int, wParam: int, lParam: int) -> int:
     return ctypes.windll.user32.SendMessageW(ctypes.c_void_p(handle), ctypes.c_uint(msg), ctypes.wintypes.WPARAM(wParam), ctypes.wintypes.LPARAM(lParam))
 
 
-def Click(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def Click(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate mouse click at point x, y.
     x: int.
@@ -1838,7 +1838,7 @@ def Click(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
-def MiddleClick(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def MiddleClick(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate mouse middle click at point x, y.
     x: int.
@@ -1853,7 +1853,7 @@ def MiddleClick(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
-def RightClick(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def RightClick(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate mouse right click at point x, y.
     x: int.
@@ -1868,7 +1868,7 @@ def RightClick(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
-def PressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def PressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Press left mouse.
     x: int.
@@ -1881,7 +1881,7 @@ def PressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
-def ReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> None:
+def ReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Release left mouse.
     waitTime: float.
@@ -1892,7 +1892,7 @@ def ReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
-def RightPressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def RightPressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Press right mouse.
     x: int.
@@ -1905,7 +1905,7 @@ def RightPressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> No
     time.sleep(waitTime)
 
 
-def RightReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> None:
+def RightReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Release right mouse.
     waitTime: float.
@@ -1916,7 +1916,7 @@ def RightReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
-def MiddlePressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def MiddlePressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Press middle mouse.
     x: int.
@@ -1929,7 +1929,7 @@ def MiddlePressMouse(x: int, y: int, waitTime: float = OPERATION_WAIT_TIME) -> N
     time.sleep(waitTime)
 
 
-def MiddleReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> None:
+def MiddleReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Release middle mouse.
     waitTime: float.
@@ -1940,7 +1940,7 @@ def MiddleReleaseMouse(waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
-def MoveTo(x: int, y: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def MoveTo(x: int, y: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate mouse move to point x, y from current cursor.
     x: int.
@@ -1980,7 +1980,7 @@ def MoveTo(x: int, y: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAI
     time.sleep(waitTime)
 
 
-def DragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def DragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate mouse left button drag from point x1, y1 drop to point x2, y2.
     x1: int.
@@ -1995,7 +1995,7 @@ def DragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime:
     ReleaseMouse(waitTime)
 
 
-def RightDragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def RightDragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate mouse right button drag from point x1, y1 drop to point x2, y2.
     x1: int.
@@ -2010,7 +2010,7 @@ def RightDragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, wait
     RightReleaseMouse(waitTime)
 
 
-def MiddleDragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def MiddleDragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate mouse middle button drag from point x1, y1 drop to point x2, y2.
     x1: int.
@@ -2025,7 +2025,7 @@ def MiddleDragDrop(x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, wai
     MiddleReleaseMouse(waitTime)
 
 
-def WheelDown(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def WheelDown(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate mouse wheel down.
     wheelTimes: int.
@@ -2038,7 +2038,7 @@ def WheelDown(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPE
     time.sleep(waitTime)
 
 
-def WheelUp(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def WheelUp(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate mouse wheel up.
     wheelTimes: int.
@@ -2057,6 +2057,15 @@ def GetScreenSize() -> Tuple[int, int]:
     SM_CYSCREEN = 1
     w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN)
     h = ctypes.windll.user32.GetSystemMetrics(SM_CYSCREEN)
+    return w, h
+
+
+def GetVirtualScreenSize() -> Tuple[int, int]:
+    """Return Tuple[int, int], two ints tuple (width, height)."""
+    SM_CXVIRTUALSCREEN = 78
+    SM_CYVIRTUALSCREEN = 79
+    w = ctypes.windll.user32.GetSystemMetrics(SM_CXVIRTUALSCREEN)
+    h = ctypes.windll.user32.GetSystemMetrics(SM_CYVIRTUALSCREEN)
     return w, h
 
 
@@ -2125,7 +2134,7 @@ def BringWindowToTop(handle: int) -> bool:
     return bool(ctypes.windll.user32.BringWindowToTop(ctypes.c_void_p(handle)))
 
 
-def SwitchToThisWindow(handle: int) -> None:
+def SwitchToThisWindow(handle: int) -> NoReturn:
     """
     SwitchToThisWindow from Win32.
     handle: int, the handle of a native window.
@@ -2413,7 +2422,7 @@ def RunScriptAsAdmin(argv: List[str], workingDirectory: str = None, showFlag: in
     return ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, args, workingDirectory, showFlag) > 32
 
 
-def SendKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def SendKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate typing a key.
     key: int, a value in class `Keys`.
@@ -2423,7 +2432,7 @@ def SendKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
-def PressKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def PressKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate a key down for key.
     key: int, a value in class `Keys`.
@@ -2433,7 +2442,7 @@ def PressKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
     time.sleep(waitTime)
 
 
-def ReleaseKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+def ReleaseKey(key: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
     """
     Simulate a key up for key.
     key: int, a value in class `Keys`.
@@ -2574,7 +2583,7 @@ def _VKtoSC(key: int) -> int:
     return scanCode
 
 
-def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, charMode: bool = True, debug: bool = False) -> None:
+def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, charMode: bool = True, debug: bool = False) -> NoReturn:
     """
     Simulate typing keys on keyboard.
     text: str, keys to type.
@@ -2789,11 +2798,11 @@ class Logger:
     }
 
     @staticmethod
-    def SetLogFile(path: str) -> None:
+    def SetLogFile(path: str) -> NoReturn:
         Logger.FileName = path
 
     @staticmethod
-    def Write(log: Any, consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None, printTruncateLen: int = 0) -> None:
+    def Write(log: Any, consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None, printTruncateLen: int = 0) -> NoReturn:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -2837,7 +2846,7 @@ class Logger:
                 fout.close()
 
     @staticmethod
-    def WriteLine(log: Any, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def WriteLine(log: Any, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> NoReturn:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -2848,7 +2857,7 @@ class Logger:
         Logger.Write('{}\n'.format(log), consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfullyWrite(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def ColorfullyWrite(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> NoReturn:
         """
         log: str.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -2877,7 +2886,7 @@ class Logger:
             Logger.Write(t, c, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfullyWriteLine(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def ColorfullyWriteLine(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> NoReturn:
         """
         log: str.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -2890,7 +2899,7 @@ class Logger:
         Logger.ColorfullyWrite(log + '\n', consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def Log(log: Any = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def Log(log: Any = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> NoReturn:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -2912,7 +2921,7 @@ class Logger:
         Logger.Write(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfullyLog(log: str = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def ColorfullyLog(log: str = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> NoReturn:
         """
         log: any type.
         consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen.
@@ -2936,7 +2945,7 @@ class Logger:
         Logger.ColorfullyWrite(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def DeleteLog() -> None:
+    def DeleteLog() -> NoReturn:
         """Delete log file."""
         if os.path.exists(Logger.FileName):
             os.remove(Logger.FileName)
@@ -2959,12 +2968,12 @@ class Bitmap:
     def __del__(self):
         self.Release()
 
-    def _getsize(self) -> None:
+    def _getsize(self) -> NoReturn:
         size = _DllClient.instance().dll.BitmapGetWidthAndHeight(self._bitmap)
         self._width = size & 0xFFFF
         self._height = size >> 16
 
-    def Release(self) -> None:
+    def Release(self) -> NoReturn:
         if self._bitmap:
             _DllClient.instance().dll.BitmapRelease(self._bitmap)
             self._bitmap = 0
@@ -5262,14 +5271,14 @@ class Control():
         newControl = Control.CreateControlFromElement(control.Element)
         return newControl
 
-    def SetSearchFromControl(self, searchFromControl: 'Control') -> None:
+    def SetSearchFromControl(self, searchFromControl: 'Control') -> NoReturn:
         """searchFromControl: `Control` or its subclass"""
         self.searchFromControl = searchFromControl
 
-    def SetSearchDepth(self, searchDepth: int) -> None:
+    def SetSearchDepth(self, searchDepth: int) -> NoReturn:
         self.searchDepth = searchDepth
 
-    def AddSearchProperties(self, **searchProperties) -> None:
+    def AddSearchProperties(self, **searchProperties) -> NoReturn:
         """
         Add search properties using `dict.update`.
         searchProperties: dict, same as searchProperties in `Control.__init__`.
@@ -5281,7 +5290,7 @@ class Control():
             regName = searchProperties['RegexName']
             self.regexName = re.compile(regName) if regName else None
 
-    def RemoveSearchProperties(self, **searchProperties) -> None:
+    def RemoveSearchProperties(self, **searchProperties) -> NoReturn:
         """
         searchProperties: dict, same as searchProperties in `Control.__init__`.
         """
@@ -5994,7 +6003,7 @@ class Control():
         """
         return self.MoveCursorToInnerPos(simulateMove=simulateMove)
 
-    def Click(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def Click(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         """
         x: int, if < 0, click self.BoundingRectangle.right + x, if not None, ignore ratioX.
         y: int, if < 0, click self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
@@ -6011,7 +6020,7 @@ class Control():
         if point:
             Click(point[0], point[1], waitTime)
 
-    def MiddleClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def MiddleClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         """
         x: int, if < 0, middle click self.BoundingRectangle.right + x, if not None, ignore ratioX.
         y: int, if < 0, middle click self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
@@ -6028,7 +6037,7 @@ class Control():
         if point:
             MiddleClick(point[0], point[1], waitTime)
 
-    def RightClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def RightClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         """
         x: int, if < 0, right click self.BoundingRectangle.right + x, if not None, ignore ratioX.
         y: int, if < 0, right click self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
@@ -6045,7 +6054,7 @@ class Control():
         if point:
             RightClick(point[0], point[1], waitTime)
 
-    def DoubleClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def DoubleClick(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         """
         x: int, if < 0, right click self.BoundingRectangle.right + x, if not None, ignore ratioX.
         y: int, if < 0, right click self.BoundingRectangle.bottom + y, if not None, ignore ratioY.
@@ -6062,7 +6071,7 @@ class Control():
         Click(x, y, GetDoubleClickTime() * 1.0 / 2000)
         Click(x, y, waitTime)
 
-    def WheelDown(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def WheelDown(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         """
         Make control have focus first, move cursor to the specified position and mouse wheel down.
         x: int, if < 0, move x cursor to self.BoundingRectangle.right + x, if not None, ignore ratioX.
@@ -6079,7 +6088,7 @@ class Control():
         WheelDown(wheelTimes, interval, waitTime)
         SetCursorPos(cursorX, cursorY)
 
-    def WheelUp(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def WheelUp(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         """
         Make control have focus first, move cursor to the specified position and mouse wheel up.
         x: int, if < 0, move x cursor to self.BoundingRectangle.right + x, if not None, ignore ratioX.
@@ -6161,7 +6170,7 @@ class Control():
             return SetWindowText(handle, text)
         return False
 
-    def SendKey(self, key: int, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def SendKey(self, key: int, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         """
         Make control have focus first and type a key.
         `self.SetFocus` may not work for some controls, you may need to click it to make it have focus.
@@ -6171,7 +6180,7 @@ class Control():
         self.SetFocus()
         SendKey(key, waitTime)
 
-    def SendKeys(self, text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, charMode: bool = True) -> None:
+    def SendKeys(self, text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT_TIME, charMode: bool = True) -> NoReturn:
         """
         Make control have focus first and type keys.
         `self.SetFocus` may not work for some controls, you may need to click it to make it have focus.
@@ -6895,7 +6904,7 @@ class TopLevel():
             return bool(GetWindowLong(self.NativeWindowHandle, GWL.ExStyle) & WS_EX_TOPMOST)
         return False
 
-    def SwitchToThisWindow(self, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def SwitchToThisWindow(self, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         if self.IsTopLevel():
             SwitchToThisWindow(self.NativeWindowHandle)
             time.sleep(waitTime)
@@ -7338,7 +7347,7 @@ class WindowControl(Control, TopLevel):
         """
         return self.GetPattern(PatternId.DockPattern)
 
-    def MetroClose(self, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def MetroClose(self, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         """
         Only work on Windows 8/8.1, if current window is Metro UI.
         waitTime: float.
@@ -7396,7 +7405,7 @@ ControlConstructors = {
 }
 
 
-def SetGlobalSearchTimeout(seconds: float) -> None:
+def SetGlobalSearchTimeout(seconds: float) -> NoReturn:
     """
     seconds: float.
     To make this available, you need explicitly import uiautomation:
@@ -7618,7 +7627,7 @@ def WalkControl(control: Control, includeTop: bool = False, maxDepth: int = 0xFF
             depth -= 1
 
 
-def LogControl(control: Control, depth: int = 0, showAllName: bool = True) -> None:
+def LogControl(control: Control, depth: int = 0, showAllName: bool = True) -> NoReturn:
     """
     Print and log control's properties.
     control: `Control` or its subclass.
@@ -7685,7 +7694,7 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True) -> No
     Logger.Write('\n')
 
 
-def EnumAndLogControl(control: Control, maxDepth: int = 0xFFFFFFFF, showAllName: bool = True, startDepth: int = 0) -> None:
+def EnumAndLogControl(control: Control, maxDepth: int = 0xFFFFFFFF, showAllName: bool = True, startDepth: int = 0) -> NoReturn:
     """
     Print and log control and its descendants' propertyies.
     control: `Control` or its subclass.
@@ -7697,7 +7706,7 @@ def EnumAndLogControl(control: Control, maxDepth: int = 0xFFFFFFFF, showAllName:
         LogControl(c, d + startDepth, showAllName)
 
 
-def EnumAndLogControlAncestors(control: Control, showAllName: bool = True) -> None:
+def EnumAndLogControlAncestors(control: Control, showAllName: bool = True) -> NoReturn:
     """
     Print and log control and its ancestors' propertyies.
     control: `Control` or its subclass.
@@ -7733,7 +7742,7 @@ def FindControl(control: Control, compare: Callable[[Control, int], bool], maxDe
                 return child
 
 
-def ShowDesktop(waitTime: float = 1) -> None:
+def ShowDesktop(waitTime: float = 1) -> NoReturn:
     """Show Desktop by pressing win + d"""
     SendKeys('{Win}d')
     time.sleep(waitTime)
@@ -7747,7 +7756,7 @@ def ShowDesktop(waitTime: float = 1) -> None:
         #time.sleep(1)
 
 
-def InitializeUIAutomationInCurrentThread() -> None:
+def InitializeUIAutomationInCurrentThread() -> NoReturn:
     """
     Initialize UIAutomation in a new thread.
     If you want to use functionalities related to Controls and Patterns in a new thread.
@@ -7758,7 +7767,7 @@ def InitializeUIAutomationInCurrentThread() -> None:
     comtypes.CoInitializeEx()
 
 
-def UninitializeUIAutomationInCurrentThread() -> None:
+def UninitializeUIAutomationInCurrentThread() -> NoReturn:
     """
     Uninitialize UIAutomation in a new thread after calling InitializeUIAutomationInCurrentThread.
     You must call this function when the new thread exits if you have called InitializeUIAutomationInCurrentThread in the same thread.
@@ -7766,7 +7775,7 @@ def UninitializeUIAutomationInCurrentThread() -> None:
     comtypes.CoUninitialize()
 
 
-def WaitHotKeyReleased(hotkey: Tuple[int, int]) -> None:
+def WaitHotKeyReleased(hotkey: Tuple[int, int]) -> NoReturn:
     """hotkey: Tuple[int, int], two ints tuple (modifierKey, key)"""
     mod = {ModifierKey.Alt: Keys.VK_MENU,
            ModifierKey.Control: Keys.VK_CONTROL,
@@ -7785,7 +7794,7 @@ def WaitHotKeyReleased(hotkey: Tuple[int, int]) -> None:
             break
 
 
-def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple[int, int] = None, exitHotKey: Tuple[int, int] = (ModifierKey.Control, Keys.VK_D), waitHotKeyReleased: bool = True) -> None:
+def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple[int, int] = None, exitHotKey: Tuple[int, int] = (ModifierKey.Control, Keys.VK_D), waitHotKeyReleased: bool = True) -> NoReturn:
     """
     Bind functions with hotkeys, the function will be run or stopped in another thread when the hotkey is pressed.
     keyFunctions: Dict[Tuple[int, int], Callable], such as {(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : function}
@@ -7855,10 +7864,10 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
         keyName = getKeyName(Keys.__dict__, hotkey[1])
         id2Name[hotKeyId] = str((modName, keyName))
         if ctypes.windll.user32.RegisterHotKey(0, hotKeyId, hotkey[0], hotkey[1]):
-            Logger.ColorfullyWrite('Register hotkey <Color=DarkGreen>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWrite('Register hotkey <Color=Cyan>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
         else:
             registed = False
-            Logger.ColorfullyWrite('Register hotkey <Color=DarkGreen>{}</Color> unsuccessfully, maybe it was allready registered by another program\n'.format((modName, keyName)), writeToFile=False)
+            Logger.ColorfullyWrite('Register hotkey <Color=Cyan>{}</Color> unsuccessfully, maybe it was allready registered by another program\n'.format((modName, keyName)), writeToFile=False)
         hotKeyId += 1
     if stopHotKey and len(stopHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, stopHotKey[0])
@@ -7885,7 +7894,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
             if msg.wParam in id2HotKey:
                 if msg.lParam & 0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam >> 16 & 0x0000FFFF == id2HotKey[msg.wParam][1]:
-                    Logger.ColorfullyWrite('----------hotkey <Color=DarkGreen>{}</Color> pressed----------\n'.format(id2Name[msg.wParam]), writeToFile=False)
+                    Logger.ColorfullyWrite('----------hotkey <Color=Cyan>{}</Color> pressed----------\n'.format(id2Name[msg.wParam]), writeToFile=False)
                     if not id2Thread[msg.wParam]:
                         stopEvent.clear()
                         funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam], id2Name[msg.wParam]))
