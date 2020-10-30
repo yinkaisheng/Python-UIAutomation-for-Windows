@@ -17,11 +17,12 @@ import sys
 import time
 import datetime
 import re
-from typing import (Any, Callable, Dict, List, NoReturn, Iterable, Tuple)  # need pip install typing for Python3.4 or lower
+import threading
 import ctypes
 import ctypes.wintypes
 import comtypes #need pip install comtypes
 import comtypes.client
+from typing import (Any, Callable, Dict, List, NoReturn, Iterable, Tuple)  # need pip install typing for Python3.4 or lower
 TreeNode = Any
 
 
@@ -7405,6 +7406,40 @@ ControlConstructors = {
 }
 
 
+class UIAutomationInitializerInThread:
+    def __init__(self, debug: bool = False):
+        self.debug = debug
+        InitializeUIAutomationInCurrentThread()
+        if self.debug:
+            th = threading.currentThread()
+            print('\ncall InitializeUIAutomationInCurrentThread in {}'.format(th))
+
+    def __del__(self):
+        UninitializeUIAutomationInCurrentThread()
+        if self.debug:
+            th = threading.currentThread()
+            print('\ncall UninitializeUIAutomationInCurrentThread in {}'.format(th))
+
+
+def InitializeUIAutomationInCurrentThread() -> NoReturn:
+    """
+    Initialize UIAutomation in a new thread.
+    If you want to use functionalities related to Controls and Patterns in a new thread.
+    You must call this function first in the new thread.
+    But you can't use use a Control or a Pattern created in a different thread.
+    So you can't create a Control or a Pattern in main thread and then pass it to a new thread and use it.
+    """
+    comtypes.CoInitializeEx()
+
+
+def UninitializeUIAutomationInCurrentThread() -> NoReturn:
+    """
+    Uninitialize UIAutomation in a new thread after calling InitializeUIAutomationInCurrentThread.
+    You must call this function when the new thread exits if you have called InitializeUIAutomationInCurrentThread in the same thread.
+    """
+    comtypes.CoUninitialize()
+
+
 def SetGlobalSearchTimeout(seconds: float) -> NoReturn:
     """
     seconds: float.
@@ -7756,25 +7791,6 @@ def ShowDesktop(waitTime: float = 1) -> NoReturn:
         #time.sleep(1)
 
 
-def InitializeUIAutomationInCurrentThread() -> NoReturn:
-    """
-    Initialize UIAutomation in a new thread.
-    If you want to use functionalities related to Controls and Patterns in a new thread.
-    You must call this function first in the new thread.
-    But you can't use use a Control or a Pattern created in a different thread.
-    So you can't create a Control or a Pattern in main thread and then pass it to a new thread and use it.
-    """
-    comtypes.CoInitializeEx()
-
-
-def UninitializeUIAutomationInCurrentThread() -> NoReturn:
-    """
-    Uninitialize UIAutomation in a new thread after calling InitializeUIAutomationInCurrentThread.
-    You must call this function when the new thread exits if you have called InitializeUIAutomationInCurrentThread in the same thread.
-    """
-    comtypes.CoUninitialize()
-
-
 def WaitHotKeyReleased(hotkey: Tuple[int, int]) -> NoReturn:
     """hotkey: Tuple[int, int], two ints tuple (modifierKey, key)"""
     mod = {ModifierKey.Alt: Keys.VK_MENU,
@@ -7814,7 +7830,6 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
     uiautomation.RunByHotKey({(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : main}
                         , (uiautomation.ModifierKey.Control | uiautomation.ModifierKey.Shift, uiautomation.Keys.VK_2))
     """
-    from threading import Thread, Event, currentThread
     import traceback
 
     def getModName(theDict, theValue):
@@ -7846,7 +7861,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
         finally:
             releaseAllKey()  #need to release keys if some keys were pressed
             Logger.ColorfullyWrite('{} for function <Color=DarkCyan>{}</Color> exits, hotkey <Color=DarkCyan>{}</Color>\n'.format(
-                currentThread(), function.__name__, hotkeyName), ConsoleColor.DarkYellow, writeToFile=False)
+                threading.currentThread(), function.__name__, hotkeyName), ConsoleColor.DarkYellow, writeToFile=False)
 
     stopHotKeyId = 1
     exitHotKeyId = 2
@@ -7888,7 +7903,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
             Logger.ColorfullyWrite('Register exit hotkey <Color=DarkYellow>{}</Color> unsuccessfully\n'.format((modName, keyName)), writeToFile=False)
     funcThread = None
     livingThreads = []
-    stopEvent = Event()
+    stopEvent = threading.Event()
     msg = ctypes.wintypes.MSG()
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), ctypes.c_void_p(0), ctypes.c_uint(0), ctypes.c_uint(0)) != 0:
         if msg.message == 0x0312: # WM_HOTKEY=0x0312
@@ -7897,7 +7912,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
                     Logger.ColorfullyWrite('----------hotkey <Color=Cyan>{}</Color> pressed----------\n'.format(id2Name[msg.wParam]), writeToFile=False)
                     if not id2Thread[msg.wParam]:
                         stopEvent.clear()
-                        funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam], id2Name[msg.wParam]))
+                        funcThread = threading.Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam], id2Name[msg.wParam]))
                         funcThread.start()
                         id2Thread[msg.wParam] = funcThread
                     else:
@@ -7905,7 +7920,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
                             Logger.WriteLine('There is a {} that is already running for hotkey {}'.format(id2Thread[msg.wParam], id2Name[msg.wParam]), ConsoleColor.Yellow, writeToFile=False)
                         else:
                             stopEvent.clear()
-                            funcThread = Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam], id2Name[msg.wParam]))
+                            funcThread = threading.Thread(None, threadFunc, args=(id2Function[msg.wParam], stopEvent, id2HotKey[msg.wParam], id2Name[msg.wParam]))
                             funcThread.start()
                             id2Thread[msg.wParam] = funcThread
             elif stopHotKeyId == msg.wParam:
