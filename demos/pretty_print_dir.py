@@ -25,14 +25,14 @@ def main(directory, maxDepth = 0xFFFFFFFF):
     for it, depth, remainCount in auto.WalkTree(absdir, getChildren=GetDirChildren, includeTop=True, maxDepth=maxDepth):
         remain[depth] = remainCount
         isDir = os.path.isdir(it)
-        prefixPrint = ''.join(['│　　' if remain[i + 1] else '　　　' for i in range(depth - 1)])
         prefixLog = ''.join(['│   ' if remain[i + 1] else '    ' for i in range(depth - 1)])
+        prefixPrint = prefixLog
         if depth > 0:
             if remain[depth] > 0:
-                prefixPrint += '├─→' if isDir else '├──'
+                prefixPrint += '├─→' if isDir else '├── '
                 prefixLog += '├─→ ' if isDir else '├── '
             else:
-                prefixPrint += '└─→' if isDir else '└──'
+                prefixPrint += '└─→' if isDir else '└── '
                 prefixLog += '└─→ ' if isDir else '└── '
         file = os.path.basename(it)
         texts.append(prefixLog)
