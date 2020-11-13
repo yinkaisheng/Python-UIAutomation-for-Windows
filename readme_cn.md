@@ -4,7 +4,8 @@ uiautomation是我业余时间开发的供我自己使用的一个模块。
 
 uiautomation封装了微软UIAutomation API，支持自动化Win32，MFC，WPF，Modern UI(Metro UI), Qt, IE, Firefox(**version<=56 or >=60**, Firefox57是第一个Rust开发版本,前几个Rust开发版本个人测试发现不支持), Chrome和基于Electron开发的应用程序(Chrome浏览器和Electron应用需要加启动参数--force-renderer-accessibility才能支持UIAutomation).
 
-最新版uiautomation2.0只支持Python 3版本，依赖comtypes和typing这两个包。
+最新版uiautomation2.0只支持Python 3版本，依赖comtypes和typing这两个包，但不要使用3.7.6和3.8.1这两个版本，comtypes在这两个版本中不能正常工作（[issue](https://github.com/enthought/comtypes/issues/202)）。
+
 2.0版本之前的代码请参考[API changes](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows/blob/master/API%20changes.txt)修改代码。
 
 uiautomation支持在Windows XP SP3或更高版本的Windows桌面系统上运行。
