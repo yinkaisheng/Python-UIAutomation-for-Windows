@@ -7721,8 +7721,13 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True) -> No
             Logger.Write('    GridItemPattern.Column: ')
             Logger.Write(pt.Column, ConsoleColor.DarkGreen)
         elif isinstance(pt, TextPattern):
-            Logger.Write('    TextPattern.Text: ')
-            Logger.Write(pt.DocumentRange.GetText(30), ConsoleColor.DarkGreen)
+            # issue 49: CEF Control as DocumentControl have no "TextPattern.Text" property, skip log this part.
+            # https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-get_documentrange
+            try:
+                Logger.Write('    TextPattern.Text: ')
+                Logger.Write(pt.DocumentRange.GetText(30), ConsoleColor.DarkGreen)
+            except comtypes.COMError as ex:
+                pass
     Logger.Write('    SupportedPattern:')
     for pt, name in supportedPatterns:
         Logger.Write(' ' + name, ConsoleColor.DarkGreen)
