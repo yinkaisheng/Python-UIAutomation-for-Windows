@@ -6072,6 +6072,18 @@ class Control():
         Click(x, y, GetDoubleClickTime() * 1.0 / 2000)
         Click(x, y, waitTime)
 
+    def DragDrop(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float=1, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
+        rect = self.BoundingRectangle
+        if rect.width() == 0 or rect.height() == 0:
+            Logger.ColorfullyLog('<Color=Yellow>Can not move cursor</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
+                self.ControlTypeName, rect, self.GetColorfulSearchPropertiesStr()))
+            return
+        x1 = (rect.left if x1 >= 0 else rect.right) + x1
+        y1 = (rect.top if y1 >= 0 else rect.bottom) + y1
+        x2 = (rect.left if x2 >= 0 else rect.right) + x2
+        y2 = (rect.top if y2 >= 0 else rect.bottom) + y2
+        DragDrop(x1, y1, x2, y2, moveSpeed, waitTime)
+
     def WheelDown(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> NoReturn:
         """
         Make control have focus first, move cursor to the specified position and mouse wheel down.
@@ -6782,11 +6794,11 @@ class ListItemControl(Control):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
         self.AddSearchProperties(ControlType=ControlType.ListItemControl)
 
-    def GetSelectionPattern(self) -> SelectionPattern:
+    def GetSelectionItemPattern(self) -> SelectionItemPattern:
         """
-        Return `SelectionPattern` if it supports the pattern else None(Must support according to MSDN).
+        Return `SelectionItemPattern` if it supports the pattern else None(Must support according to MSDN).
         """
-        return self.GetPattern(PatternId.SelectionPattern)
+        return self.GetPattern(PatternId.SelectionItemPattern)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
         """
