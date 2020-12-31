@@ -14,7 +14,7 @@ uiautomation支持在Windows XP SP3或更高版本的Windows桌面系统上运�
 **[KB971513](https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation)** 才能支持UIAutomtion.
 
 在Windows 7或更高版本Windows系统上使用uiautomation时，要以管理员权限运行Python，
-否则uiautomation运行时很多函数可能会执行失败。
+否则uiautomation运行时很多函数可能会执行失败或抛出异常。
 或者先以管理员权限运行cmd.exe，在cmd中再调用Python，如下图中cmd窗口标题中显示了**管理员**。
 
 安装pip install uiautomation后，在Python的Scripts(比如C:\Python37\Scripts)目录中会有一个文件automation.py，
