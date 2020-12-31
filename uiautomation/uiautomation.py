@@ -7674,7 +7674,7 @@ def WalkControl(control: Control, includeTop: bool = False, maxDepth: int = 0xFF
             depth -= 1
 
 
-def LogControl(control: Control, depth: int = 0, showAllName: bool = True) -> None:
+def LogControl(control: Control, depth: int = 0, showAllName: bool = True, showPid: bool = False) -> None:
     """
     Print and log control's properties.
     control: `Control` or its subclass.
@@ -7700,6 +7700,9 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True) -> No
     Logger.Write('0x{0:X}({0})'.format(control.NativeWindowHandle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
     Logger.Write(depth, ConsoleColor.DarkGreen)
+    if showPid:
+        Logger.Write('    ProcessId: ')
+        Logger.Write(control.ProcessId, ConsoleColor.DarkGreen)
     supportedPatterns = list(filter(lambda t: t[0], ((control.GetPattern(id_), name) for id_, name in PatternIdNames.items())))
     for pt, name in supportedPatterns:
         if isinstance(pt, ValuePattern):
@@ -7746,7 +7749,7 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True) -> No
     Logger.Write('\n')
 
 
-def EnumAndLogControl(control: Control, maxDepth: int = 0xFFFFFFFF, showAllName: bool = True, startDepth: int = 0) -> None:
+def EnumAndLogControl(control: Control, maxDepth: int = 0xFFFFFFFF, showAllName: bool = True, showPid: bool = False, startDepth: int = 0) -> None:
     """
     Print and log control and its descendants' propertyies.
     control: `Control` or its subclass.
@@ -7755,10 +7758,10 @@ def EnumAndLogControl(control: Control, maxDepth: int = 0xFFFFFFFF, showAllName:
     startDepth: int, control's current depth.
     """
     for c, d in WalkControl(control, True, maxDepth):
-        LogControl(c, d + startDepth, showAllName)
+        LogControl(c, d + startDepth, showAllName, showPid)
 
 
-def EnumAndLogControlAncestors(control: Control, showAllName: bool = True) -> None:
+def EnumAndLogControlAncestors(control: Control, showAllName: bool = True, showPid: bool = False) -> None:
     """
     Print and log control and its ancestors' propertyies.
     control: `Control` or its subclass.
@@ -7769,7 +7772,7 @@ def EnumAndLogControlAncestors(control: Control, showAllName: bool = True) -> No
         lists.insert(0, control)
         control = control.GetParentControl()
     for i, control in enumerate(lists):
-        LogControl(control, i, showAllName)
+        LogControl(control, i, showAllName, showPid)
 
 
 def FindControl(control: Control, compare: Callable[[Control, int], bool], maxDepth: int = 0xFFFFFFFF, findFromSelf: bool = False, foundIndex: int = 1) -> Control:
