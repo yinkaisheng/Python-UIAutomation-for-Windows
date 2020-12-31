@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
+import sys
 from setuptools import find_packages, setup
-
 from uiautomation import VERSION, AUTHOR_MAIL
+
+requires = [
+        'comtypes>=1.1.7',
+        ]
+
+if sys.version < '3.5':
+    requires.append('typing')
 
 setup(
     name='uiautomation',
@@ -25,8 +32,5 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    install_requires=[
-        'typing',
-        'comtypes>=1.1.7',
-        ]
+    install_requires=requires
 )
