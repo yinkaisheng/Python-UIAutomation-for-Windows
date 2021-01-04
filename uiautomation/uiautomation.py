@@ -7498,6 +7498,7 @@ def InitializeUIAutomationInCurrentThread() -> None:
     So you can't create a Control or a Pattern in main thread and then pass it to a new thread and use it.
     """
     comtypes.CoInitializeEx()
+    SetDpiAwareness(dpiAwarenessPerMonitor=True)
 
 
 def UninitializeUIAutomationInCurrentThread() -> None:
