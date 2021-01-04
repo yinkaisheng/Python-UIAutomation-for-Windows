@@ -53,14 +53,18 @@ class _AutomationClient:
         return cls._instance
 
     def __init__(self):
-        try:
-            self.UIAutomationCore = comtypes.client.GetModule("UIAutomationCore.dll")
-            self.IUIAutomation = comtypes.client.CreateObject("{ff48dba4-60ef-4201-aa87-54103eef594e}", interface=self.UIAutomationCore.IUIAutomation)
-            self.ViewWalker = self.IUIAutomation.RawViewWalker
-            #self.ViewWalker = self.IUIAutomation.ControlViewWalker
-        except OSError as ex:
-            Logger.WriteLine('Can not load UIAutomationCore.dll.\nYou may need to install Windows Update KB971513.\nhttps://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation', ConsoleColor.Yellow)
-            raise ex
+        tryCount = 3
+        for retry in range(tryCount):
+            try:
+                self.UIAutomationCore = comtypes.client.GetModule("UIAutomationCore.dll")
+                self.IUIAutomation = comtypes.client.CreateObject("{ff48dba4-60ef-4201-aa87-54103eef594e}", interface=self.UIAutomationCore.IUIAutomation)
+                self.ViewWalker = self.IUIAutomation.RawViewWalker
+                #self.ViewWalker = self.IUIAutomation.ControlViewWalker
+                break
+            except Exception as ex:
+                if retry + 1 == tryCount:
+                    Logger.WriteLine('Can not load UIAutomationCore.dll.\nYou may need to install Windows Update KB971513.\nhttps://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation', ConsoleColor.Yellow)
+                    raise ex
         #Windows dll
         ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
         ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
@@ -74,6 +78,8 @@ class _AutomationClient:
         ctypes.windll.kernel32.GetStdHandle.restype = ctypes.c_void_p
         ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+
+        SetDpiAwareness(dpiAwarenessPerMonitor=True)
 
 
 class _DllClient:
@@ -96,13 +102,13 @@ class _DllClient:
             try:
                 self.dll = ctypes.cdll.UIAutomationClient_VC140_X64
                 load = True
-            except OSError as ex:
+            except Exception as ex:
                 print(ex)
         else:
             try:
                 self.dll = ctypes.cdll.UIAutomationClient_VC140_X86
                 load = True
-            except OSError as ex:
+            except Exception as ex:
                 print(ex)
         if load:
             self.dll.BitmapCreate.restype = ctypes.c_size_t
@@ -1198,6 +1204,20 @@ class GWL:
     WndProc = -4
 
 
+class ProcessDpiAwareness:
+    ProcessDpiUnaware = 0
+    ProcessSystemDpiAware = 1
+    ProcessPerMonitorDpiAware = 2
+
+
+class DpiAwarenessContext:
+    DpiAwarenessContextUnaware = -1
+    DpiAwarenessContextSystemAware = -2
+    DpiAwarenessContextPerMonitorAware = -3
+    DpiAwarenessContextPerMonitorAwareV2 = -4
+    DpiAwarenessContextUnawareGdiScaled = -5
+
+
 class Keys:
     """Key codes from Win32."""
     VK_LBUTTON = 0x01                       #Left mouse button
@@ -2052,8 +2072,37 @@ def WheelUp(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERA
     time.sleep(waitTime)
 
 
-def GetScreenSize() -> Tuple[int, int]:
-    """Return Tuple[int, int], two ints tuple (width, height)."""
+def SetDpiAwareness(dpiAwarenessPerMonitor: bool = True) -> int:
+    '''
+    Call SetThreadDpiAwarenessContext(Windows 10 version 1607+) or SetProcessDpiAwareness(Windows 8.1+).
+    You should call this function with True if you enable DPI scaling. uiautomation calls this function when it initializes.
+    dpiAwarenessPerMonitor: bool.
+    Return int.
+    '''
+    try:
+        # https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddpiawarenesscontext
+        # Windows 10 1607+
+        ctypes.windll.user32.SetThreadDpiAwarenessContext.restype = ctypes.c_void_p
+        context = DpiAwarenessContext.DpiAwarenessContextPerMonitorAware if dpiAwarenessPerMonitor else DpiAwarenessContext.DpiAwarenessContextUnaware 
+        oldContext = ctypes.windll.user32.SetThreadDpiAwarenessContext(ctypes.c_void_p(context))
+        return oldContext
+    except Exception as ex:
+        try:
+            # https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-setprocessdpiawareness
+            # Once SetProcessDpiAwareness is set for an app, any future calls to SetProcessDpiAwareness will fail.
+            # Windows 8.1+
+            if dpiAwarenessPerMonitor:
+                return ctypes.windll.shcore.SetProcessDpiAwareness(ProcessDpiAwareness.ProcessPerMonitorDpiAware)
+        except Exception as ex2:
+            pass
+
+
+def GetScreenSize(dpiAwarenessPerMonitor: bool = True) -> Tuple[int, int]:
+    """
+    dpiAwarenessPerMonitor: bool.
+    Return Tuple[int, int], two ints tuple (width, height).
+    """
+    SetDpiAwareness(dpiAwarenessPerMonitor)
     SM_CXSCREEN = 0
     SM_CYSCREEN = 1
     w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN)
@@ -2061,8 +2110,12 @@ def GetScreenSize() -> Tuple[int, int]:
     return w, h
 
 
-def GetVirtualScreenSize() -> Tuple[int, int]:
-    """Return Tuple[int, int], two ints tuple (width, height)."""
+def GetVirtualScreenSize(dpiAwarenessPerMonitor: bool = True) -> Tuple[int, int]:
+    """
+    dpiAwarenessPerMonitor: bool.
+    Return Tuple[int, int], two ints tuple (width, height).
+    """
+    SetDpiAwareness(dpiAwarenessPerMonitor)
     SM_CXVIRTUALSCREEN = 78
     SM_CYVIRTUALSCREEN = 79
     w = ctypes.windll.user32.GetSystemMetrics(SM_CXVIRTUALSCREEN)
@@ -2070,17 +2123,20 @@ def GetVirtualScreenSize() -> Tuple[int, int]:
     return w, h
 
 
-def GetMonitorsRect() -> List[Rect]:
-    """Return monitors rect"""
-    SM_CMONITORS = 80
-    monitorsCount = ctypes.windll.user32.GetSystemMetrics(SM_CMONITORS)
-    arrayType = ctypes.c_int * (monitorsCount * 4)
-    values = arrayType()
-    monitorsCount = _DllClient.instance().dll.GetMonitorsRect(values, monitorsCount * 4)
+def GetMonitorsRect(dpiAwarenessPerMonitor: bool = False) -> List[Rect]:
+    """
+    Get monitors' rect.
+    dpiAwarenessPerMonitor: bool.
+    Return List[Rect].
+    """
+    SetDpiAwareness(dpiAwarenessPerMonitor)
+    MonitorEnumProc = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_size_t, ctypes.c_size_t, ctypes.POINTER(ctypes.wintypes.RECT), ctypes.c_size_t)
     rects = []
-    for i in range(monitorsCount):
-        rect = Rect(values[i * 4], values[i * 4 + 1], values[i * 4 + 2], values[i * 4 + 3])
+    def MonitorCallback(hMonitor: int, hdcMonitor: int, lprcMonitor: ctypes.POINTER(ctypes.wintypes.RECT), dwData: int):
+        rect = Rect(lprcMonitor.contents.left, lprcMonitor.contents.top, lprcMonitor.contents.right, lprcMonitor.contents.bottom)
         rects.append(rect)
+        return 1
+    ret = ctypes.windll.user32.EnumDisplayMonitors(ctypes.c_void_p(0), ctypes.c_void_p(0), MonitorEnumProc(MonitorCallback), 0)
     return rects
 
 
