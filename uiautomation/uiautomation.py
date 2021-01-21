@@ -6554,7 +6554,7 @@ class ComboBoxControl(Control):
         """
         return self.GetPattern(PatternId.ValuePattern)
 
-    def Select(self, itemName: str = '', condition: Callable[[str], bool] = None, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+    def Select(self, itemName: str = '', condition: Callable[[str], bool] = None, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
         Show combobox's popup menu and select a item by name.
         itemName: str.
@@ -6570,7 +6570,7 @@ class ComboBoxControl(Control):
             expandCollapsePattern.Expand()
         else:
             #Windows Form's ComboBoxControl doesn't support ExpandCollapsePattern
-            self.Click(x=-10, ratioY=0.5, simulateMove=False)
+            self.Click(x=-10, ratioY=0.5, simulateMove=simulateMove)
         find = False
         if condition:
             listItemControl = self.ListItemControl(Compare=lambda c, d: condition(c.Name))
@@ -6580,10 +6580,10 @@ class ComboBoxControl(Control):
             scrollItemPattern = listItemControl.GetScrollItemPattern()
             if scrollItemPattern:
                 scrollItemPattern.ScrollIntoView(waitTime=0.1)
-            listItemControl.Click(waitTime=waitTime)
+            listItemControl.Click(simulateMove=simulateMove, waitTime=waitTime)
             find = True
         else:
-            #ComboBox's popup window is a child of root control
+            #some ComboBox's popup window is a child of root control
             listControl = ListControl(searchDepth= 1)
             if listControl.Exists(1):
                 if condition:
@@ -6594,14 +6594,14 @@ class ComboBoxControl(Control):
                     scrollItemPattern = listItemControl.GetScrollItemPattern()
                     if scrollItemPattern:
                         scrollItemPattern.ScrollIntoView(waitTime=0.1)
-                    listItemControl.Click(waitTime=waitTime)
+                    listItemControl.Click(simulateMove=simulateMove, waitTime=waitTime)
                     find = True
         if not find:
             Logger.ColorfullyLog('Can\'t find <Color=Cyan>{}</Color> in ComboBoxControl or it does not support selection.'.format(itemName), ConsoleColor.Yellow)
             if expandCollapsePattern:
                 expandCollapsePattern.Collapse(waitTime)
             else:
-                self.Click(x=-10, ratioY=0.5, simulateMove=False, waitTime=waitTime)
+                self.Click(x=-10, ratioY=0.5, simulateMove=simulateMove, waitTime=waitTime)
         return find
 
 
