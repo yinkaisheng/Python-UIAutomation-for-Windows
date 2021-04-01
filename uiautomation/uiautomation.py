@@ -1657,6 +1657,7 @@ class MOUSEINPUT(ctypes.Structure):
                 ('time', ctypes.wintypes.DWORD),
                 ('dwExtraInfo', ctypes.wintypes.PULONG))
 
+
 class KEYBDINPUT(ctypes.Structure):
     _fields_ = (('wVk', ctypes.wintypes.WORD),
                 ('wScan', ctypes.wintypes.WORD),
@@ -1664,15 +1665,18 @@ class KEYBDINPUT(ctypes.Structure):
                 ('time', ctypes.wintypes.DWORD),
                 ('dwExtraInfo', ctypes.wintypes.PULONG))
 
+
 class HARDWAREINPUT(ctypes.Structure):
     _fields_ = (('uMsg', ctypes.wintypes.DWORD),
                 ('wParamL', ctypes.wintypes.WORD),
                 ('wParamH', ctypes.wintypes.WORD))
 
+
 class _INPUTUnion(ctypes.Union):
     _fields_ = (('mi', MOUSEINPUT),
                 ('ki', KEYBDINPUT),
                 ('hi', HARDWAREINPUT))
+
 
 class INPUT(ctypes.Structure):
     _fields_ = (('type', ctypes.wintypes.DWORD),
@@ -1703,7 +1707,7 @@ class Rect():
 
     def contains(self, x: int, y: int) -> bool:
         return self.left <= x < self.right and self.top <= y < self.bottom
-    
+
     def __eq__(self, rect):
         return self.left == rect.left and self.top == rect.top and self.right == rect.right and self.bottom == rect.bottom
 
@@ -2083,7 +2087,7 @@ def SetDpiAwareness(dpiAwarenessPerMonitor: bool = True) -> int:
         # https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddpiawarenesscontext
         # Windows 10 1607+
         ctypes.windll.user32.SetThreadDpiAwarenessContext.restype = ctypes.c_void_p
-        context = DpiAwarenessContext.DpiAwarenessContextPerMonitorAware if dpiAwarenessPerMonitor else DpiAwarenessContext.DpiAwarenessContextUnaware 
+        context = DpiAwarenessContext.DpiAwarenessContextPerMonitorAware if dpiAwarenessPerMonitor else DpiAwarenessContext.DpiAwarenessContextUnaware
         oldContext = ctypes.windll.user32.SetThreadDpiAwarenessContext(ctypes.c_void_p(context))
         return oldContext
     except Exception as ex:
@@ -3607,9 +3611,13 @@ class ExpandCollapsePattern():
         Return bool, True if succeed otherwise False.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-collapse
         """
-        ret = self.pattern.Collapse() == S_OK
-        time.sleep(waitTime)
-        return ret
+        try:
+            ret = self.pattern.Collapse() == S_OK
+            time.sleep(waitTime)
+            return ret
+        except:
+            pass
+        return False
 
     def Expand(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
@@ -3618,9 +3626,13 @@ class ExpandCollapsePattern():
         Return bool, True if succeed otherwise False.
         Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-expand
         """
-        ret = self.pattern.Expand() == S_OK
-        time.sleep(waitTime)
-        return ret
+        try:
+            ret = self.pattern.Expand() == S_OK
+            time.sleep(waitTime)
+            return ret
+        except:
+            pass
+            return False
 
 
 class GridItemPattern():
