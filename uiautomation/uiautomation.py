@@ -3632,7 +3632,7 @@ class ExpandCollapsePattern():
             return ret
         except:
             pass
-            return False
+        return False
 
 
 class GridItemPattern():
@@ -5916,6 +5916,7 @@ class Control():
         depth: int, tree depth from searchFromControl.
         Return bool.
         """
+        compareFunc = None
         for key, value in self.searchProperties.items():
             if 'ControlType' == key:
                 if value != control.ControlType:
@@ -5939,8 +5940,10 @@ class Control():
                 if not self.regexName.match(control.Name):
                     return False
             elif 'Compare' == key:
-                if not value(control, depth):
-                    return False
+                compareFunc = value
+        # use Compare at last
+        if compareFunc and not compareFunc(control, depth):
+            return False
         return True
 
     def Exists(self, maxSearchSeconds: float = 5, searchIntervalSeconds: float = SEARCH_INTERVAL, printIfNotExist: bool = False) -> bool:
