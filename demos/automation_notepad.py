@@ -65,8 +65,20 @@ def testNotepadCN():
     if listItem.Exists(2):
         listItem.GetScrollItemPattern().ScrollIntoView()
         listItem.Click()
-    windowFont.ComboBoxControl(AutomationId = '1140').Select('中文 GB2312')
-    windowFont.ButtonControl(Name = '确定').Click()
+
+    comboIndex = 0
+    selectIndex = 2
+
+    def select3rd(itemText: str):
+        nonlocal comboIndex
+        if comboIndex == selectIndex:
+            return True
+        comboIndex = comboIndex + 1
+
+    combo = windowFont.ComboBoxControl(AutomationId='1140')
+    combo.Select(condition=select3rd)
+    combo.Select('中文 GB2312')
+    windowFont.ButtonControl(Name='确定').Click()
     window.GetWindowPattern().Close()
     if auto.WaitForDisappear(window, 3):
         auto.Logger.WriteLine("Notepad closed")
@@ -121,7 +133,20 @@ def testNotepadEN():
     window.MenuItemControl(Name = 'Format').Click()
     window.MenuItemControl(Name = 'Font...').Click()
     windowFont = window.WindowControl(Name = 'Font')
-    windowFont.ComboBoxControl(AutomationId = '1140').Select('Western')
+
+    comboIndex = 0
+    selectIndex = 2
+
+    def select3rd(itemText: str):
+        nonlocal comboIndex
+        if comboIndex == selectIndex:
+            return True
+        comboIndex = comboIndex + 1
+
+    combo = windowFont.ComboBoxControl(AutomationId='1140')
+    combo.Select(condition=select3rd)
+    combo.Select('Western')
+
     windowFont.ButtonControl(Name = 'OK').Click()
     window.Close()
     if auto.WaitForDisappear(window, 3):
