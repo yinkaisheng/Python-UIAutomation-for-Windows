@@ -4,12 +4,13 @@ import os
 import sys
 import subprocess
 import psutil
+from threading import Event
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
 
 
-def test1(stopEvent):
+def test1(stopEvent: Event):
     """
     This function runs in a new thread triggered by hotkey.
     """
@@ -32,7 +33,7 @@ def test1(stopEvent):
     print('test1 exits')
 
 
-def test2(stopEvent):
+def test2(stopEvent: Event):
     """This function runs in a thread triggered by hotkey"""
     cmd = '"{}" "automation_notepad.py"'.format(sys.executable)
     p = subprocess.Popen(cmd)
@@ -61,8 +62,8 @@ def main():
     auto.LogControl(auto.GetRootControl())
     auto.Logger.Write('\n')
     auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_1): test1,
-                              (auto.ModifierKey.Control, auto.Keys.VK_2): test2},
-                             (auto.ModifierKey.Control, auto.Keys.VK_4))
+                      (auto.ModifierKey.Control, auto.Keys.VK_2): test2},
+                     (auto.ModifierKey.Control, auto.Keys.VK_4))
     auto.SetConsoleTitle(oriTitle)
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import sys
 import time
 import subprocess
 import psutil
+from threading import Event
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
@@ -20,7 +21,7 @@ def GetFirstChild(item: auto.Control):
         if ecpt and ecpt.ExpandCollapseState == auto.ExpandCollapseState.Expanded:
             child = None
             tryCount = 0
-            #some tree items need some time to finish expanding
+            # some tree items need some time to finish expanding
             while not child:
                 tryCount += 1
                 child = item.GetFirstChildControl()
@@ -31,12 +32,14 @@ def GetFirstChild(item: auto.Control):
     else:
         return item.GetFirstChildControl()
 
+
 def GetNextSibling(item: auto.Control):
     return item.GetNextSiblingControl()
 
+
 def ExpandTreeItem(treeItem: auto.TreeItemControl):
     for item, depth in auto.WalkTree(treeItem, getFirstChild=GetFirstChild, getNextSibling=GetNextSibling, includeTop=True, maxDepth=MaxExpandDepth):
-        if isinstance(item, auto.TreeItemControl):  #or item.ControlType == auto.ControlType.TreeItemControl
+        if isinstance(item, auto.TreeItemControl):  # or item.ControlType == auto.ControlType.TreeItemControl
             if PrintTree:
                 auto.Logger.WriteLine(' ' * (depth * 4) + item.Name, logFile='tree_dump.txt')
             sipt = item.GetScrollItemPattern()
@@ -57,7 +60,7 @@ def main():
         auto.Logger.WriteLine('the control under cursor is not a tree control', auto.ConsoleColor.Yellow)
 
 
-def HotKeyFunc(stopEvent: 'Event', argv: list):
+def HotKeyFunc(stopEvent: Event, argv: list):
     args = [sys.executable, __file__] + argv
     cmd = ' '.join('"{}"'.format(arg) for arg in args)
     auto.Logger.WriteLine('call {}'.format(cmd))
@@ -93,5 +96,5 @@ if __name__ == '__main__':
     else:
         auto.Logger.WriteLine('move mouse to a tree control and press Ctrl+1', auto.ConsoleColor.Green)
         auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_1): lambda event: HotKeyFunc(event, ['--main'] + sys.argv[1:])},
-                                 (auto.ModifierKey.Control, auto.Keys.VK_2))
+                         (auto.ModifierKey.Control, auto.Keys.VK_2))
 
