@@ -5,6 +5,7 @@ import sys
 import time
 import subprocess
 import psutil
+from threading import Event
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
@@ -23,11 +24,13 @@ def CollapseTreeItem(treeItem: auto.TreeItemControl):
             return True
     return False
 
+
 def main():
     treeItem = auto.ControlFromCursor()
     CollapseTreeItem(treeItem)
 
-def HotKeyFunc(stopEvent: 'Event', argv: list):
+
+def HotKeyFunc(stopEvent: Event, argv: list):
     args = [sys.executable, __file__] + argv
     cmd = ' '.join('"{}"'.format(arg) for arg in args)
     auto.Logger.WriteLine('call {}'.format(cmd))
@@ -56,5 +59,5 @@ if __name__ == '__main__':
     else:
         auto.Logger.WriteLine('move mouse to a tree control and press Ctrl+3', auto.ConsoleColor.Green)
         auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_3): lambda event: HotKeyFunc(event, ['--main'])},
-                                 (auto.ModifierKey.Control, auto.Keys.VK_4))
+                         (auto.ModifierKey.Control, auto.Keys.VK_4))
 

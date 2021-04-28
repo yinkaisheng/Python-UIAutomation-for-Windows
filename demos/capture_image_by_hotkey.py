@@ -5,13 +5,14 @@ import os
 import sys
 import time
 import subprocess
+from threading import Event
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
 
 
-def capture(stopEvent: 'threading.Event'):
-    _uiobj = auto.UIAutomationInitializerInThread()
+def capture(stopEvent: Event):
+    _uiobj = auto.UIAutomationInitializerInThread(debug=True)
     control = auto.ControlFromCursor()
     control.CaptureToImage('control.png')
     subprocess.Popen('control.png', shell=True)

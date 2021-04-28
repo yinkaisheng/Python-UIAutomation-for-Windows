@@ -6,6 +6,7 @@ import sys
 import time
 import subprocess
 from typing import List
+from threading import Event
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
@@ -13,7 +14,7 @@ import uiautomation as auto
 WindowsWantToHide = ('Warcraft III', 'Valve001', 'Counter-Strike', 'Notepad')
 
 
-def hide(stopEvent: 'threading.Event', handles: List[int]):
+def hide(stopEvent: Event, handles: List[int]):
     #_uiobj = auto.UIAutomationInitializerInThread()
     # Hide doesn't call any COM methods, so it doesn't need an UIAutomationInitializerInThread
     for handle in handles:
@@ -21,7 +22,7 @@ def hide(stopEvent: 'threading.Event', handles: List[int]):
         win.Hide(0)
 
 
-def show(stopEvent: 'threading.Event', handle: List[int]):
+def show(stopEvent: Event, handle: List[int]):
     #_uiobj = auto.UIAutomationInitializerInThread()
     # Show doesn't call any COM methods, so it doesn't need an UIAutomationInitializerInThread
     for handle in handles:
