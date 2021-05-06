@@ -20,9 +20,9 @@ import re
 import threading
 import ctypes
 import ctypes.wintypes
-import comtypes #need pip install comtypes
+import comtypes #need 'pip install comtypes'
 import comtypes.client
-from typing import (Any, Callable, Dict, List, Iterable, Tuple)  # need pip install typing for Python3.4 or lower
+from typing import (Any, Callable, Dict, List, Iterable, Tuple)  # need 'pip install typing' for Python3.4 or lower
 TreeNode = Any
 
 
@@ -136,7 +136,7 @@ class _DllClient:
 class ControlType:
     """
     ControlType from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-controltype-ids
+    Refer https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-controltype-ids
     """
     AppBarControl = 50040
     ButtonControl = 50000
@@ -229,7 +229,7 @@ ControlTypeNames = {
 class PatternId:
     """
     PatternId from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-controlpattern-ids
+    Refer https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-controlpattern-ids
     """
     AnnotationPattern = 10023
     CustomNavigationPattern = 10033
@@ -308,8 +308,8 @@ PatternIdNames = {
 class PropertyId:
     """
     PropertyId from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-automation-element-propids
-    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-control-pattern-propids
+    Refer https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-automation-element-propids
+    Refer https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-control-pattern-propids
     """
     AcceleratorKeyProperty = 30006
     AccessKeyProperty = 30007
@@ -791,7 +791,7 @@ class AccessibleSelection:
 class AnnotationType:
     """
     AnnotationType from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-annotation-type-identifiers
+    Refer https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-annotation-type-identifiers
     """
     AdvancedProofingIssue = 60020
     Author = 60019
@@ -822,7 +822,7 @@ class AnnotationType:
 class NavigateDirection:
     """
     NavigateDirection from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-navigatedirection
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-navigatedirection
     """
     Parent = 0
     NextSibling = 1
@@ -834,7 +834,7 @@ class NavigateDirection:
 class DockPosition:
     """
     DockPosition from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-dockposition
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-dockposition
     """
     Top = 0
     Left = 1
@@ -847,7 +847,7 @@ class DockPosition:
 class ScrollAmount:
     """
     ScrollAmount from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-scrollamount
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-scrollamount
     """
     LargeDecrement = 0
     SmallDecrement = 1
@@ -859,7 +859,7 @@ class ScrollAmount:
 class StyleId:
     """
     StyleId from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/WinAuto/uiauto-style-identifiers
+    Refer https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-style-identifiers
     """
     Custom = 70000
     Heading1 = 70001
@@ -883,7 +883,7 @@ class StyleId:
 class RowOrColumnMajor:
     """
     RowOrColumnMajor from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-roworcolumnmajor
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-roworcolumnmajor
     """
     RowMajor = 0
     ColumnMajor = 1
@@ -893,7 +893,7 @@ class RowOrColumnMajor:
 class ExpandCollapseState:
     """
     ExpandCollapseState from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-expandcollapsestate
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-expandcollapsestate
     """
     Collapsed = 0
     Expanded = 1
@@ -904,7 +904,7 @@ class ExpandCollapseState:
 class OrientationType:
     """
     OrientationType from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-orientationtype
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-orientationtype
     """
     None_ = 0
     Horizontal = 1
@@ -914,7 +914,7 @@ class OrientationType:
 class ToggleState:
     """
     ToggleState from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-togglestate
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-togglestate
     """
     Off = 0
     On = 1
@@ -924,7 +924,7 @@ class ToggleState:
 class TextPatternRangeEndpoint:
     """
     TextPatternRangeEndpoint from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-textpatternrangeendpoint
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-textpatternrangeendpoint
     """
     Start = 0
     End = 1
@@ -932,7 +932,7 @@ class TextPatternRangeEndpoint:
 class TextAttributeId:
     """
     TextAttributeId from IUIAutomation.
-    Refer https://docs.microsoft.com/zh-cn/windows/desktop/WinAuto/uiauto-textattribute-ids
+    Refer https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-textattribute-ids
     """
     AfterParagraphSpacingAttribute = 40042
     AnimationStyleAttribute = 40000
@@ -983,7 +983,7 @@ class TextAttributeId:
 class TextUnit:
     """
     TextUnit from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-textunit
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-textunit
     """
     Character = 0
     Format = 1
@@ -997,7 +997,7 @@ class TextUnit:
 class ZoomUnit:
     """
     ZoomUnit from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-zoomunit
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-zoomunit
     """
     NoAmount = 0
     LargeDecrement = 1
@@ -1009,7 +1009,7 @@ class ZoomUnit:
 class WindowInteractionState:
     """
     WindowInteractionState from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-windowinteractionstate
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-windowinteractionstate
     """
     Running = 0
     Closing = 1
@@ -1021,7 +1021,7 @@ class WindowInteractionState:
 class WindowVisualState:
     """
     WindowVisualState from IUIAutomation.
-    Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationcore/ne-uiautomationcore-windowvisualstate
+    Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationcore/ne-uiautomationcore-windowvisualstate
     """
     Normal = 0
     Maximized = 1
@@ -2657,10 +2657,10 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
     Examples:
     {Ctrl}, {Delete} ... are special keys' name in SpecialKeyNames.
     SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
-    SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type (, press Shift+1+2+3, type ), if () follows a hold key, hold key won't release util )
-    SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type a 2 times
-    SendKeys('{a 3}{B 5}') #type a 3 times, type B 5 times
-    SendKeys('{{}Hello{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: {Hello}abc abc test}}}!a ()()
+    SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type '(', press Shift+1+2+3, type ')', if '()' follows a hold key, hold key won't release util ')'
+    SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type 'a' 2 times
+    SendKeys('{a 3}{B 5}') #type 'a' 3 times, type 'B' 5 times
+    SendKeys('{{}Hello{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: '{Hello}abc abc test}}}!a ()()'
     SendKeys('0123456789{Enter}')
     SendKeys('ABCDEFGHIJKLMNOPQRSTUVWXYZ{Enter}')
     SendKeys('abcdefghijklmnopqrstuvwxyz{Enter}')
@@ -3410,7 +3410,7 @@ Refer https://docs.microsoft.com/en-us/previous-versions//dd319586(v=vs.85)
 
 class AnnotationPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationannotationpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationannotationpattern"""
         self.pattern = pattern
 
     @property
@@ -3419,7 +3419,7 @@ class AnnotationPattern():
         Property AnnotationTypeId.
         Call IUIAutomationAnnotationPattern::get_CurrentAnnotationTypeId.
         Return int, a value in class `AnnotationType`.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentannotationtypeid
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentannotationtypeid
         """
         return self.pattern.CurrentAnnotationTypeId
 
@@ -3428,7 +3428,7 @@ class AnnotationPattern():
         """
         Property AnnotationTypeName.
         Call IUIAutomationAnnotationPattern::get_CurrentAnnotationTypeName.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentannotationtypename
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentannotationtypename
         """
         return self.pattern.CurrentAnnotationTypeName
 
@@ -3437,7 +3437,7 @@ class AnnotationPattern():
         """
         Property Author.
         Call IUIAutomationAnnotationPattern::get_CurrentAuthor.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentauthor
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentauthor
         """
         return self.pattern.CurrentAuthor
 
@@ -3446,7 +3446,7 @@ class AnnotationPattern():
         """
         Property DateTime.
         Call IUIAutomationAnnotationPattern::get_CurrentDateTime.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentdatetime
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currentdatetime
         """
         return self.pattern.CurrentDateTime
 
@@ -3456,7 +3456,7 @@ class AnnotationPattern():
         Property Target.
         Call IUIAutomationAnnotationPattern::get_CurrentTarget.
         Return `Control` subclass, the element that is being annotated.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currenttarget
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationannotationpattern-get_currenttarget
         """
         ele = self.pattern.CurrentTarget
         return Control.CreateControlFromElement(ele)
@@ -3464,7 +3464,7 @@ class AnnotationPattern():
 
 class CustomNavigationPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationcustomnavigationpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationcustomnavigationpattern"""
         self.pattern = pattern
 
     def Navigate(self, direction: int) -> 'Control':
@@ -3473,7 +3473,7 @@ class CustomNavigationPattern():
         Get the next control in the specified direction within the logical UI tree.
         direction: int, a value in class `NavigateDirection`.
         Return `Control` subclass or None.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationcustomnavigationpattern-navigate
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationcustomnavigationpattern-navigate
         """
         ele = self.pattern.Navigate(direction)
         return Control.CreateControlFromElement(ele)
@@ -3481,7 +3481,7 @@ class CustomNavigationPattern():
 
 class DockPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationdockpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationdockpattern"""
         self.pattern = pattern
 
     @property
@@ -3490,7 +3490,7 @@ class DockPattern():
         Property DockPosition.
         Call IUIAutomationDockPattern::get_CurrentDockPosition.
         Return int, a value in class `DockPosition`.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdockpattern-get_currentdockposition
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationdockpattern-get_currentdockposition
         """
         return self.pattern.CurrentDockPosition
 
@@ -3499,7 +3499,7 @@ class DockPattern():
         Call IUIAutomationDockPattern::SetDockPosition.
         dockPosition: int, a value in class `DockPosition`.
         waitTime: float.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdockpattern-setdockposition
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationdockpattern-setdockposition
         """
         ret = self.pattern.SetDockPosition(dockPosition)
         time.sleep(waitTime)
@@ -3508,7 +3508,7 @@ class DockPattern():
 
 class DragPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationdragpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationdragpattern"""
         self.pattern = pattern
 
     @property
@@ -3518,7 +3518,7 @@ class DragPattern():
         Call IUIAutomationDragPattern::get_CurrentDropEffect.
         Return str, a localized string that indicates what happens
                     when the user drops this element as part of a drag-drop operation.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdropeffect
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdropeffect
         """
         return self.pattern.CurrentDropEffect
 
@@ -3529,7 +3529,7 @@ class DragPattern():
         Call IUIAutomationDragPattern::get_CurrentDropEffects, todo SAFEARRAY.
         Return List[str], a list of localized strings that enumerate the full set of effects
                      that can happen when this element as part of a drag-and-drop operation.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdropeffects
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdropeffects
         """
         return self.pattern.CurrentDropEffects
 
@@ -3539,7 +3539,7 @@ class DragPattern():
         Property IsGrabbed.
         Call IUIAutomationDragPattern::get_CurrentIsGrabbed.
         Return bool, indicates whether the user has grabbed this element as part of a drag-and-drop operation.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentisgrabbed
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentisgrabbed
         """
         return bool(self.pattern.CurrentIsGrabbed)
 
@@ -3548,7 +3548,7 @@ class DragPattern():
         Call IUIAutomationDragPattern::GetCurrentGrabbedItems.
         Return List[Control], a list of `Control` subclasses that represent the full set of items
                      that the user is dragging as part of a drag operation.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-getcurrentgrabbeditems
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-getcurrentgrabbeditems
         """
         eleArray = self.pattern.GetCurrentGrabbedItems()
         if eleArray:
@@ -3564,7 +3564,7 @@ class DragPattern():
 
 class DropTargetPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationdroptargetpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationdroptargetpattern"""
         self.pattern = pattern
 
     @property
@@ -3574,7 +3574,7 @@ class DropTargetPattern():
         Call IUIAutomationDropTargetPattern::get_CurrentDropTargetEffect.
         Return str, a localized string that describes what happens
                     when the user drops the grabbed element on this drop target.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdroptargeteffect
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdroptargeteffect
         """
         return self.pattern.CurrentDropTargetEffect
 
@@ -3586,14 +3586,14 @@ class DropTargetPattern():
         Return List[str], a list of localized strings that enumerate the full set of effects
                      that can happen when the user drops a grabbed element on this drop target
                      as part of a drag-and-drop operation.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdroptargeteffects
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationdragpattern-get_currentdroptargeteffects
         """
         return self.pattern.CurrentDropTargetEffects
 
 
 class ExpandCollapsePattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationexpandcollapsepattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationexpandcollapsepattern"""
         self.pattern = pattern
 
     @property
@@ -3602,7 +3602,7 @@ class ExpandCollapsePattern():
         Property ExpandCollapseState.
         Call IUIAutomationExpandCollapsePattern::get_CurrentExpandCollapseState.
         Return int, a value in class ExpandCollapseState.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-get_currentexpandcollapsestate
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-get_currentexpandcollapsestate
         """
         return self.pattern.CurrentExpandCollapseState
 
@@ -3611,7 +3611,7 @@ class ExpandCollapsePattern():
         Call IUIAutomationExpandCollapsePattern::Collapse.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-collapse
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-collapse
         """
         try:
             ret = self.pattern.Collapse() == S_OK
@@ -3626,7 +3626,7 @@ class ExpandCollapsePattern():
         Call IUIAutomationExpandCollapsePattern::Expand.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-expand
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationexpandcollapsepattern-expand
         """
         try:
             ret = self.pattern.Expand() == S_OK
@@ -3639,7 +3639,7 @@ class ExpandCollapsePattern():
 
 class GridItemPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationgriditempattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationgriditempattern"""
         self.pattern = pattern
 
     @property
@@ -3648,7 +3648,7 @@ class GridItemPattern():
         Property Column.
         Call IUIAutomationGridItemPattern::get_CurrentColumn.
         Return int, the zero-based index of the column that contains the item.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentcolumn
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentcolumn
         """
         return self.pattern.CurrentColumn
 
@@ -3658,7 +3658,7 @@ class GridItemPattern():
         Property ColumnSpan.
         Call IUIAutomationGridItemPattern::get_CurrentColumnSpan.
         Return int, the number of columns spanned by the grid item.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentcolumnspan
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentcolumnspan
         """
         return self.pattern.CurrentColumnSpan
 
@@ -3668,7 +3668,7 @@ class GridItemPattern():
         Property ContainingGrid.
         Call IUIAutomationGridItemPattern::get_CurrentContainingGrid.
         Return `Control` subclass, the element that contains the grid item.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentcontaininggrid
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentcontaininggrid
         """
         return Control.CreateControlFromElement(self.pattern.CurrentContainingGrid)
 
@@ -3678,7 +3678,7 @@ class GridItemPattern():
         Property Row.
         Call IUIAutomationGridItemPattern::get_CurrentRow.
         Return int, the zero-based index of the row that contains the grid item.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentrow
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentrow
         """
         return self.pattern.CurrentRow
 
@@ -3688,14 +3688,14 @@ class GridItemPattern():
         Property RowSpan.
         Call IUIAutomationGridItemPattern::get_CurrentRowSpan.
         Return int, the number of rows spanned by the grid item.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentrowspan
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgriditempattern-get_currentrowspan
         """
         return self.pattern.CurrentRowSpan
 
 
 class GridPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationgridpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationgridpattern"""
         self.pattern = pattern
 
     @property
@@ -3704,7 +3704,7 @@ class GridPattern():
         Property ColumnCount.
         Call IUIAutomationGridPattern::get_CurrentColumnCount.
         Return int, the number of columns in the grid.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-get_currentcolumncount
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-get_currentcolumncount
         """
         return self.pattern.CurrentColumnCount
 
@@ -3714,7 +3714,7 @@ class GridPattern():
         Property RowCount.
         Call IUIAutomationGridPattern::get_CurrentRowCount.
         Return int, the number of rows in the grid.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-get_currentrowcount
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-get_currentrowcount
         """
         return self.pattern.CurrentRowCount
 
@@ -3722,13 +3722,13 @@ class GridPattern():
         """
         Call IUIAutomationGridPattern::GetItem.
         Return `Control` subclass, a control representing an item in the grid.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-getitem
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-getitem
         """
         return Control.CreateControlFromElement(self.pattern.GetItem())
 
 class InvokePattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationinvokepattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationinvokepattern"""
         self.pattern = pattern
 
     def Invoke(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
@@ -3737,7 +3737,7 @@ class InvokePattern():
         Invoke the action of a control, such as a button click.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationinvokepattern-invoke
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationinvokepattern-invoke
         """
         ret = self.pattern.Invoke() == S_OK
         time.sleep(waitTime)
@@ -3746,7 +3746,7 @@ class InvokePattern():
 
 class ItemContainerPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationitemcontainerpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationitemcontainerpattern"""
         self.pattern = pattern
 
     def FindItemByProperty(control: 'Control', propertyId: int, propertyValue) -> 'Control':
@@ -3756,7 +3756,7 @@ class ItemContainerPattern():
         propertyValue: COM VARIANT according to propertyId? todo.
         propertyId: int, a value in class `PropertyId`.
         Return `Control` subclass, a control within a containing element, based on a specified property value.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationitemcontainerpattern-finditembyproperty
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationitemcontainerpattern-finditembyproperty
         """
         ele = self.pattern.FindItemByProperty(control.Element, propertyId, propertyValue)
         return Control.CreateControlFromElement(ele)
@@ -3764,7 +3764,7 @@ class ItemContainerPattern():
 
 class LegacyIAccessiblePattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationlegacyiaccessiblepattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationlegacyiaccessiblepattern"""
         self.pattern = pattern
 
     @property
@@ -3773,7 +3773,7 @@ class LegacyIAccessiblePattern():
         Property ChildId.
         Call IUIAutomationLegacyIAccessiblePattern::get_CurrentChildId.
         Return int, the Microsoft Active Accessibility child identifier for the element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentchildid
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentchildid
         """
         return self.pattern.CurrentChildId
 
@@ -3783,7 +3783,7 @@ class LegacyIAccessiblePattern():
         Property DefaultAction.
         Call IUIAutomationLegacyIAccessiblePattern::get_CurrentDefaultAction.
         Return str, the Microsoft Active Accessibility current default action for the element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentdefaultaction
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentdefaultaction
         """
         return self.pattern.CurrentDefaultAction
 
@@ -3793,7 +3793,7 @@ class LegacyIAccessiblePattern():
         Property Description.
         Call IUIAutomationLegacyIAccessiblePattern::get_CurrentDescription.
         Return str, the Microsoft Active Accessibility description of the element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentdescription
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentdescription
         """
         return self.pattern.CurrentDescription
 
@@ -3803,7 +3803,7 @@ class LegacyIAccessiblePattern():
         Property Help.
         Call IUIAutomationLegacyIAccessiblePattern::get_CurrentHelp.
         Return str, the Microsoft Active Accessibility help string for the element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currenthelp
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currenthelp
         """
         return self.pattern.CurrentHelp
 
@@ -3813,7 +3813,7 @@ class LegacyIAccessiblePattern():
         Property KeyboardShortcut.
         Call IUIAutomationLegacyIAccessiblePattern::get_CurrentKeyboardShortcut.
         Return str, the Microsoft Active Accessibility keyboard shortcut property for the element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentkeyboardshortcut
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentkeyboardshortcut
         """
         return self.pattern.CurrentKeyboardShortcut
 
@@ -3823,7 +3823,7 @@ class LegacyIAccessiblePattern():
         Property Name.
         Call IUIAutomationLegacyIAccessiblePattern::get_CurrentName.
         Return str, the Microsoft Active Accessibility name property of the element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentname
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentname
         """
         return self.pattern.CurrentName or ''    # CurrentName may be None
 
@@ -3833,7 +3833,7 @@ class LegacyIAccessiblePattern():
         Property Role.
         Call IUIAutomationLegacyIAccessiblePattern::get_CurrentRole.
         Return int, a value in calss `AccessibleRole`, the Microsoft Active Accessibility role identifier.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentrole
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentrole
         """
         return self.pattern.CurrentRole
 
@@ -3843,7 +3843,7 @@ class LegacyIAccessiblePattern():
         Property State.
         Call IUIAutomationLegacyIAccessiblePattern::get_CurrentState.
         Return int, a value in calss `AccessibleState`, the Microsoft Active Accessibility state identifier.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentstate
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentstate
         """
         return self.pattern.CurrentState
 
@@ -3853,7 +3853,7 @@ class LegacyIAccessiblePattern():
         Property Value.
         Call IUIAutomationLegacyIAccessiblePattern::get_CurrentValue.
         Return str, the Microsoft Active Accessibility value property.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentvalue
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-get_currentvalue
         """
         return self.pattern.CurrentValue
 
@@ -3863,7 +3863,7 @@ class LegacyIAccessiblePattern():
         Perform the Microsoft Active Accessibility default action for the element.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-dodefaultaction
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-dodefaultaction
         """
         ret = self.pattern.DoDefaultAction() == S_OK
         time.sleep(waitTime)
@@ -3874,7 +3874,7 @@ class LegacyIAccessiblePattern():
         Call IUIAutomationLegacyIAccessiblePattern::GetCurrentSelection.
         Return List[Control], a list of `Control` subclasses,
                      the Microsoft Active Accessibility property that identifies the selected children of this element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-getcurrentselection
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-getcurrentselection
         """
         eleArray = self.pattern.GetCurrentSelection()
         if eleArray:
@@ -3891,8 +3891,8 @@ class LegacyIAccessiblePattern():
         """
         Call IUIAutomationLegacyIAccessiblePattern::GetIAccessible, todo.
         Return an IAccessible object that corresponds to the Microsoft UI Automation element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-getiaccessible
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/oleacc/nn-oleacc-iaccessible
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-getiaccessible
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/oleacc/nn-oleacc-iaccessible
         """
         return self.pattern.GetIAccessible()
 
@@ -3903,7 +3903,7 @@ class LegacyIAccessiblePattern():
         flagsSelect: int, a value in `AccessibleSelection`.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-select
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-select
         """
         ret = self.pattern.Select(flagsSelect) == S_OK
         time.sleep(waitTime)
@@ -3916,7 +3916,7 @@ class LegacyIAccessiblePattern():
         value: str.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-setvalue
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationlegacyiaccessiblepattern-setvalue
         """
         ret = self.pattern.SetValue(value) == S_OK
         time.sleep(waitTime)
@@ -3925,7 +3925,7 @@ class LegacyIAccessiblePattern():
 
 class MultipleViewPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationmultipleviewpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationmultipleviewpattern"""
         self.pattern = pattern
 
     @property
@@ -3934,7 +3934,7 @@ class MultipleViewPattern():
         Property CurrentView.
         Call IUIAutomationMultipleViewPattern::get_CurrentCurrentView.
         Return int, the control-specific identifier of the current view of the control.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-get_currentcurrentview
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-get_currentcurrentview
         """
         return self.pattern.CurrentCurrentView
 
@@ -3942,7 +3942,7 @@ class MultipleViewPattern():
         """
         Call IUIAutomationMultipleViewPattern::GetCurrentSupportedViews, todo.
         Return List[int], a list of int, control-specific view identifiers.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-getcurrentsupportedviews
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-getcurrentsupportedviews
         """
         return self.pattern.GetCurrentSupportedViews()
 
@@ -3951,7 +3951,7 @@ class MultipleViewPattern():
         Call IUIAutomationMultipleViewPattern::GetViewName.
         view: int, the control-specific view identifier.
         Return str, the name of a control-specific view.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-getviewname
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-getviewname
         """
         return self.pattern.GetViewName(view)
 
@@ -3961,28 +3961,28 @@ class MultipleViewPattern():
         Set the view of the control.
         view: int, the control-specific view identifier.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-setcurrentview
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationmultipleviewpattern-setcurrentview
         """
         return self.pattern.SetCurrentView(view) == S_OK
 
 
 class ObjectModelPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationobjectmodelpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationobjectmodelpattern"""
         self.pattern = pattern
 
     def GetUnderlyingObjectModel(self) -> ctypes.POINTER(comtypes.IUnknown):
         """
         Call IUIAutomationObjectModelPattern::GetUnderlyingObjectModel, todo.
         Return `ctypes.POINTER(comtypes.IUnknown)`, an interface used to access the underlying object model of the provider.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationobjectmodelpattern-getunderlyingobjectmodel
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationobjectmodelpattern-getunderlyingobjectmodel
         """
         return self.pattern.GetUnderlyingObjectModel()
 
 
 class RangeValuePattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationrangevaluepattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationrangevaluepattern"""
         self.pattern = pattern
 
     @property
@@ -3991,7 +3991,7 @@ class RangeValuePattern():
         Property IsReadOnly.
         Call IUIAutomationRangeValuePattern::get_CurrentIsReadOnly.
         Return bool, indicates whether the value of the element can be changed.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentisreadonly
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentisreadonly
         """
         return self.pattern.CurrentIsReadOnly
 
@@ -4002,7 +4002,7 @@ class RangeValuePattern():
         Call IUIAutomationRangeValuePattern::get_CurrentLargeChange.
         Return float, the value that is added to or subtracted from the value of the control
                       when a large change is made, such as when the PAGE DOWN key is pressed.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentlargechange
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentlargechange
         """
         return self.pattern.CurrentLargeChange
 
@@ -4012,7 +4012,7 @@ class RangeValuePattern():
         Property Maximum.
         Call IUIAutomationRangeValuePattern::get_CurrentMaximum.
         Return float, the maximum value of the control.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentmaximum
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentmaximum
         """
         return self.pattern.CurrentMaximum
 
@@ -4022,7 +4022,7 @@ class RangeValuePattern():
         Property Minimum.
         Call IUIAutomationRangeValuePattern::get_CurrentMinimum.
         Return float, the minimum value of the control.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentminimum
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentminimum
         """
         return self.pattern.CurrentMinimum
 
@@ -4033,7 +4033,7 @@ class RangeValuePattern():
         Call IUIAutomationRangeValuePattern::get_CurrentSmallChange.
         Return float, the value that is added to or subtracted from the value of the control
                       when a small change is made, such as when an arrow key is pressed.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentsmallchange
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentsmallchange
         """
         return self.pattern.CurrentSmallChange
 
@@ -4043,7 +4043,7 @@ class RangeValuePattern():
         Property Value.
         Call IUIAutomationRangeValuePattern::get_CurrentValue.
         Return float, the value of the control.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentvalue
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentvalue
         """
         return self.pattern.CurrentValue
 
@@ -4054,7 +4054,7 @@ class RangeValuePattern():
         value: int.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-setvalue
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-setvalue
         """
         ret = self.pattern.SetValue(value) == S_OK
         time.sleep(waitTime)
@@ -4063,7 +4063,7 @@ class RangeValuePattern():
 
 class ScrollItemPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationscrollitempattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationscrollitempattern"""
         self.pattern = pattern
 
     def ScrollIntoView(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
@@ -4071,7 +4071,7 @@ class ScrollItemPattern():
         Call IUIAutomationScrollItemPattern::ScrollIntoView.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollitempattern-scrollintoview
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollitempattern-scrollintoview
         """
         ret = self.pattern.ScrollIntoView() == S_OK
         time.sleep(waitTime)
@@ -4081,7 +4081,7 @@ class ScrollItemPattern():
 class ScrollPattern():
     NoScrollValue = -1
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationscrollpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationscrollpattern"""
         self.pattern = pattern
 
     @property
@@ -4090,7 +4090,7 @@ class ScrollPattern():
         Property HorizontallyScrollable.
         Call IUIAutomationScrollPattern::get_CurrentHorizontallyScrollable.
         Return bool, indicates whether the element can scroll horizontally.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currenthorizontallyscrollable
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currenthorizontallyscrollable
         """
         return bool(self.pattern.CurrentHorizontallyScrollable)
 
@@ -4100,7 +4100,7 @@ class ScrollPattern():
         Property HorizontalScrollPercent.
         Call IUIAutomationScrollPattern::get_CurrentHorizontalScrollPercent.
         Return float, the horizontal scroll position.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currenthorizontalscrollpercent
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currenthorizontalscrollpercent
         """
         return self.pattern.CurrentHorizontalScrollPercent
 
@@ -4110,7 +4110,7 @@ class ScrollPattern():
         Property HorizontalViewSize.
         Call IUIAutomationScrollPattern::get_CurrentHorizontalViewSize.
         Return float, the horizontal size of the viewable region of a scrollable element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currenthorizontalviewsize
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currenthorizontalviewsize
         """
         return self.pattern.CurrentHorizontalViewSize
 
@@ -4120,7 +4120,7 @@ class ScrollPattern():
         Property VerticallyScrollable.
         Call IUIAutomationScrollPattern::get_CurrentVerticallyScrollable.
         Return bool, indicates whether the element can scroll vertically.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentverticallyscrollable
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentverticallyscrollable
         """
         return bool(self.pattern.CurrentVerticallyScrollable)
 
@@ -4130,7 +4130,7 @@ class ScrollPattern():
         Property VerticalScrollPercent.
         Call IUIAutomationScrollPattern::get_CurrentVerticalScrollPercent.
         Return float, the vertical scroll position.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentverticalscrollpercent
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentverticalscrollpercent
         """
         return self.pattern.CurrentVerticalScrollPercent
 
@@ -4140,7 +4140,7 @@ class ScrollPattern():
         Property VerticalViewSize.
         Call IUIAutomationScrollPattern::get_CurrentVerticalViewSize.
         Return float, the vertical size of the viewable region of a scrollable element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentverticalviewsize
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentverticalviewsize
         """
         return self.pattern.CurrentVerticalViewSize
 
@@ -4152,7 +4152,7 @@ class ScrollPattern():
         verticalAmount: int, a value in ScrollAmount.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-scroll
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-scroll
         """
         ret = self.pattern.Scroll(horizontalAmount, verticalAmount) == S_OK
         time.sleep(waitTime)
@@ -4166,7 +4166,7 @@ class ScrollPattern():
         verticalPercent: float or int, a value  in [0, 100] or ScrollPattern.NoScrollValue(-1) if no scroll.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-setscrollpercent
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-setscrollpercent
         """
         ret = self.pattern.SetScrollPercent(horizontalPercent, verticalPercent) == S_OK
         time.sleep(waitTime)
@@ -4175,7 +4175,7 @@ class ScrollPattern():
 
 class SelectionItemPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationselectionitempattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationselectionitempattern"""
         self.pattern = pattern
 
     def AddToSelection(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
@@ -4184,7 +4184,7 @@ class SelectionItemPattern():
         Add the current element to the collection of selected items.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionitempattern-addtoselection
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionitempattern-addtoselection
         """
         ret = self.pattern.AddToSelection() == S_OK
         time.sleep(waitTime)
@@ -4196,7 +4196,7 @@ class SelectionItemPattern():
         Property IsSelected.
         Call IUIAutomationScrollPattern::get_CurrentIsSelected.
         Return bool, indicates whether this item is selected.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentisselected
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentisselected
         """
         return bool(self.pattern.CurrentIsSelected)
 
@@ -4206,7 +4206,7 @@ class SelectionItemPattern():
         Property SelectionContainer.
         Call IUIAutomationScrollPattern::get_CurrentSelectionContainer.
         Return `Control` subclass, the element that supports IUIAutomationSelectionPattern and acts as the container for this item.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentselectioncontainer
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationscrollpattern-get_currentselectioncontainer
         """
         ele = self.pattern.CurrentSelectionContainer
         return Control.CreateControlFromElement(ele)
@@ -4217,7 +4217,7 @@ class SelectionItemPattern():
         Remove this element from the selection.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionitempattern-removefromselection
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionitempattern-removefromselection
         """
         ret = self.pattern.RemoveFromSelection() == S_OK
         time.sleep(waitTime)
@@ -4229,7 +4229,7 @@ class SelectionItemPattern():
         Clear any selected items and then select the current element.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionitempattern-select
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionitempattern-select
         """
         ret = self.pattern.Select() == S_OK
         time.sleep(waitTime)
@@ -4238,7 +4238,7 @@ class SelectionItemPattern():
 
 class SelectionPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationselectionpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationselectionpattern"""
         self.pattern = pattern
 
     @property
@@ -4247,7 +4247,7 @@ class SelectionPattern():
         Property CanSelectMultiple.
         Call IUIAutomationSelectionPattern::get_CurrentCanSelectMultiple.
         Return bool, indicates whether more than one item in the container can be selected at one time.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-get_currentcanselectmultiple
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-get_currentcanselectmultiple
         """
         return bool(self.pattern.CurrentCanSelectMultiple)
 
@@ -4257,7 +4257,7 @@ class SelectionPattern():
         Property IsSelectionRequired.
         Call IUIAutomationSelectionPattern::get_CurrentIsSelectionRequired.
         Return bool, indicates whether at least one item must be selected at all times.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-get_currentisselectionrequired
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-get_currentisselectionrequired
         """
         return bool(self.pattern.CurrentIsSelectionRequired)
 
@@ -4265,7 +4265,7 @@ class SelectionPattern():
         """
         Call IUIAutomationSelectionPattern::GetCurrentSelection.
         Return List[Control], a list of `Control` subclasses, the selected elements in the container..
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-getcurrentselection
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-getcurrentselection
         """
         eleArray = self.pattern.GetCurrentSelection()
         if eleArray:
@@ -4281,7 +4281,7 @@ class SelectionPattern():
 
 class SpreadsheetItemPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationspreadsheetitempattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationspreadsheetitempattern"""
         self.pattern = pattern
 
     @property
@@ -4290,7 +4290,7 @@ class SpreadsheetItemPattern():
         Property Formula.
         Call IUIAutomationSpreadsheetItemPattern::get_CurrentFormula.
         Return str, the formula for this cell.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetitempattern-get_currentformula
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetitempattern-get_currentformula
         """
         return self.pattern.CurrentFormula
 
@@ -4298,7 +4298,7 @@ class SpreadsheetItemPattern():
         """
         Call IUIAutomationSelectionPattern::GetCurrentAnnotationObjects.
         Return List[Control], a list of `Control` subclasses representing the annotations associated with this spreadsheet cell.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetitempattern-getcurrentannotationobjects
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetitempattern-getcurrentannotationobjects
         """
         eleArray = self.pattern.GetCurrentAnnotationObjects()
         if eleArray:
@@ -4316,14 +4316,14 @@ class SpreadsheetItemPattern():
         Call IUIAutomationSelectionPattern::GetCurrentAnnotationTypes.
         Return List[int], a list of int values in class `AnnotationType`,
                      indicating the types of annotations that are associated with this spreadsheet cell.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-getcurrentannotationtypes
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationselectionpattern-getcurrentannotationtypes
         """
         return self.pattern.GetCurrentAnnotationTypes()
 
 
 class SpreadsheetPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationspreadsheetpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationspreadsheetpattern"""
         self.pattern = pattern
 
     def GetItemByName(self, name: str) -> 'Control':
@@ -4331,7 +4331,7 @@ class SpreadsheetPattern():
         Call IUIAutomationSpreadsheetPattern::GetItemByName.
         name: str.
         Return `Control` subclass or None, represents the spreadsheet cell that has the specified name..
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetpattern-getitembyname
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationspreadsheetpattern-getitembyname
         """
         ele = self.pattern.GetItemByName(name)
         return Control.CreateControlFromElement(element=ele)
@@ -4339,7 +4339,7 @@ class SpreadsheetPattern():
 
 class StylesPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationstylespattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationstylespattern"""
         self.pattern = pattern
 
     @property
@@ -4348,7 +4348,7 @@ class StylesPattern():
         Property ExtendedProperties.
         Call IUIAutomationStylesPattern::get_CurrentExtendedProperties.
         Return str, a localized string that contains the list of extended properties for an element in a document.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentextendedproperties
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentextendedproperties
         """
         return self.pattern.CurrentExtendedProperties
 
@@ -4358,7 +4358,7 @@ class StylesPattern():
         Property FillColor.
         Call IUIAutomationStylesPattern::get_CurrentFillColor.
         Return int, the fill color of an element in a document.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentfillcolor
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentfillcolor
         """
         return self.pattern.CurrentFillColor
 
@@ -4368,7 +4368,7 @@ class StylesPattern():
         Property FillPatternColor.
         Call IUIAutomationStylesPattern::get_CurrentFillPatternColor.
         Return int, the color of the pattern used to fill an element in a document.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentfillpatterncolor
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentfillpatterncolor
         """
         return self.pattern.CurrentFillPatternColor
 
@@ -4378,7 +4378,7 @@ class StylesPattern():
         Property Shape.
         Call IUIAutomationStylesPattern::get_CurrentShape.
         Return str, the shape of an element in a document.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentshape
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentshape
         """
         return self.pattern.CurrentShape
 
@@ -4388,7 +4388,7 @@ class StylesPattern():
         Property StyleId.
         Call IUIAutomationStylesPattern::get_CurrentStyleId.
         Return int, a value in class `StyleId`, the visual style associated with an element in a document.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentstyleid
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentstyleid
         """
         return self.pattern.CurrentStyleId
 
@@ -4398,14 +4398,14 @@ class StylesPattern():
         Property StyleName.
         Call IUIAutomationStylesPattern::get_CurrentStyleName.
         Return str, the name of the visual style associated with an element in a document.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentstylename
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationstylespattern-get_currentstylename
         """
         return self.pattern.CurrentStyleName
 
 
 class SynchronizedInputPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationsynchronizedinputpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationsynchronizedinputpattern"""
         self.pattern = pattern
 
     def Cancel(self) -> bool:
@@ -4413,7 +4413,7 @@ class SynchronizedInputPattern():
         Call IUIAutomationSynchronizedInputPattern::Cancel.
         Cause the Microsoft UI Automation provider to stop listening for mouse or keyboard input.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationsynchronizedinputpattern-cancel
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationsynchronizedinputpattern-cancel
         """
         return self.pattern.Cancel() == S_OK
 
@@ -4422,21 +4422,21 @@ class SynchronizedInputPattern():
         Call IUIAutomationSynchronizedInputPattern::StartListening.
         Cause the Microsoft UI Automation provider to start listening for mouse or keyboard input.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationsynchronizedinputpattern-startlistening
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationsynchronizedinputpattern-startlistening
         """
         return self.pattern.StartListening() == S_OK
 
 
 class TableItemPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtableitempattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtableitempattern"""
         self.pattern = pattern
 
     def GetColumnHeaderItems(self) -> List['Control']:
         """
         Call IUIAutomationTableItemPattern::GetCurrentColumnHeaderItems.
         Return List[Control], a list of `Control` subclasses, the column headers associated with a table item or cell.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtableitempattern-getcurrentcolumnheaderitems
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtableitempattern-getcurrentcolumnheaderitems
         """
         eleArray = self.pattern.GetCurrentColumnHeaderItems()
         if eleArray:
@@ -4453,7 +4453,7 @@ class TableItemPattern():
         """
         Call IUIAutomationTableItemPattern::GetCurrentRowHeaderItems.
         Return List[Control], a list of `Control` subclasses, the row headers associated with a table item or cell.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtableitempattern-getcurrentrowheaderitems
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtableitempattern-getcurrentrowheaderitems
         """
         eleArray = self.pattern.GetCurrentRowHeaderItems()
         if eleArray:
@@ -4469,7 +4469,7 @@ class TableItemPattern():
 
 class TablePattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtablepattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtablepattern"""
         self.pattern = pattern
 
     @property
@@ -4478,7 +4478,7 @@ class TablePattern():
         Property RowOrColumnMajor.
         Call IUIAutomationTablePattern::get_CurrentRowOrColumnMajor.
         Return int, a value in class `RowOrColumnMajor`, the primary direction of traversal for the table.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-get_currentroworcolumnmajor
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-get_currentroworcolumnmajor
         """
         return self.pattern.CurrentRowOrColumnMajor
 
@@ -4486,7 +4486,7 @@ class TablePattern():
         """
         Call IUIAutomationTablePattern::GetCurrentColumnHeaders.
         Return List[Control], a list of `Control` subclasses, representing all the column headers in a table..
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-getcurrentcolumnheaders
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-getcurrentcolumnheaders
         """
         eleArray = self.pattern.GetCurrentColumnHeaders()
         if eleArray:
@@ -4503,7 +4503,7 @@ class TablePattern():
         """
         Call IUIAutomationTablePattern::GetCurrentRowHeaders.
         Return List[Control], a list of `Control` subclasses, representing all the row headers in a table.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-getcurrentrowheaders
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtablepattern-getcurrentrowheaders
         """
         eleArray = self.pattern.GetCurrentRowHeaders()
         if eleArray:
@@ -4520,7 +4520,7 @@ class TablePattern():
 class TextRange():
     def __init__(self, textRange=None):
         """
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextrange
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextrange
         """
         self.textRange = textRange
 
@@ -4530,7 +4530,7 @@ class TextRange():
         Add the text range to the collection of selected text ranges in a control that supports multiple, disjoint spans of selected text.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-addtoselection
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-addtoselection
         """
         ret = self.textRange.AddToSelection() == S_OK
         time.sleep(waitTime)
@@ -4540,7 +4540,7 @@ class TextRange():
         """
         Call IUIAutomationTextRange::Clone.
         return `TextRange`, identical to the original and inheriting all properties of the original.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-clone
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-clone
         """
         return TextRange(textRange=self.textRange.Clone())
 
@@ -4549,7 +4549,7 @@ class TextRange():
         Call IUIAutomationTextRange::Compare.
         textRange: `TextRange`.
         Return bool, specifies whether this text range has the same endpoints as another text range.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-compare
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-compare
         """
         return bool(self.textRange.Compare(textRange.textRange))
 
@@ -4562,7 +4562,7 @@ class TextRange():
         Return int, a negative value if the caller's endpoint occurs earlier in the text than the target endpoint;
                     0 if the caller's endpoint is at the same location as the target endpoint;
                     or a positive value if the caller's endpoint occurs later in the text than the target endpoint.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-compareendpoints
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-compareendpoints
         """
         return self.textRange.CompareEndpoints(srcEndPoint, textRange, targetEndPoint)
 
@@ -4574,7 +4574,7 @@ class TextRange():
             or shortened if it is longer than the specified unit.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-expandtoenclosingunit
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-expandtoenclosingunit
         """
         ret = self.textRange.ExpandToEnclosingUnit() == S_OK
         time.sleep(waitTime)
@@ -4587,7 +4587,7 @@ class TextRange():
         val: COM VARIANT according to textAttributeId? todo.
         backward: bool, True if the last occurring text range should be returned instead of the first; otherwise False.
         return `TextRange` or None, a text range subset that has the specified text attribute value.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-findattribute
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-findattribute
         """
         textRange = self.textRange.FindAttribute(textAttributeId, val, int(backward))
         if textRange:
@@ -4600,7 +4600,7 @@ class TextRange():
         backward: bool, True if the last occurring text range should be returned instead of the first; otherwise False.
         ignoreCase: bool, True if case should be ignored; otherwise False.
         return `TextRange` or None, a text range subset that contains the specified text.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-findtext
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-findtext
         """
         textRange = self.textRange.FindText(text, int(backward), int(ignoreCase))
         if textRange:
@@ -4611,7 +4611,7 @@ class TextRange():
         Call IUIAutomationTextRange::GetAttributeValue.
         textAttributeId: int, a value in class `TextAttributeId`.
         Return `ctypes.POINTER(comtypes.IUnknown)` or None, the value of the specified text attribute across the entire text range, todo.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getattributevalue
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getattributevalue
         """
         return self.textRange.GetAttributeValue(textAttributeId)
 
@@ -4621,7 +4621,7 @@ class TextRange():
         textAttributeId: int, a value in class `TextAttributeId`.
         Return List[Rect], a list of `Rect`.
             bounding rectangles for each fully or partially visible line of text in a text range..
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getboundingrectangles
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getboundingrectangles
 
         for rect in textRange.GetBoundingRectangles():
             print(rect.left, rect.top, rect.right, rect.bottom, rect.width(), rect.height(), rect.xcenter(), rect.ycenter())
@@ -4639,7 +4639,7 @@ class TextRange():
         Call IUIAutomationTextRange::GetChildren.
         textAttributeId: int, a value in class `TextAttributeId`.
         Return List[Control], a list of `Control` subclasses, embedded objects that fall within the text range..
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getchildren
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getchildren
         """
         eleArray = self.textRange.GetChildren()
         if eleArray:
@@ -4656,7 +4656,7 @@ class TextRange():
         """
         Call IUIAutomationTextRange::GetEnclosingElement.
         Return `Control` subclass, the innermost UI Automation element that encloses the text range.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getenclosingelement
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-getenclosingelement
         """
         return Control.CreateControlFromElement(self.textRange.GetEnclosingElement())
 
@@ -4665,7 +4665,7 @@ class TextRange():
         Call IUIAutomationTextRange::GetText.
         maxLength: int, the maximum length of the string to return, or -1 if no limit is required.
         Return str, the plain text of the text range.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-gettext
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-gettext
         """
         return self.textRange.GetText(maxLength)
 
@@ -4679,7 +4679,7 @@ class TextRange():
                A negative value moves the text range backward. Zero has no effect.
         waitTime: float.
         Return: int, the number of text units actually moved.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-move
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-move
         """
         ret = self.textRange.Move(unit, count)
         time.sleep(waitTime)
@@ -4694,7 +4694,7 @@ class TextRange():
         targetEndPoint: int, a value in class `TextPatternRangeEndpoint`.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-moveendpointbyrange
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-moveendpointbyrange
         """
         ret = self.textRange.MoveEndpointByRange(srcEndPoint, textRange.textRange, targetEndPoint) == S_OK
         time.sleep(waitTime)
@@ -4712,7 +4712,7 @@ class TextRange():
                     A count of 0 has no effect.
         waitTime: float.
         Return int, the count of units actually moved.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-moveendpointbyunit
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-moveendpointbyunit
         """
         ret = self.textRange.MoveEndpointByUnit(endPoint, unit, count)
         time.sleep(waitTime)
@@ -4724,7 +4724,7 @@ class TextRange():
         Remove the text range from an existing collection of selected text in a text container that supports multiple, disjoint selections.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-removefromselection
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-removefromselection
         """
         ret = self.textRange.RemoveFromSelection() == S_OK
         time.sleep(waitTime)
@@ -4738,7 +4738,7 @@ class TextRange():
                         False if it should be flush with the bottom of the viewport.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-scrollintoview
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-scrollintoview
         """
         ret = self.textRange.ScrollIntoView(int(alignTop)) == S_OK
         time.sleep(waitTime)
@@ -4750,7 +4750,7 @@ class TextRange():
         Select the span of text that corresponds to this text range, and remove any previous selection.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-select
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-select
         """
         ret = self.textRange.Select() == S_OK
         time.sleep(waitTime)
@@ -4759,7 +4759,7 @@ class TextRange():
 
 class TextChildPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextchildpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextchildpattern"""
         self.pattern = pattern
 
     @property
@@ -4768,7 +4768,7 @@ class TextChildPattern():
         Property TextContainer.
         Call IUIAutomationSelectionContainer::get_TextContainer.
         Return `Control` subclass, the nearest ancestor element that supports the Text control pattern.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextchildpattern-get_textcontainer
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextchildpattern-get_textcontainer
         """
         return Control.CreateControlFromElement(self.pattern.TextContainer)
 
@@ -4778,21 +4778,21 @@ class TextChildPattern():
         Property TextRange.
         Call IUIAutomationSelectionContainer::get_TextRange.
         Return `TextRange`, a text range that encloses this child element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextchildpattern-get_textrange
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextchildpattern-get_textrange
         """
         return TextRange(self.pattern.TextRange)
 
 
 class TextEditPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtexteditpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtexteditpattern"""
         self.pattern = pattern
 
     def GetActiveComposition(self) -> TextRange:
         """
         Call IUIAutomationTextEditPattern::GetActiveComposition.
         Return `TextRange` or None, the active composition.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtexteditpattern-getactivecomposition
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtexteditpattern-getactivecomposition
         """
         textRange = self.pattern.GetActiveComposition()
         if textRange:
@@ -4802,7 +4802,7 @@ class TextEditPattern():
         """
         Call IUIAutomationTextEditPattern::GetConversionTarget.
         Return `TextRange` or None, the current conversion target range..
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtexteditpattern-getconversiontarget
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtexteditpattern-getconversiontarget
         """
         textRange = self.pattern.GetConversionTarget()
         if textRange:
@@ -4811,7 +4811,7 @@ class TextEditPattern():
 
 class TextPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextpattern"""
         self.pattern = pattern
 
     @property
@@ -4820,7 +4820,7 @@ class TextPattern():
         Property DocumentRange.
         Call IUIAutomationTextPattern::get_DocumentRange.
         Return `TextRange`, a text range that encloses the main text of a document.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-get_documentrange
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-get_documentrange
         """
         return TextRange(self.pattern.DocumentRange)
 
@@ -4830,7 +4830,7 @@ class TextPattern():
         Property SupportedTextSelection.
         Call IUIAutomationTextPattern::get_SupportedTextSelection.
         Return bool, specifies the type of text selection that is supported by the control.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-get_supportedtextselection
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-get_supportedtextselection
         """
         return bool(self.pattern.SupportedTextSelection)
 
@@ -4838,7 +4838,7 @@ class TextPattern():
         """
         Call IUIAutomationTextPattern::GetSelection.
         Return List[TextRange], a list of `TextRange`, represents the currently selected text in a text-based control.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-getselection
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-getselection
         """
         eleArray = self.pattern.GetSelection()
         if eleArray:
@@ -4854,7 +4854,7 @@ class TextPattern():
         Call IUIAutomationTextPattern::GetVisibleRanges.
         Return List[TextRange], a list of `TextRange`, disjoint text ranges from a text-based control
                      where each text range represents a contiguous span of visible text.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-getvisibleranges
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-getvisibleranges
         """
         eleArray = self.pattern.GetVisibleRanges()
         if eleArray:
@@ -4871,7 +4871,7 @@ class TextPattern():
         child: `Control` or its subclass.
         Return `TextRange` or None, a text range enclosing a child element such as an image,
             hyperlink, Microsoft Excel spreadsheet, or other embedded object.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-rangefromchild
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-rangefromchild
         """
         textRange = self.pattern.RangeFromChild(Control.Element)
         if textRange:
@@ -4882,7 +4882,7 @@ class TextPattern():
         Call IUIAutomationTextPattern::RangeFromPoint.
         child: `Control` or its subclass.
         Return `TextRange` or None, the degenerate (empty) text range nearest to the specified screen coordinates.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-rangefrompoint
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-rangefrompoint
         """
         textRange = self.pattern.RangeFromPoint(ctypes.wintypes.POINT(x, y))
         if textRange:
@@ -4891,13 +4891,13 @@ class TextPattern():
 
 class TextPattern2():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextpattern2"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextpattern2"""
         self.pattern = pattern
 
 
 class TogglePattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtogglepattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtogglepattern"""
         self.pattern = pattern
 
     @property
@@ -4906,7 +4906,7 @@ class TogglePattern():
         Property ToggleState.
         Call IUIAutomationTogglePattern::get_CurrentToggleState.
         Return int, a value in class `ToggleState`, the state of the control.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtogglepattern-get_currenttogglestate
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtogglepattern-get_currenttogglestate
         """
         return self.pattern.CurrentToggleState
 
@@ -4916,7 +4916,7 @@ class TogglePattern():
         Cycle through the toggle states of the control.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtogglepattern-toggle
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtogglepattern-toggle
         """
         ret = self.pattern.Toggle() == S_OK
         time.sleep(waitTime)
@@ -4925,7 +4925,7 @@ class TogglePattern():
 
 class TransformPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtransformpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtransformpattern"""
         self.pattern = pattern
 
     @property
@@ -4934,7 +4934,7 @@ class TransformPattern():
         Property CanMove.
         Call IUIAutomationTransformPattern::get_CurrentCanMove.
         Return bool, indicates whether the element can be moved.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-get_currentcanmove
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-get_currentcanmove
         """
         return bool(self.pattern.CurrentCanMove)
 
@@ -4944,7 +4944,7 @@ class TransformPattern():
         Property CanResize.
         Call IUIAutomationTransformPattern::get_CurrentCanResize.
         Return bool, indicates whether the element can be resized.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-get_currentcanresize
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-get_currentcanresize
         """
         return bool(self.pattern.CurrentCanResize)
 
@@ -4954,7 +4954,7 @@ class TransformPattern():
         Property CanRotate.
         Call IUIAutomationTransformPattern::get_CurrentCanRotate.
         Return bool, indicates whether the element can be rotated.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-get_currentcanrotate
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-get_currentcanrotate
         """
         return bool(self.pattern.CurrentCanRotate)
 
@@ -4966,7 +4966,7 @@ class TransformPattern():
         y: int.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-move
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-move
         """
         ret = self.pattern.Move(x, y) == S_OK
         time.sleep(waitTime)
@@ -4980,7 +4980,7 @@ class TransformPattern():
         height: int.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-resize
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-resize
         """
         ret = self.pattern.Resize(width, height) == S_OK
         time.sleep(waitTime)
@@ -4993,7 +4993,7 @@ class TransformPattern():
         degrees: int.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-rotate
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern-rotate
         """
         ret = self.pattern.Rotate(degrees) == S_OK
         time.sleep(waitTime)
@@ -5002,7 +5002,7 @@ class TransformPattern():
 
 class TransformPattern2():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationtransformpattern2"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtransformpattern2"""
         self.pattern = pattern
 
     @property
@@ -5011,7 +5011,7 @@ class TransformPattern2():
         Property CanZoom.
         Call IUIAutomationTransformPattern2::get_CurrentCanZoom.
         Return bool, indicates whether the control supports zooming of its viewport.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_CurrentCanZoom
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_CurrentCanZoom
         """
         return bool(self.pattern.CurrentCanZoom)
 
@@ -5021,7 +5021,7 @@ class TransformPattern2():
         Property ZoomLevel.
         Call IUIAutomationTransformPattern2::get_CurrentZoomLevel.
         Return float, the zoom level of the control's viewport.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_currentzoomlevel
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_currentzoomlevel
         """
         return self.pattern.CurrentZoomLevel
 
@@ -5031,7 +5031,7 @@ class TransformPattern2():
         Property ZoomMaximum.
         Call IUIAutomationTransformPattern2::get_CurrentZoomMaximum.
         Return float, the maximum zoom level of the control's viewport.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_currentzoommaximum
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_currentzoommaximum
         """
         return self.pattern.CurrentZoomMaximum
 
@@ -5041,7 +5041,7 @@ class TransformPattern2():
         Property ZoomMinimum.
         Call IUIAutomationTransformPattern2::get_CurrentZoomMinimum.
         Return float, the minimum zoom level of the control's viewport.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_currentzoomminimum
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-get_currentzoomminimum
         """
         return self.pattern.CurrentZoomMinimum
 
@@ -5052,7 +5052,7 @@ class TransformPattern2():
         zoomLevel: float for int.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-zoom
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-zoom
         """
         ret = self.pattern.Zoom(zoomLevel) == S_OK
         time.sleep(waitTime)
@@ -5065,7 +5065,7 @@ class TransformPattern2():
         zoomUnit: int, a value in class `ZoomUnit`.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-zoombyunit
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtransformpattern2-zoombyunit
         """
         ret = self.pattern.ZoomByUnit(zoomUnit) == S_OK
         time.sleep(waitTime)
@@ -5074,7 +5074,7 @@ class TransformPattern2():
 
 class ValuePattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationvaluepattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationvaluepattern"""
         self.pattern = pattern
 
     @property
@@ -5083,7 +5083,7 @@ class ValuePattern():
         Property IsReadOnly.
         Call IUIAutomationTransformPattern2::IUIAutomationValuePattern::get_CurrentIsReadOnly.
         Return bool, indicates whether the value of the element is read-only.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-get_currentisreadonly
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-get_currentisreadonly
         """
         return self.pattern.CurrentIsReadOnly
 
@@ -5093,7 +5093,7 @@ class ValuePattern():
         Property Value.
         Call IUIAutomationTransformPattern2::IUIAutomationValuePattern::get_CurrentValue.
         Return str, the value of the element.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-get_currentvalue
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-get_currentvalue
         """
         return self.pattern.CurrentValue
 
@@ -5104,7 +5104,7 @@ class ValuePattern():
         value: str.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-setvalue
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-setvalue
         """
         ret = self.pattern.SetValue(value) == S_OK
         time.sleep(waitTime)
@@ -5113,7 +5113,7 @@ class ValuePattern():
 
 class VirtualizedItemPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationvirtualizeditempattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationvirtualizeditempattern"""
         self.pattern = pattern
 
     def Realize(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
@@ -5122,7 +5122,7 @@ class VirtualizedItemPattern():
         Create a full UI Automation element for a virtualized item.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationvirtualizeditempattern-realize
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationvirtualizeditempattern-realize
         """
         ret = self.pattern.Realize() == S_OK
         time.sleep(waitTime)
@@ -5131,7 +5131,7 @@ class VirtualizedItemPattern():
 
 class WindowPattern():
     def __init__(self, pattern=None):
-        """Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationwindowpattern"""
+        """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationwindowpattern"""
         self.pattern = pattern
 
     def Close(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
@@ -5139,7 +5139,7 @@ class WindowPattern():
         Call IUIAutomationWindowPattern::Close.
         Close the window.
         waitTime: float.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-close
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-close
         """
         ret = self.pattern.Close() == S_OK
         time.sleep(waitTime)
@@ -5151,7 +5151,7 @@ class WindowPattern():
         Property CanMaximize.
         Call IUIAutomationWindowPattern::get_CurrentCanMaximize.
         Return bool, indicates whether the window can be maximized.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentcanmaximize
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentcanmaximize
         """
         return bool(self.pattern.CurrentCanMaximize)
 
@@ -5161,7 +5161,7 @@ class WindowPattern():
         Property CanMinimize.
         Call IUIAutomationWindowPattern::get_CurrentCanMinimize.
         Return bool, indicates whether the window can be minimized.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentcanminimize
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentcanminimize
         """
         return bool(self.pattern.CurrentCanMinimize)
 
@@ -5171,7 +5171,7 @@ class WindowPattern():
         Property IsModal.
         Call IUIAutomationWindowPattern::get_CurrentIsModal.
         Return bool, indicates whether the window is modal.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentismodal
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentismodal
         """
         return bool(self.pattern.CurrentIsModal)
 
@@ -5181,7 +5181,7 @@ class WindowPattern():
         Property IsTopmost.
         Call IUIAutomationWindowPattern::get_CurrentIsTopmost.
         Return bool, indicates whether the window is the topmost element in the z-order.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentistopmost
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentistopmost
         """
         return bool(self.pattern.CurrentIsTopmost)
 
@@ -5192,7 +5192,7 @@ class WindowPattern():
         Call IUIAutomationWindowPattern::get_CurrentWindowInteractionState.
         Return int, a value in class `WindowInteractionState`,
                     the current state of the window for the purposes of user interaction.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentwindowinteractionstate
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentwindowinteractionstate
         """
         return self.pattern.CurrentWindowInteractionState
 
@@ -5203,7 +5203,7 @@ class WindowPattern():
         Call IUIAutomationWindowPattern::get_CurrentWindowVisualState.
         Return int, a value in class `WindowVisualState`,
                     the visual state of the window; that is, whether it is in the normal, maximized, or minimized state.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentwindowvisualstate
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-get_currentwindowvisualstate
         """
         return self.pattern.CurrentWindowVisualState
 
@@ -5214,7 +5214,7 @@ class WindowPattern():
         state: int, a value in class `WindowVisualState`.
         waitTime: float.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-setwindowvisualstate
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-setwindowvisualstate
         """
         ret = self.pattern.SetWindowVisualState(state) == S_OK
         time.sleep(waitTime)
@@ -5227,7 +5227,7 @@ class WindowPattern():
             until the associated process enters an idle state, whichever completes first.
         milliseconds: int.
         Return bool, True if succeed otherwise False.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-waitforinputidle
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationwindowpattern-waitforinputidle
         '''
         return self.pattern.WaitForInputIdle(milliseconds) == S_OK
 
@@ -5299,7 +5299,7 @@ class Control():
                             Compare: Callable[[Control, int], bool], custom compare function(control: Control, depth: int) -> bool.
 
         `Control` wraps IUIAutomationElement.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement
         """
         self._element = element
         self._elementDirectAssign = True if element else False
@@ -5419,7 +5419,7 @@ class Control():
         """
         Property AcceleratorKey.
         Call IUIAutomationElement::get_CurrentAcceleratorKey.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentacceleratorkey
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentacceleratorkey
         """
         return self.Element.CurrentAcceleratorKey
 
@@ -5428,7 +5428,7 @@ class Control():
         """
         Property AccessKey.
         Call IUIAutomationElement::get_CurrentAccessKey.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentaccesskey
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentaccesskey
         """
         return self.Element.CurrentAccessKey
 
@@ -5437,7 +5437,7 @@ class Control():
         """
         Property AriaProperties.
         Call IUIAutomationElement::get_CurrentAriaProperties.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentariaproperties
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentariaproperties
         """
         return self.Element.CurrentAriaProperties
 
@@ -5446,7 +5446,7 @@ class Control():
         """
         Property AriaRole.
         Call IUIAutomationElement::get_CurrentAriaRole.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentariarole
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentariarole
         """
         return self.Element.CurrentAriaRole
 
@@ -5455,7 +5455,7 @@ class Control():
         """
         Property AutomationId.
         Call IUIAutomationElement::get_CurrentAutomationId.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentautomationid
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentautomationid
         """
         return self.Element.CurrentAutomationId
 
@@ -5465,7 +5465,7 @@ class Control():
         Property BoundingRectangle.
         Call IUIAutomationElement::get_CurrentBoundingRectangle.
         Return `Rect`.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentboundingrectangle
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentboundingrectangle
 
         rect = control.BoundingRectangle
         print(rect.left, rect.top, rect.right, rect.bottom, rect.width(), rect.height(), rect.xcenter(), rect.ycenter())
@@ -5478,7 +5478,7 @@ class Control():
         """
         Property ClassName.
         Call IUIAutomationElement::get_CurrentClassName.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentclassname
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentclassname
         """
         return self.Element.CurrentClassName
 
@@ -5488,7 +5488,7 @@ class Control():
         Property ControlType.
         Return int, a value in class `ControlType`.
         Call IUIAutomationElement::get_CurrentControlType.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentcontroltype
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentcontroltype
         """
         return self.Element.CurrentControlType
 
@@ -5501,7 +5501,7 @@ class Control():
         """
         Property Culture.
         Call IUIAutomationElement::get_CurrentCulture.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentculture
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentculture
         """
         return self.Element.CurrentCulture
 
@@ -5519,7 +5519,7 @@ class Control():
         Property FrameworkId.
         Call IUIAutomationElement::get_CurrentFrameworkId.
         Return str, such as Win32, WPF...
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentframeworkid
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentframeworkid
         """
         return self.Element.CurrentFrameworkId
 
@@ -5528,7 +5528,7 @@ class Control():
         """
         Property HasKeyboardFocus.
         Call IUIAutomationElement::get_CurrentHasKeyboardFocus.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currenthaskeyboardfocus
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currenthaskeyboardfocus
         """
         return bool(self.Element.CurrentHasKeyboardFocus)
 
@@ -5537,7 +5537,7 @@ class Control():
         """
         Property HelpText.
         Call IUIAutomationElement::get_CurrentHelpText.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currenthelptext
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currenthelptext
         """
         return self.Element.CurrentHelpText
 
@@ -5546,7 +5546,7 @@ class Control():
         """
         Property IsContentElement.
         Call IUIAutomationElement::get_CurrentIsContentElement.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiscontentelement
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiscontentelement
         """
         return bool(self.Element.CurrentIsContentElement)
 
@@ -5555,7 +5555,7 @@ class Control():
         """
         Property IsControlElement.
         Call IUIAutomationElement::get_CurrentIsControlElement.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiscontrolelement
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiscontrolelement
         """
         return bool(self.Element.CurrentIsControlElement)
 
@@ -5564,7 +5564,7 @@ class Control():
         """
         Property IsDataValidForForm.
         Call IUIAutomationElement::get_CurrentIsDataValidForForm.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisdatavalidforform
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisdatavalidforform
         """
         return bool(self.Element.CurrentIsDataValidForForm)
 
@@ -5573,7 +5573,7 @@ class Control():
         """
         Property IsEnabled.
         Call IUIAutomationElement::get_CurrentIsEnabled.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisenabled
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisenabled
         """
         return self.Element.CurrentIsEnabled
 
@@ -5582,7 +5582,7 @@ class Control():
         """
         Property IsKeyboardFocusable.
         Call IUIAutomationElement::get_CurrentIsKeyboardFocusable.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiskeyboardfocusable
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiskeyboardfocusable
         """
         return self.Element.CurrentIsKeyboardFocusable
 
@@ -5591,7 +5591,7 @@ class Control():
         """
         Property IsOffscreen.
         Call IUIAutomationElement::get_CurrentIsOffscreen.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisoffscreen
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisoffscreen
         """
         return self.Element.CurrentIsOffscreen
 
@@ -5600,7 +5600,7 @@ class Control():
         """
         Property IsPassword.
         Call IUIAutomationElement::get_CurrentIsPassword.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentispassword
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentispassword
         """
         return self.Element.CurrentIsPassword
 
@@ -5609,7 +5609,7 @@ class Control():
         """
         Property IsRequiredForForm.
         Call IUIAutomationElement::get_CurrentIsRequiredForForm.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisrequiredforform
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisrequiredforform
         """
         return self.Element.CurrentIsRequiredForForm
 
@@ -5618,7 +5618,7 @@ class Control():
         """
         Property ItemStatus.
         Call IUIAutomationElement::get_CurrentItemStatus.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentitemstatus
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentitemstatus
         """
         return self.Element.CurrentItemStatus
 
@@ -5627,7 +5627,7 @@ class Control():
         """
         Property ItemType.
         Call IUIAutomationElement::get_CurrentItemType.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentitemtype
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentitemtype
         """
         return self.Element.CurrentItemType
 
@@ -5640,7 +5640,7 @@ class Control():
         """
         Property LocalizedControlType.
         Call IUIAutomationElement::get_CurrentLocalizedControlType.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentlocalizedcontroltype
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentlocalizedcontroltype
         """
         return self.Element.CurrentLocalizedControlType
 
@@ -5649,7 +5649,7 @@ class Control():
         """
         Property Name.
         Call IUIAutomationElement::get_CurrentName.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentname
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentname
         """
         return self.Element.CurrentName or ''   # CurrentName may be None
 
@@ -5658,7 +5658,7 @@ class Control():
         """
         Property NativeWindowHandle.
         Call IUIAutomationElement::get_CurrentNativeWindowHandle.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentnativewindowhandle
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentnativewindowhandle
         """
         handle = self.Element.CurrentNativeWindowHandle
         return 0 if handle is None else handle
@@ -5669,7 +5669,7 @@ class Control():
         Property Orientation.
         Return int, a value in class `OrientationType`.
         Call IUIAutomationElement::get_CurrentOrientation.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentorientation
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentorientation
         """
         return self.Element.CurrentOrientation
 
@@ -5678,7 +5678,7 @@ class Control():
         """
         Property ProcessId.
         Call IUIAutomationElement::get_CurrentProcessId.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentprocessid
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentprocessid
         """
         return self.Element.CurrentProcessId
 
@@ -5687,7 +5687,7 @@ class Control():
         """
         Property ProviderDescription.
         Call IUIAutomationElement::get_CurrentProviderDescription.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentproviderdescription
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentproviderdescription
         """
         return self.Element.CurrentProviderDescription
 
@@ -5706,7 +5706,7 @@ class Control():
         """
         Call IUIAutomationElement::GetClickablePoint.
         Return Tuple[int, int, bool], three items tuple (x, y, gotClickable), such as (20, 10, True)
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getclickablepoint
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getclickablepoint
         """
         point, gotClickable = self.Element.GetClickablePoint()
         return (point.x, point.y, bool(gotClickable))
@@ -5716,7 +5716,7 @@ class Control():
         Call IUIAutomationElement::GetCurrentPattern.
         Get a new pattern by pattern id if it supports the pattern.
         patternId: int, a value in class `PatternId`.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpattern
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpattern
         """
         try:
             pattern = self.Element.GetCurrentPattern(patternId)
@@ -5733,7 +5733,7 @@ class Control():
         Get a new pattern by pattern id if it supports the pattern, todo.
         patternId: int, a value in class `PatternId`.
         riid: GUID.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpatternas
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpatternas
         """
         return self.Element.GetCurrentPatternAs(patternId, riid)
 
@@ -5742,7 +5742,7 @@ class Control():
         Call IUIAutomationElement::GetCurrentPropertyValue.
         propertyId: int, a value in class `PropertyId`.
         Return Any, corresponding type according to propertyId.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpropertyvalue
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpropertyvalue
         """
         return self.Element.GetCurrentPropertyValue(propertyId)
 
@@ -5752,7 +5752,7 @@ class Control():
         propertyId: int, a value in class `PropertyId`.
         ignoreDefaultValue: int, 0 or 1.
         Return Any, corresponding type according to propertyId.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpropertyvalueex
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getcurrentpropertyvalueex
         """
         return self.Element.GetCurrentPropertyValueEx(propertyId, ignoreDefaultValue)
 
@@ -5760,7 +5760,7 @@ class Control():
         """
         Call IUIAutomationElement::GetRuntimeId.
         Return List[int], a list of int.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getruntimeid
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getruntimeid
         """
         return self.Element.GetRuntimeId()
 
@@ -5770,7 +5770,7 @@ class Control():
     def SetFocus(self) -> bool:
         """
         Call IUIAutomationElement::SetFocus.
-        Refer https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-setfocus
+        Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-setfocus
         """
         try:
             return self.Element.SetFocus() == S_OK
