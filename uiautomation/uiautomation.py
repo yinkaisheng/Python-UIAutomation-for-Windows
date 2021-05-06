@@ -2652,7 +2652,7 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
     text: str, keys to type.
     interval: float, seconds between keys.
     waitTime: float.
-    charMode: bool, if False, the text typied is depend on the input method if a input method is on.
+    charMode: bool, if False, the text typed is depend on the input method if a input method is on.
     debug: bool, if True, print the keys.
     Examples:
     {Ctrl}, {Delete} ... are special keys' name in SpecialKeyNames.
