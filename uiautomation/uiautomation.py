@@ -81,8 +81,6 @@ class _AutomationClient:
         ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
 
-        SetDpiAwareness(dpiAwarenessPerMonitor=True)
-
 
 class _DllClient:
     _instance = None
@@ -1207,17 +1205,17 @@ class GWL:
 
 
 class ProcessDpiAwareness:
-    ProcessDpiUnaware = 0
-    ProcessSystemDpiAware = 1
-    ProcessPerMonitorDpiAware = 2
+    DpiUnaware = 0
+    SystemDpiAware = 1
+    PerMonitorDpiAware = 2
 
 
 class DpiAwarenessContext:
-    DpiAwarenessContextUnaware = -1
-    DpiAwarenessContextSystemAware = -2
-    DpiAwarenessContextPerMonitorAware = -3
-    DpiAwarenessContextPerMonitorAwareV2 = -4
-    DpiAwarenessContextUnawareGdiScaled = -5
+    Unaware = -1
+    SystemAware = -2
+    PerMonitorAware = -3
+    PerMonitorAwareV2 = -4
+    UnawareGdiScaled = -5
 
 
 class Keys:
@@ -1804,6 +1802,17 @@ def GetCursorPos() -> Tuple[int, int]:
     return point.x, point.y
 
 
+def GetPhysicalCursorPos() -> Tuple[int, int]:
+    """
+    GetPhysicalCursorPos from Win32.
+    Get current mouse cursor positon.
+    Return Tuple[int, int], two ints tuple (x, y).
+    """
+    point = ctypes.wintypes.POINT(0, 0)
+    ctypes.windll.user32.GetPhysicalCursorPos(ctypes.byref(point))
+    return point.x, point.y
+
+
 def SetCursorPos(x: int, y: int) -> bool:
     """
     SetCursorPos from Win32.
@@ -2078,37 +2087,10 @@ def WheelUp(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERA
     time.sleep(waitTime)
 
 
-def SetDpiAwareness(dpiAwarenessPerMonitor: bool = True) -> int:
-    '''
-    Call SetThreadDpiAwarenessContext(Windows 10 version 1607+) or SetProcessDpiAwareness(Windows 8.1+).
-    You should call this function with True if you enable DPI scaling. uiautomation calls this function when it initializes.
-    dpiAwarenessPerMonitor: bool.
-    Return int.
-    '''
-    try:
-        # https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddpiawarenesscontext
-        # Windows 10 1607+
-        ctypes.windll.user32.SetThreadDpiAwarenessContext.restype = ctypes.c_void_p
-        context = DpiAwarenessContext.DpiAwarenessContextPerMonitorAware if dpiAwarenessPerMonitor else DpiAwarenessContext.DpiAwarenessContextUnaware
-        oldContext = ctypes.windll.user32.SetThreadDpiAwarenessContext(ctypes.c_void_p(context))
-        return oldContext
-    except Exception as ex:
-        try:
-            # https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-setprocessdpiawareness
-            # Once SetProcessDpiAwareness is set for an app, any future calls to SetProcessDpiAwareness will fail.
-            # Windows 8.1+
-            if dpiAwarenessPerMonitor:
-                return ctypes.windll.shcore.SetProcessDpiAwareness(ProcessDpiAwareness.ProcessPerMonitorDpiAware)
-        except Exception as ex2:
-            pass
-
-
-def GetScreenSize(dpiAwarenessPerMonitor: bool = True) -> Tuple[int, int]:
+def GetScreenSize() -> Tuple[int, int]:
     """
-    dpiAwarenessPerMonitor: bool.
     Return Tuple[int, int], two ints tuple (width, height).
     """
-    SetDpiAwareness(dpiAwarenessPerMonitor)
     SM_CXSCREEN = 0
     SM_CYSCREEN = 1
     w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN)
@@ -2116,12 +2098,10 @@ def GetScreenSize(dpiAwarenessPerMonitor: bool = True) -> Tuple[int, int]:
     return w, h
 
 
-def GetVirtualScreenSize(dpiAwarenessPerMonitor: bool = True) -> Tuple[int, int]:
+def GetVirtualScreenSize() -> Tuple[int, int]:
     """
-    dpiAwarenessPerMonitor: bool.
     Return Tuple[int, int], two ints tuple (width, height).
     """
-    SetDpiAwareness(dpiAwarenessPerMonitor)
     SM_CXVIRTUALSCREEN = 78
     SM_CYVIRTUALSCREEN = 79
     w = ctypes.windll.user32.GetSystemMetrics(SM_CXVIRTUALSCREEN)
@@ -2129,13 +2109,11 @@ def GetVirtualScreenSize(dpiAwarenessPerMonitor: bool = True) -> Tuple[int, int]
     return w, h
 
 
-def GetMonitorsRect(dpiAwarenessPerMonitor: bool = False) -> List[Rect]:
+def GetMonitorsRect() -> List[Rect]:
     """
     Get monitors' rect.
-    dpiAwarenessPerMonitor: bool.
     Return List[Rect].
     """
-    SetDpiAwareness(dpiAwarenessPerMonitor)
     MonitorEnumProc = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_size_t, ctypes.c_size_t, ctypes.POINTER(ctypes.wintypes.RECT), ctypes.c_size_t)
     rects = []
     def MonitorCallback(hMonitor: int, hdcMonitor: int, lprcMonitor: ctypes.POINTER(ctypes.wintypes.RECT), dwData: int):
@@ -2833,6 +2811,38 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
         #Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
         #keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
     time.sleep(waitTime)
+
+
+def SetThreadDpiAwarenessContext(dpiAwarenessContext: int):
+    """
+    SetThreadDpiAwarenessContext from Win32.
+    dpiAwarenessContext: int, a value in class `DpiAwarenessContext`
+    """
+    try:
+        # https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddpiawarenesscontext
+        # Windows 10 1607+
+        ctypes.windll.user32.SetThreadDpiAwarenessContext.restype = ctypes.c_void_p
+        oldContext = ctypes.windll.user32.SetThreadDpiAwarenessContext(ctypes.c_void_p(dpiAwarenessContext))
+        return oldContext
+    except Exception as ex:
+        pass
+
+
+def SetProcessDpiAwareness(dpiAwareness: int):
+    """
+    ProcessDpiAwareness from Win32.
+    dpiAwareness: int, a value in class `ProcessDpiAwareness`
+    """
+    try:
+        # https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-setprocessdpiawareness
+        # Once SetProcessDpiAwareness is set for an app, any future calls to SetProcessDpiAwareness will fail.
+        # Windows 8.1+
+        return ctypes.windll.shcore.SetProcessDpiAwareness(dpiAwareness)
+    except Exception as ex:
+        pass
+
+
+SetProcessDpiAwareness(ProcessDpiAwareness.PerMonitorDpiAware)
 
 
 class Logger:
@@ -7515,7 +7525,6 @@ def InitializeUIAutomationInCurrentThread() -> None:
     So you can't create a Control or a Pattern in main thread and then pass it to a new thread and use it.
     """
     comtypes.CoInitializeEx()
-    SetDpiAwareness(dpiAwarenessPerMonitor=True)
 
 
 def UninitializeUIAutomationInCurrentThread() -> None:
@@ -8100,5 +8109,5 @@ if __name__ == '__main__':
     del lp
     del notepad
 
-    hello = '{Ctrl}{End}{Enter}Hello World! 你好世界！'
+    hello = '{Ctrl}{End}{Enter}Hello World!'
     SendKeys(hello)
