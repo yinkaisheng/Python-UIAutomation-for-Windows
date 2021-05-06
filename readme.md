@@ -6,7 +6,7 @@ Do not use 3.7.6 and 3.8.1, comtypes doesn't work in these two versions. Install
 https://github.com/enthought/comtypes/issues/202
 
 
-This module is for [UIAutomation](https://docs.microsoft.com/en-us/windows/desktop/WinAuto/windows-automation-api-portal) on Windows(Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10).
+This module is for [UIAutomation](https://docs.microsoft.com/en-us/windows/win32/winauto/ui-automation-specification) on Windows(Windows XP with SP3, Windows Vista, Windows 7 and Windows 8/8.1/10).
 It supports UIAutomation for the applications which implmented UIAutomation Provider, such as MFC, Windows Form, WPF, Modern UI(Metro UI), Qt(Partly), Firefox(**version<=56 or >=60**), Chrome and Electron based apps(require **--force-renderer-accessibility** command line parameter).
 
 I developed it in my spare time and for my personal use.
@@ -29,7 +29,7 @@ On Windows 8/8.1, to automate a Metro App, the app must be in foreground. If a M
 
 By the way, You should run python as **administrator**. Otherwise uiautomation may fail to enumerate controls or get controls' information on Windows 7 or higher.
 
-[Requirements:](https://docs.microsoft.com/zh-cn/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomation)
+[Requirements:](https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomation)
 
 Microsoft UIAutomation Minimum supported client:
 Windows 7, Windows Vista with SP2 and Platform Update for Windows Vista, Windows XP with SP3 and Platform Update for Windows Vista [desktop apps only]
@@ -58,7 +58,7 @@ A control should support some patterns or conditionally supports some patterns a
 
 ![patterns](images/control_pattern.png)
 
-Refer [Control Pattern Mapping for UI Automation Clients](https://docs.microsoft.com/en-us/previous-versions//dd319586(v=vs.85)) for the full control pattern table.
+Refer [Control Pattern Mapping for UI Automation Clients](https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-controlpatternmapping) for the full control pattern table.
 
 
 uiautomation searches controls from the control tree based on the controls' properties you supply.
@@ -178,7 +178,7 @@ Compare
 See Control.\_\_init\_\_ for the comments of the parameters.  
 See scripts in folder **demos** for more examples.  
 
-Control.Element returns the low level COM object [IUIAutomationElement](https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement),
+Control.Element returns the low level COM object [IUIAutomationElement](https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement),
 Almost all methods and properties of Control are implemented via IUIAutomationElement COM API and Win32 API.
 when calling a control's method or property that indirectly calls Control.Element and Control.Element is None, 
 uiautomation starts to search the control by the properties you supply.
@@ -236,7 +236,7 @@ if __name__ == '__main__':
 
 **If automation.py can't print the controls you see.
 Maybe the controls were built by DirectUI(or CustomControl), not UI Frameworks supplied by Microsoft.
-In order to support UIAutomation, an UI Framework must implement [UI Automation Provider](https://docs.microsoft.com/zh-cn/windows/desktop/WinAuto/uiauto-providersoverview).**
+In order to support UIAutomation, an UI Framework must implement [UI Automation Provider](https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-providersoverview).**
 
 A Microsoft UI Automation provider is a software object that exposes an element of an application's UI so that accessibility client applications can retrieve information about the element and invoke its functionality. In general, each control or other distinct element in a UI has a provider.
 
@@ -246,10 +246,10 @@ If your application includes any custom controls, you need to implement UI Autom
 
 ---
 
-Another UI tool [Inspect.exe](https://docs.microsoft.com/zh-cn/windows/desktop/WinAuto/inspect-objects) supplied by Microsoft can also be used to traverse the UI elements. It has an UI interface while my script shows UI elements in terminal.
+Another UI tool [Inspect.exe](https://docs.microsoft.com/en-us/windows/win32/winauto/inspect-objects) supplied by Microsoft can also be used to traverse the UI elements. It has an UI interface while my script shows UI elements in terminal.
 But I found that my script is more convenient sometimes.
 
-![Inspect](https://docs.microsoft.com/zh-cn/windows/desktop/WinAuto/images/inspect.png)
+![Inspect](https://docs.microsoft.com/en-us/windows/desktop/WinAuto/images/inspect.png)
 
 ---
 

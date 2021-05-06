@@ -35,7 +35,7 @@ automation.py 显示了控件树中的各个控件(Control)的部分属性和控
 
 ![patterns](images/control_pattern.png)
 
-参考 [Control Pattern Mapping for UI Automation Clients](https://docs.microsoft.com/en-us/previous-versions//dd319586(v=vs.85)) 查看全部的Control-Pattern支持表格。
+参考 [Control Pattern Mapping for UI Automation Clients](https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-controlpatternmapping) 查看全部的Control-Pattern支持表格。
 
 uiautomation中封装了Windows UIAutomation中的各个Control和Pattern.
 
@@ -166,7 +166,7 @@ searchDepth和Depth的区别是：
 searchDepth在指定的深度范围内（包括1\~searchDepth层中的所有子孙控件）搜索第一个满足搜索条件的控件  
 Depth只在Depth所在的深度（如果Depth>1，排除1\~searchDepth-1层中的所有子孙控件）搜索第一个满足搜索条件的控件
 
-Control.Element返回IUIAutomation底层COM对象[IUIAutomationElement](https://docs.microsoft.com/en-us/windows/desktop/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement)，
+Control.Element返回IUIAutomation底层COM对象[IUIAutomationElement](https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement)，
 基本上Control的所有属性或方法都是通过调用IUIAutomationElement COM API和Win32 API实现的。
 当你使用一个Control的属性或方法时，属性或方法内部调用Control.Element并且Control.Element是None时uiautomation才开始搜索控件。
 如果在uiautomation.TIME_OUT_SECOND(默认为10)秒内找不到控件，uiautomation就会抛出一个LookupError异常。
@@ -234,7 +234,7 @@ auto.uiautomation.DEBUG_SEARCH_TIME = True
 
 如果你发现automation.py不能打印你所看到的程序的控件，这并不是uiautomation的bug，
 是因为这个程序是使用DirectUI或自定义控件实现的，不是用微软提供的标准控件实现的，
-这个软件必须实现[UI Automation Provider](https://docs.microsoft.com/zh-cn/windows/desktop/WinAuto/uiauto-providersoverview)才能支持UIAutomation。
+这个软件必须实现[UI Automation Provider](https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-providersoverview)才能支持UIAutomation。
 微软提供的标准控件默认支持UIAutomation。
 
 比如Chrome浏览器，默认你只能看到最外层的PaneControl Chrome_WidgetWin_1，看不到Chrome具体的子控件，
