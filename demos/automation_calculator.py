@@ -102,7 +102,7 @@ def CalcOnWindows7And8():
 
 
 def CalcOnWindows10():
-    """works on Windows 10.0.18362"""
+    """works on Windows 10.0.19042"""
     char2Id = {
         '0' : 'num0Button',
         '1' : 'num1Button',
@@ -138,7 +138,7 @@ def CalcOnWindows10():
         #Run faster because it only walk calc window once
         id2char = {v: k for k, v in char2Id.items()}
         char2Button = {}
-        for c, d in auto.WalkControl(calcWindow, maxDepth=3):
+        for c, d in auto.WalkControl(calcWindow, maxDepth=4):
             if c.AutomationId in id2char:
                 char2Button[id2char[c.AutomationId]] = c
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90.8')
