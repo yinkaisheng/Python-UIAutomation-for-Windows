@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 from uiautomation import VERSION, AUTHOR_MAIL
 
 requires = [
-        'comtypes>=1.1.7',
+        'comtypes>=1.1.10',
         ]
 
 if sys.version < '3.5':
