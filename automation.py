@@ -52,7 +52,7 @@ def main():
     for (o, v) in options:
         if o in ('-h', '-help'):
             usage()
-            exit(0)
+            sys.exit(0)
         elif o in ('-r', '-root'):
             root = True
             foreground = False
