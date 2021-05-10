@@ -40,9 +40,12 @@ if __name__ == '__main__':
         notepad.MoveWindow(i * 400, 0, 400, 300)
         notepad.SendKeys('notepad {}'.format(i + 1))
     auto.SetConsoleTitle('Hide: Ctrl+1, Show: Ctrl+2, Exit: Ctrl+D')
+    cmdWindow = auto.GetConsoleWindow()
+    if cmdWindow:
+        cmdWindow.GetTransformPattern().Move(0, 300)
     auto.Logger.ColorfullyWriteLine('Press <Color=Green>Ctr+1</Color> to hide the windows\nPress <Color=Green>Ctr+2</Color> to show the windows\n')
     handles = [win.NativeWindowHandle for win in auto.GetRootControl().GetChildren() if win.ClassName in WindowsWantToHide]
     auto.RunByHotKey({(auto.ModifierKey.Control, auto.Keys.VK_1): lambda event: hide(event, handles),
                       (auto.ModifierKey.Control, auto.Keys.VK_2): lambda event: show(event, handles),
-                      })
+                      }, waitHotKeyReleased=False)
 
