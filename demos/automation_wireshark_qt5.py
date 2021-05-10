@@ -34,7 +34,7 @@ def walk():
 
     wiresharkWindow.SetActive(waitTime=0.1)
     wiresharkWindow.Maximize()
-    auto.Logger.ColorfullyWriteLine('Press <Color=Cyan>F1</Color> to stop', auto.ConsoleColor.Yellow)
+    auto.Logger.ColorfullyWriteLine('Press <Color=Cyan>F12</Color> to stop', auto.ConsoleColor.Yellow)
     tree = wiresharkWindow.TreeControl(searchDepth=4, ClassName='PacketList', Name='Packet list')
     rect = tree.BoundingRectangle
     tree.Click(y=50, waitTime=0.1)
@@ -53,11 +53,12 @@ def walk():
             auto.Logger.Write(item.Name + ' ')
             if item.BoundingRectangle.bottom >= rect.bottom:
                 auto.SendKeys('{PageDown}', waitTime=0.1)
-        if auto.IsKeyPressed(auto.Keys.VK_F1):
-            auto.Logger.WriteLine('\nF1 pressed', auto.ConsoleColor.Yellow)
+        if auto.IsKeyPressed(auto.Keys.VK_F12):
+            auto.Logger.WriteLine('\nF12 pressed', auto.ConsoleColor.Yellow)
             break
 
 
 if __name__ == '__main__':
+    auto.SetConsoleTitle(auto.GetConsoleTitle() + ' | press F12 to stop')
     walk()
     time.sleep(2)
