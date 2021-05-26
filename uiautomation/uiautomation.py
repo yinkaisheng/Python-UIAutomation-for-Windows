@@ -17,6 +17,7 @@ import sys
 import time
 import datetime
 import re
+import traceback
 import threading
 import ctypes
 import ctypes.wintypes
@@ -69,17 +70,21 @@ class _AutomationClient:
                     raise ex
         #Windows dll
         ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
-        ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
-        ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
-        ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
-        ctypes.windll.user32.SendMessageW.restype = ctypes.wintypes.LONG
+        ctypes.windll.user32.GetDC.restype = ctypes.c_void_p
         ctypes.windll.user32.GetForegroundWindow.restype = ctypes.c_void_p
+        ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
         ctypes.windll.user32.GetWindowLongW.restype = ctypes.wintypes.LONG
-        ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.GetStdHandle.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
+        ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
+        ctypes.windll.user32.SendMessageW.restype = ctypes.wintypes.LONG
+        ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
+        ctypes.windll.gdi32.CreateBitmap.restype = ctypes.c_void_p
+        ctypes.windll.gdi32.CreateCompatibleDC.restype = ctypes.c_void_p
+        ctypes.windll.gdi32.SelectObject.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.GetStdHandle.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
 
 
 class _DllClient:
@@ -114,6 +119,10 @@ class _DllClient:
             self.dll.BitmapCreate.restype = ctypes.c_size_t
             self.dll.BitmapFromWindow.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
             self.dll.BitmapFromWindow.restype = ctypes.c_size_t
+            self.dll.BitmapFromHBITMAP.argtypes = (ctypes.c_size_t, )
+            self.dll.BitmapFromHBITMAP.restype = ctypes.c_size_t
+            self.dll.BitmapToHBITMAP.argtypes = (ctypes.c_size_t, ctypes.c_uint)
+            self.dll.BitmapToHBITMAP.restype = ctypes.c_size_t
             self.dll.BitmapFromFile.argtypes = (ctypes.c_wchar_p, )
             self.dll.BitmapFromFile.restype = ctypes.c_size_t
             self.dll.BitmapToFile.argtypes = (ctypes.c_size_t, ctypes.c_wchar_p, ctypes.c_wchar_p)
@@ -1718,40 +1727,38 @@ class Rect():
         return '{}({},{},{},{})[{}x{}]'.format(self.__class__.__name__, self.left, self.top, self.right, self.bottom, self.width(), self.height())
 
 
-_StdOutputHandle = -11
-_ConsoleOutputHandle = ctypes.c_void_p(0)
-_DefaultConsoleColor = None
+class ClipboardFormat:
+    CF_TEXT = 1
+    CF_BITMAP = 2
+    CF_METAFILEPICT = 3
+    CF_SYLK = 4
+    CF_DIF = 5
+    CF_TIFF = 6
+    CF_OEMTEXT = 7
+    CF_DIB = 8
+    CF_PALETTE = 9
+    CF_PENDATA = 10
+    CF_RIFF = 11
+    CF_WAVE = 12
+    CF_UNICODETEXT = 13
+    CF_ENHMETAFILE = 14
+    CF_HDROP = 15
+    CF_LOCALE = 16
+    CF_DIBV5 = 17
+    CF_MAX = 18
+    CF_HTML = ctypes.windll.user32.RegisterClipboardFormatW("HTML Format")
 
 
-def GetClipboardText() -> str:
-    if ctypes.windll.user32.OpenClipboard(0):
-        if ctypes.windll.user32.IsClipboardFormatAvailable(13): # CF_TEXT=1, CF_UNICODETEXT=13
-            hClipboardData = ctypes.windll.user32.GetClipboardData(13)
-            hText = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipboardData))
-            text = ctypes.c_wchar_p(hText).value[:]
-            ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
-            ctypes.windll.user32.CloseClipboard()
-            return text
+def _GetDictKeyName(theDict:Dict, theValue:Any, start:str=None) -> str:
+    for key,value in theDict.items():
+        if theValue == value and ((start and key.startswith(start)) or True):
+            return key
     return ''
 
 
-def SetClipboardText(text: str) -> bool:
-    """
-    Return bool, True if succeed otherwise False.
-    """
-    if ctypes.windll.user32.OpenClipboard(0):
-        ctypes.windll.user32.EmptyClipboard()
-        textByteLen = (len(text) + 1) * 2
-        hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0, textByteLen)  # GMEM_FIXED=0
-        hDestText = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipboardData))
-        ctypes.cdll.msvcrt.wcsncpy(ctypes.c_wchar_p(hDestText), ctypes.c_wchar_p(text), ctypes.c_size_t(textByteLen // 2))
-        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
-        # system owns hClipboardData after calling SetClipboardData,
-        # application can not write to or free the data once ownership has been transferred to the system
-        ctypes.windll.user32.SetClipboardData(ctypes.c_uint(13), ctypes.c_void_p(hClipboardData))  # CF_TEXT=1, CF_UNICODETEXT=13
-        ctypes.windll.user32.CloseClipboard()
-        return True
-    return False
+_StdOutputHandle = -11
+_ConsoleOutputHandle = ctypes.c_void_p(0)
+_DefaultConsoleColor = None
 
 
 def SetConsoleColor(color: int) -> bool:
@@ -3023,6 +3030,10 @@ class Logger:
         if os.path.exists(Logger.FileName):
             os.remove(Logger.FileName)
 
+    LogColorfully = ColorfullyLog
+    WriteColorfully = ColorfullyWrite
+    WriteLineColorfully = ColorfullyWriteLine
+
 
 class Bitmap:
     """
@@ -3312,6 +3323,220 @@ class Bitmap:
         bitmap = Bitmap(width, height)
         bitmap.SetPixelColorsOfRect(0, 0, width, height, colors)
         return bitmap
+
+    def __str__(self) -> str:
+        return '{}(Width={}, Height={})'.format(self.__class__.__name__, self.Width, self.Height)
+
+    def __repr__(self) -> str:
+        return '<{}(Width={}, Height={}) at 0x{:x}>'.format(self.__class__.__name__, self.Width, self.Height, id(self))
+
+
+_ClipboardLock = threading.Lock()
+
+
+def _OpenClipboard(value):
+    end = ProcessTime() + 0.2
+    while ProcessTime() < end:
+        ret = ctypes.windll.user32.OpenClipboard(value)
+        if ret:
+            return ret
+        time.sleep(0.005)
+
+
+def GetClipboardFormats() -> Dict[int, str]:
+    '''
+    Get clipboard formats that system clipboard has currently.
+    Return Dict[int, str].
+    The key is a int value in class `ClipboardFormat` or othes values that apps registered by ctypes.windll.user32.RegisterClipboardFormatW
+    '''
+    formats = {}
+    try:
+        _ClipboardLock.acquire()
+        if _OpenClipboard(0):
+            formatType = 0
+            arrayType = ctypes.c_wchar * 64
+            while True:
+                formatType = ctypes.windll.user32.EnumClipboardFormats(formatType)
+                if formatType == 0:
+                    break
+                values = arrayType()
+                ctypes.windll.user32.GetClipboardFormatNameW(formatType, values, len(values))
+                formatName = values.value
+                if not formatName:
+                    formatName = _GetDictKeyName(ClipboardFormat.__dict__, formatType, 'CF_')
+                formats[formatType] = formatName
+            ctypes.windll.user32.CloseClipboard()
+    except Exception as ex:
+        print(ex, '\n', traceback.format_exc())
+    finally:
+        _ClipboardLock.release()
+    return formats
+
+
+def GetClipboardText() -> str:
+    try:
+        _ClipboardLock.acquire()
+        if _OpenClipboard(0):
+            if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_UNICODETEXT):
+                hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_UNICODETEXT)
+                hText = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipboardData))
+                text = ctypes.c_wchar_p(hText).value
+                ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
+                ctypes.windll.user32.CloseClipboard()
+                return text
+    except Exception as ex:
+        print(ex, '\n', traceback.format_exc())
+    finally:
+        _ClipboardLock.release()
+    return ''
+
+
+def SetClipboardText(text: str) -> bool:
+    """
+    Return bool, True if succeed otherwise False.
+    """
+    ret = False
+    try:
+        _ClipboardLock.acquire()
+        if _OpenClipboard(0):
+            ctypes.windll.user32.EmptyClipboard()
+            textByteLen = (len(text) + 1) * 2
+            hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0x2, textByteLen)  # GMEM_MOVEABLE
+            hDestText = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipboardData))
+            ctypes.cdll.msvcrt.wcsncpy(ctypes.c_wchar_p(hDestText), ctypes.c_wchar_p(text), ctypes.c_size_t(textByteLen // 2))
+            ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
+            # system owns hClipboardData after calling SetClipboardData,
+            # application can not write to or free the data once ownership has been transferred to the system
+            if ctypes.windll.user32.SetClipboardData(ctypes.c_uint(ClipboardFormat.CF_UNICODETEXT), ctypes.c_void_p(hClipboardData)):
+                ret = True
+            ctypes.windll.user32.CloseClipboard()
+            ctypes.windll.kernel32.GlobalFree(ctypes.c_void_p(hClipboardData))
+    except Exception as ex:
+        print(ex, '\n', traceback.format_exc())
+    finally:
+        _ClipboardLock.release()
+    return ret
+
+
+def GetClipboardHtml() -> str:
+    try:
+        _ClipboardLock.acquire()
+        if _OpenClipboard(0):
+            if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_HTML):
+                hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_HTML)
+                hText = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipboardData))
+                text = ctypes.c_char_p(hText).value.decode('utf-8')
+                ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
+                ctypes.windll.user32.CloseClipboard()
+                return text
+    except Exception as ex:
+        print(ex, '\n', traceback.format_exc())
+    finally:
+        _ClipboardLock.release()
+    return ''
+
+
+def SetClipboardHtml(htmlText: str, srcUrl:str='') -> bool:
+    """
+    htmlText: str, such as '<h1>Title</h1><h3>Hello</h3><p>hello world</p>'
+    Return bool, True if succeed otherwise False.
+    Refer: https://docs.microsoft.com/en-us/troubleshoot/cpp/add-html-code-clipboard
+    """
+    formatText = 'Version:0.9\r\nStartHTML:00000000\r\nEndHTML:00000000\r\nStartFragment:00000000\r\nEndFragment:00000000\r\nSourceURL:{}\r\n<html>\r\n<body>\r\n<!--StartFragment-->{}<!--EndFragment-->\r\n</body>\r\n</html>'
+    formatText = formatText.format(srcUrl, '{}')
+    startHtml = formatText.find('<html>')
+    endHtml = len(formatText) + len(htmlText) - 2
+    startFragment = formatText.find('{}')
+    endFragment = formatText.find('<!--EndFragment-->') + len(htmlText) - 2
+    formatText = formatText.replace('StartHTML:00000000', 'StartHTML:{:08}'.format(startHtml))
+    formatText = formatText.replace('EndHTML:00000000', 'EndHTML:{:08}'.format(endHtml))
+    formatText = formatText.replace('StartFragment:00000000', 'StartFragment:{:08}'.format(startFragment))
+    formatText = formatText.replace('EndFragment:00000000', 'EndFragment:{:08}'.format(endFragment))
+    text = formatText.format(htmlText)
+    ret = False
+    try:
+        _ClipboardLock.acquire()
+        if _OpenClipboard(0):
+            ctypes.windll.user32.EmptyClipboard()
+            u8bytes = text.encode('utf-8')
+            hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0x2002, len(u8bytes) + 4)  # GMEM_MOVEABLE |GMEM_DDESHARE
+            hDestText = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipboardData))
+            ctypes.cdll.msvcrt.strncpy(ctypes.c_char_p(hDestText), ctypes.c_char_p(u8bytes), len(u8bytes))
+            ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
+            # system owns hClipboardData after calling SetClipboardData,
+            # application can not write to or free the data once ownership has been transferred to the system
+            if ctypes.windll.user32.SetClipboardData(ctypes.c_uint(ClipboardFormat.CF_HTML), ctypes.c_void_p(hClipboardData)):
+                ret = True
+            ctypes.windll.user32.CloseClipboard()
+            ctypes.windll.kernel32.GlobalFree(ctypes.c_void_p(hClipboardData))
+    except Exception as ex:
+        print(ex, '\n', traceback.format_exc())
+    finally:
+        _ClipboardLock.release()
+    return ret
+
+
+def GetClipboardBitmap() -> Bitmap:
+    try:
+        _ClipboardLock.acquire()
+        if _OpenClipboard(0):
+            if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_BITMAP):
+                hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_BITMAP)
+                bitmap = Bitmap()
+                bitmap._bitmap = _DllClient.instance().dll.BitmapFromHBITMAP(hClipboardData, 0, 0, 0, 0)
+                bitmap._getsize()
+                ctypes.windll.user32.CloseClipboard()
+                return bitmap
+    except Exception as ex:
+        print(ex, '\n', traceback.format_exc())
+    finally:
+        _ClipboardLock.release()
+
+
+def SetClipboardBitmap(bitmap:Bitmap) -> bool:
+    """
+    Return bool, True if succeed otherwise False.
+    """
+    ret = False
+    try:
+        _ClipboardLock.acquire()
+        if bitmap._bitmap and _OpenClipboard(0):
+            ctypes.windll.user32.EmptyClipboard()
+            hBitmap = _DllClient.instance().dll.BitmapToHBITMAP(bitmap._bitmap, 0xFFFFFFFF)
+            hBitmap2 = ctypes.windll.gdi32.CreateBitmap(bitmap.Width, bitmap.Height, 1, 32, 0)
+            hdc = ctypes.windll.user32.GetDC(0)
+            hdc1 = ctypes.windll.gdi32.CreateCompatibleDC(ctypes.c_void_p(hdc))
+            hdc2 = ctypes.windll.gdi32.CreateCompatibleDC(ctypes.c_void_p(hdc))
+            ctypes.windll.user32.ReleaseDC(0, ctypes.c_void_p(hdc))
+            hOldBmp1 = ctypes.windll.gdi32.SelectObject(ctypes.c_void_p(hdc1), ctypes.c_void_p(hBitmap))
+            hOldBmp2 = ctypes.windll.gdi32.SelectObject(ctypes.c_void_p(hdc2), ctypes.c_void_p(hBitmap2))
+            ctypes.windll.gdi32.BitBlt(ctypes.c_void_p(hdc2), 0, 0, bitmap.Width, bitmap.Height, ctypes.c_void_p(hdc1), 0, 0, 0x00CC0020)# SRCCOPY
+            ctypes.windll.gdi32.SelectObject(ctypes.c_void_p(hdc1), ctypes.c_void_p(hOldBmp1))
+            ctypes.windll.gdi32.SelectObject(ctypes.c_void_p(hdc2), ctypes.c_void_p(hOldBmp2))
+            ctypes.windll.gdi32.DeleteDC(ctypes.c_void_p(hdc1))
+            ctypes.windll.gdi32.DeleteDC(ctypes.c_void_p(hdc2))
+            ctypes.windll.gdi32.DeleteObject(ctypes.c_void_p(hBitmap))
+            # system owns hClipboardData after calling SetClipboardData,
+            # application can not write to or free the data once ownership has been transferred to the system
+            if ctypes.windll.user32.SetClipboardData(ctypes.c_uint(ClipboardFormat.CF_BITMAP), ctypes.c_void_p(hBitmap2)):
+                ret = True
+            ctypes.windll.user32.CloseClipboard()
+            ctypes.windll.gdi32.DeleteObject(ctypes.c_void_p(hBitmap2))
+    except Exception as ex:
+        print(ex, '\n', traceback.format_exc())
+    finally:
+        _ClipboardLock.release()
+    return ret
+
+
+def Input(prompt:str, consoleColor:int=ConsoleColor.Default) -> str:
+    Logger.Write(prompt, consoleColor, writeToFile=False)
+    return input()
+
+
+def InputColorfully(prompt:str, consoleColor:int=ConsoleColor.Default) -> str:
+    Logger.ColorfullyWrite(prompt, consoleColor, writeToFile=False)
+    return input()
 
 
 _PatternIdInterfaces = None
@@ -6167,6 +6392,18 @@ class Control():
         y2 = (rect.top if y2 >= 0 else rect.bottom) + y2
         DragDrop(x1, y1, x2, y2, moveSpeed, waitTime)
 
+    def RightDragDrop(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float=1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+        rect = self.BoundingRectangle
+        if rect.width() == 0 or rect.height() == 0:
+            Logger.ColorfullyLog('<Color=Yellow>Can not move cursor</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
+                self.ControlTypeName, rect, self.GetColorfulSearchPropertiesStr()))
+            return
+        x1 = (rect.left if x1 >= 0 else rect.right) + x1
+        y1 = (rect.top if y1 >= 0 else rect.bottom) + y1
+        x2 = (rect.left if x2 >= 0 else rect.right) + x2
+        y2 = (rect.top if y2 >= 0 else rect.bottom) + y2
+        RightDragDrop(x1, y1, x2, y2, moveSpeed, waitTime)
+
     def WheelDown(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERATION_WAIT_TIME) -> None:
         """
         Make control have focus first, move cursor to the specified position and mouse wheel down.
@@ -7764,10 +8001,6 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True, showP
     depth: int, current depth.
     showAllName: bool, if False, print the first 30 characters of control.Name.
     """
-    def getKeyName(theDict, theValue):
-        for key in theDict:
-            if theValue == theDict[key]:
-                return key
     indent = ' ' * depth * 4
     Logger.Write('{0}ControlType: '.format(indent))
     Logger.Write(control.ControlTypeName, ConsoleColor.DarkGreen)
@@ -7796,13 +8029,13 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True, showP
             Logger.Write(pt.Value, ConsoleColor.DarkGreen)
         elif isinstance(pt, TogglePattern):
             Logger.Write('    TogglePattern.ToggleState: ')
-            Logger.Write('ToggleState.' + getKeyName(ToggleState.__dict__, pt.ToggleState), ConsoleColor.DarkGreen)
+            Logger.Write('ToggleState.' + _GetDictKeyName(ToggleState.__dict__, pt.ToggleState), ConsoleColor.DarkGreen)
         elif isinstance(pt, SelectionItemPattern):
             Logger.Write('    SelectionItemPattern.IsSelected: ')
             Logger.Write(pt.IsSelected, ConsoleColor.DarkGreen)
         elif isinstance(pt, ExpandCollapsePattern):
             Logger.Write('    ExpandCollapsePattern.ExpandCollapseState: ')
-            Logger.Write('ExpandCollapseState.' + getKeyName(ExpandCollapseState.__dict__, pt.ExpandCollapseState), ConsoleColor.DarkGreen)
+            Logger.Write('ExpandCollapseState.' + _GetDictKeyName(ExpandCollapseState.__dict__, pt.ExpandCollapseState), ConsoleColor.DarkGreen)
         elif isinstance(pt, ScrollPattern):
             Logger.Write('    ScrollPattern.HorizontalScrollPercent: ')
             Logger.Write(pt.HorizontalScrollPercent, ConsoleColor.DarkGreen)
@@ -7882,8 +8115,7 @@ def FindControl(control: Control, compare: Callable[[Control, int], bool], maxDe
 
 def ShowDesktop(waitTime: float = 1) -> None:
     """Show Desktop by pressing win + d"""
-    SendKeys('{Win}d')
-    time.sleep(waitTime)
+    SendKeys('{Win}d', waitTime=waitTime)
     #another implement
     #paneTray = PaneControl(searchDepth = 1, ClassName = 'Shell_TrayWnd')
     #if paneTray.Exists():
@@ -7933,8 +8165,6 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
     uiautomation.RunByHotKey({(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : main}
                         , (uiautomation.ModifierKey.Control | uiautomation.ModifierKey.Shift, uiautomation.Keys.VK_2))
     """
-    import traceback
-
     def getModName(theDict, theValue):
         name = ''
         for key in theDict:
@@ -7943,11 +8173,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
                     name += '|'
                 name += key
         return name
-    def getKeyName(theDict, theValue):
-        for key in theDict:
-            if theValue == theDict[key]:
-                return key
-    def releaseAllKey():
+    def releaseAllKeys():
         for key, value in Keys.__dict__.items():
             if isinstance(value, int) and key.startswith('VK'):
                 if IsKeyPressed(value):
@@ -7962,7 +8188,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
                 ex.__class__.__name__, hotkeyName), writeToFile=False)
             print(traceback.format_exc())
         finally:
-            releaseAllKey()  #need to release keys if some keys were pressed
+            releaseAllKeys()  #need to release keys if some keys were pressed
             Logger.ColorfullyWrite('{} for function <Color=DarkCyan>{}</Color> exits, hotkey <Color=DarkCyan>{}</Color>\n'.format(
                 threading.currentThread(), function.__name__, hotkeyName), ConsoleColor.DarkYellow, writeToFile=False)
 
@@ -7979,7 +8205,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
         id2Function[hotKeyId] = keyFunctions[hotkey]
         id2Thread[hotKeyId] = None
         modName = getModName(ModifierKey.__dict__, hotkey[0])
-        keyName = getKeyName(Keys.__dict__, hotkey[1])
+        keyName = _GetDictKeyName(Keys.__dict__, hotkey[1])
         id2Name[hotKeyId] = str((modName, keyName))
         if ctypes.windll.user32.RegisterHotKey(0, hotKeyId, hotkey[0], hotkey[1]):
             Logger.ColorfullyWrite('Register hotkey <Color=Cyan>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
@@ -7989,7 +8215,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
         hotKeyId += 1
     if stopHotKey and len(stopHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, stopHotKey[0])
-        keyName = getKeyName(Keys.__dict__, stopHotKey[1])
+        keyName = _GetDictKeyName(Keys.__dict__, stopHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, stopHotKeyId, stopHotKey[0], stopHotKey[1]):
             Logger.ColorfullyWrite('Register stop hotkey <Color=DarkYellow>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
         else:
@@ -7999,7 +8225,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
         return
     if exitHotKey and len(exitHotKey) == 2:
         modName = getModName(ModifierKey.__dict__, exitHotKey[0])
-        keyName = getKeyName(Keys.__dict__, exitHotKey[1])
+        keyName = _GetDictKeyName(Keys.__dict__, exitHotKey[1])
         if ctypes.windll.user32.RegisterHotKey(0, exitHotKeyId, exitHotKey[0], exitHotKey[1]):
             Logger.ColorfullyWrite('Register exit hotkey <Color=DarkYellow>{}</Color> successfully\n'.format((modName, keyName)), writeToFile=False)
         else:
