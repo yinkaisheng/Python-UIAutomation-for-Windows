@@ -3350,8 +3350,8 @@ def GetClipboardFormats() -> Dict[int, str]:
     The key is a int value in class `ClipboardFormat` or othes values that apps registered by ctypes.windll.user32.RegisterClipboardFormatW
     '''
     formats = {}
+    _ClipboardLock.acquire()
     try:
-        _ClipboardLock.acquire()
         if _OpenClipboard(0):
             formatType = 0
             arrayType = ctypes.c_wchar * 64
@@ -3374,8 +3374,8 @@ def GetClipboardFormats() -> Dict[int, str]:
 
 
 def GetClipboardText() -> str:
+    _ClipboardLock.acquire()
     try:
-        _ClipboardLock.acquire()
         if _OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_UNICODETEXT):
                 hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_UNICODETEXT)
@@ -3396,8 +3396,8 @@ def SetClipboardText(text: str) -> bool:
     Return bool, True if succeed otherwise False.
     """
     ret = False
+    _ClipboardLock.acquire()
     try:
-        _ClipboardLock.acquire()
         if _OpenClipboard(0):
             ctypes.windll.user32.EmptyClipboard()
             textByteLen = (len(text) + 1) * 2
@@ -3419,8 +3419,8 @@ def SetClipboardText(text: str) -> bool:
 
 
 def GetClipboardHtml() -> str:
+    _ClipboardLock.acquire()
     try:
-        _ClipboardLock.acquire()
         if _OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_HTML):
                 hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_HTML)
@@ -3454,8 +3454,8 @@ def SetClipboardHtml(htmlText: str, srcUrl:str='') -> bool:
     formatText = formatText.replace('EndFragment:00000000', 'EndFragment:{:08}'.format(endFragment))
     text = formatText.format(htmlText)
     ret = False
+    _ClipboardLock.acquire()
     try:
-        _ClipboardLock.acquire()
         if _OpenClipboard(0):
             ctypes.windll.user32.EmptyClipboard()
             u8bytes = text.encode('utf-8')
@@ -3477,8 +3477,8 @@ def SetClipboardHtml(htmlText: str, srcUrl:str='') -> bool:
 
 
 def GetClipboardBitmap() -> Bitmap:
+    _ClipboardLock.acquire()
     try:
-        _ClipboardLock.acquire()
         if _OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_BITMAP):
                 hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_BITMAP)
@@ -3498,8 +3498,8 @@ def SetClipboardBitmap(bitmap:Bitmap) -> bool:
     Return bool, True if succeed otherwise False.
     """
     ret = False
+    _ClipboardLock.acquire()
     try:
-        _ClipboardLock.acquire()
         if bitmap._bitmap and _OpenClipboard(0):
             ctypes.windll.user32.EmptyClipboard()
             hBitmap = _DllClient.instance().dll.BitmapToHBITMAP(bitmap._bitmap, 0xFFFFFFFF)
