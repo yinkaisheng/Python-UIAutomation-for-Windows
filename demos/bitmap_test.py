@@ -8,6 +8,7 @@ import subprocess
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
 
+
 def main():
     width = 500
     height = 500
@@ -18,32 +19,40 @@ def main():
 
     cmdWindow.SetActive()
     auto.Logger.WriteLine('create a blue image')
-    start = time.time()
+    start = auto.ProcessTime()
     for x in range(width):
         for y in range(height):
             argb = 0x0000FF | ((255 * x // 500) << 24)
             bitmap.SetPixelColor(x, y, argb)
-    cost = time.time() - start
+    cost = auto.ProcessTime() - start
     auto.Logger.WriteLine('write {}x{} image by SetPixelColor cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_blue.png')
 
-    start = time.time()
+    start = auto.ProcessTime()
     for x in range(width):
         for y in range(height):
             bitmap.GetPixelColor(x, y)
-    cost = time.time() - start
+    cost = auto.ProcessTime() - start
     auto.Logger.WriteLine('read {}x{} image by GetPixelColor cost {:.3f}s'.format(width, height, cost))
 
     argb = [(0xFF0000 | (0x0000FF * y // height) | ((255 * x // width) << 24)) for x in range(width) for y in range(height)]
-    start = time.time()
+    start = auto.ProcessTime()
     bitmap.SetPixelColorsOfRect(0, 0, width, height, argb)
-    cost = time.time() - start
+    cost = auto.ProcessTime() - start
     auto.Logger.WriteLine('write {}x{} image by SetPixelColorsOfRect cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_red.png')
 
-    start = time.time()
+    arrayType = auto.ctypes.c_uint32 * (width * height)
+    nativeArray = arrayType(*argb)
+    start = auto.ProcessTime()
+    bitmap.SetPixelColorsOfRectByNativeArray(0, 0, width, height, nativeArray)
+    cost = auto.ProcessTime() - start
+    auto.Logger.WriteLine('write {}x{} image by SetPixelColorsOfRectByNativeArray cost {:.3f}s'.format(width, height, cost))
+    bitmap.ToFile('image_red2.png')
+
+    start = auto.ProcessTime()
     colors = bitmap.GetAllPixelColors()
-    cost = time.time() - start
+    cost = auto.ProcessTime() - start
     auto.Logger.WriteLine('read {}x{} image by GetAllPixelColors cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_red.png')
     bitmap.ToFile('image_red.jpg')
@@ -56,9 +65,9 @@ def main():
 
     width, height = 100, 100
     colors = bitmap.GetPixelColorsOfRects([(0, 0, width, height), (100, 100, width, height), (200, 200, width, height)])
-    for i, cols in enumerate(colors):
+    for i, nativeArray in enumerate(colors):
         bitmap = auto.Bitmap(width, height)
-        bitmap.SetPixelColorsOfRect(0, 0, width, height, cols)
+        bitmap.SetPixelColorsOfRectByNativeArray(0, 0, width, height, nativeArray)
         bitmap.ToFile('desk_part{}.png'.format(i))
 
 
