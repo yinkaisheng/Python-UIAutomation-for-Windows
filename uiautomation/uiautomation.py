@@ -17,7 +17,6 @@ import sys
 import time
 import datetime
 import re
-import traceback
 import threading
 import ctypes
 import ctypes.wintypes
@@ -3350,8 +3349,7 @@ def GetClipboardFormats() -> Dict[int, str]:
     The key is a int value in class `ClipboardFormat` or othes values that apps registered by ctypes.windll.user32.RegisterClipboardFormatW
     '''
     formats = {}
-    _ClipboardLock.acquire()
-    try:
+    with _ClipboardLock:
         if _OpenClipboard(0):
             formatType = 0
             arrayType = ctypes.c_wchar * 64
@@ -3366,16 +3364,11 @@ def GetClipboardFormats() -> Dict[int, str]:
                     formatName = _GetDictKeyName(ClipboardFormat.__dict__, formatType, 'CF_')
                 formats[formatType] = formatName
             ctypes.windll.user32.CloseClipboard()
-    except Exception as ex:
-        print(ex, '\n', traceback.format_exc())
-    finally:
-        _ClipboardLock.release()
     return formats
 
 
 def GetClipboardText() -> str:
-    _ClipboardLock.acquire()
-    try:
+    with _ClipboardLock:
         if _OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_UNICODETEXT):
                 hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_UNICODETEXT)
@@ -3384,10 +3377,6 @@ def GetClipboardText() -> str:
                 ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
                 ctypes.windll.user32.CloseClipboard()
                 return text
-    except Exception as ex:
-        print(ex, '\n', traceback.format_exc())
-    finally:
-        _ClipboardLock.release()
     return ''
 
 
@@ -3396,8 +3385,7 @@ def SetClipboardText(text: str) -> bool:
     Return bool, True if succeed otherwise False.
     """
     ret = False
-    _ClipboardLock.acquire()
-    try:
+    with _ClipboardLock:
         if _OpenClipboard(0):
             ctypes.windll.user32.EmptyClipboard()
             textByteLen = (len(text) + 1) * 2
@@ -3411,16 +3399,17 @@ def SetClipboardText(text: str) -> bool:
                 ret = True
             ctypes.windll.user32.CloseClipboard()
             ctypes.windll.kernel32.GlobalFree(ctypes.c_void_p(hClipboardData))
-    except Exception as ex:
-        print(ex, '\n', traceback.format_exc())
-    finally:
-        _ClipboardLock.release()
     return ret
 
 
 def GetClipboardHtml() -> str:
-    _ClipboardLock.acquire()
-    try:
+    """
+    Return str.
+    Note: the postions(StartHTML, EndHTML ...) are valid for utf-8 encoding html text,
+        when the utf-8 encoding html text is decoded to Python str,
+        the postions may not correspond to the actual locations in the returned str.
+    """
+    with _ClipboardLock:
         if _OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_HTML):
                 hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_HTML)
@@ -3429,39 +3418,33 @@ def GetClipboardHtml() -> str:
                 ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
                 ctypes.windll.user32.CloseClipboard()
                 return text
-    except Exception as ex:
-        print(ex, '\n', traceback.format_exc())
-    finally:
-        _ClipboardLock.release()
     return ''
 
 
-def SetClipboardHtml(htmlText: str, srcUrl:str='') -> bool:
+def SetClipboardHtml(htmlText: str) -> bool:
     """
     htmlText: str, such as '<h1>Title</h1><h3>Hello</h3><p>hello world</p>'
     Return bool, True if succeed otherwise False.
     Refer: https://docs.microsoft.com/en-us/troubleshoot/cpp/add-html-code-clipboard
     """
-    formatText = 'Version:0.9\r\nStartHTML:00000000\r\nEndHTML:00000000\r\nStartFragment:00000000\r\nEndFragment:00000000\r\nSourceURL:{}\r\n<html>\r\n<body>\r\n<!--StartFragment-->{}<!--EndFragment-->\r\n</body>\r\n</html>'
-    formatText = formatText.format(srcUrl, '{}')
-    startHtml = formatText.find('<html>')
-    endHtml = len(formatText) + len(htmlText) - 2
-    startFragment = formatText.find('{}')
-    endFragment = formatText.find('<!--EndFragment-->') + len(htmlText) - 2
-    formatText = formatText.replace('StartHTML:00000000', 'StartHTML:{:08}'.format(startHtml))
-    formatText = formatText.replace('EndHTML:00000000', 'EndHTML:{:08}'.format(endHtml))
-    formatText = formatText.replace('StartFragment:00000000', 'StartFragment:{:08}'.format(startFragment))
-    formatText = formatText.replace('EndFragment:00000000', 'EndFragment:{:08}'.format(endFragment))
-    text = formatText.format(htmlText)
+    u8Html = htmlText.encode('utf-8')
+    formatBytes = b'Version:0.9\r\nStartHTML:00000000\r\nEndHTML:00000000\r\nStartFragment:00000000\r\nEndFragment:00000000\r\n<html>\r\n<body>\r\n<!--StartFragment-->{}<!--EndFragment-->\r\n</body>\r\n</html>'
+    startHtml = formatBytes.find(b'<html>')
+    endHtml = len(formatBytes) + len(u8Html) - 2
+    startFragment = formatBytes.find(b'{}')
+    endFragment = formatBytes.find(b'<!--EndFragment-->') + len(u8Html) - 2
+    formatBytes = formatBytes.replace(b'StartHTML:00000000', 'StartHTML:{:08}'.format(startHtml).encode('utf-8'))
+    formatBytes = formatBytes.replace(b'EndHTML:00000000', 'EndHTML:{:08}'.format(endHtml).encode('utf-8'))
+    formatBytes = formatBytes.replace(b'StartFragment:00000000', 'StartFragment:{:08}'.format(startFragment).encode('utf-8'))
+    formatBytes = formatBytes.replace(b'EndFragment:00000000', 'EndFragment:{:08}'.format(endFragment).encode('utf-8'))
+    u8Result = formatBytes.replace(b'{}', u8Html)
     ret = False
-    _ClipboardLock.acquire()
-    try:
+    with _ClipboardLock:
         if _OpenClipboard(0):
             ctypes.windll.user32.EmptyClipboard()
-            u8bytes = text.encode('utf-8')
-            hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0x2002, len(u8bytes) + 4)  # GMEM_MOVEABLE |GMEM_DDESHARE
+            hClipboardData = ctypes.windll.kernel32.GlobalAlloc(0x2002, len(u8Result) + 4)  # GMEM_MOVEABLE |GMEM_DDESHARE
             hDestText = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipboardData))
-            ctypes.cdll.msvcrt.strncpy(ctypes.c_char_p(hDestText), ctypes.c_char_p(u8bytes), len(u8bytes))
+            ctypes.cdll.msvcrt.strncpy(ctypes.c_char_p(hDestText), ctypes.c_char_p(u8Result), len(u8Result))
             ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipboardData))
             # system owns hClipboardData after calling SetClipboardData,
             # application can not write to or free the data once ownership has been transferred to the system
@@ -3469,16 +3452,11 @@ def SetClipboardHtml(htmlText: str, srcUrl:str='') -> bool:
                 ret = True
             ctypes.windll.user32.CloseClipboard()
             ctypes.windll.kernel32.GlobalFree(ctypes.c_void_p(hClipboardData))
-    except Exception as ex:
-        print(ex, '\n', traceback.format_exc())
-    finally:
-        _ClipboardLock.release()
     return ret
 
 
 def GetClipboardBitmap() -> Bitmap:
-    _ClipboardLock.acquire()
-    try:
+    with _ClipboardLock:
         if _OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_BITMAP):
                 hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_BITMAP)
@@ -3487,10 +3465,6 @@ def GetClipboardBitmap() -> Bitmap:
                 bitmap._getsize()
                 ctypes.windll.user32.CloseClipboard()
                 return bitmap
-    except Exception as ex:
-        print(ex, '\n', traceback.format_exc())
-    finally:
-        _ClipboardLock.release()
 
 
 def SetClipboardBitmap(bitmap:Bitmap) -> bool:
@@ -3498,8 +3472,7 @@ def SetClipboardBitmap(bitmap:Bitmap) -> bool:
     Return bool, True if succeed otherwise False.
     """
     ret = False
-    _ClipboardLock.acquire()
-    try:
+    with _ClipboardLock:
         if bitmap._bitmap and _OpenClipboard(0):
             ctypes.windll.user32.EmptyClipboard()
             hBitmap = _DllClient.instance().dll.BitmapToHBITMAP(bitmap._bitmap, 0xFFFFFFFF)
@@ -3522,10 +3495,6 @@ def SetClipboardBitmap(bitmap:Bitmap) -> bool:
                 ret = True
             ctypes.windll.user32.CloseClipboard()
             ctypes.windll.gdi32.DeleteObject(ctypes.c_void_p(hBitmap2))
-    except Exception as ex:
-        print(ex, '\n', traceback.format_exc())
-    finally:
-        _ClipboardLock.release()
     return ret
 
 
@@ -8165,6 +8134,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
     uiautomation.RunByHotKey({(uiautomation.ModifierKey.Control, uiautomation.Keys.VK_1) : main}
                         , (uiautomation.ModifierKey.Control | uiautomation.ModifierKey.Shift, uiautomation.Keys.VK_2))
     """
+    import traceback
     def getModName(theDict, theValue):
         name = ''
         for key in theDict:
