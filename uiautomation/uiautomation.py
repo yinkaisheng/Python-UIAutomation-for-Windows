@@ -3201,6 +3201,7 @@ class Bitmap:
         count: int.
         Return `ctypes.Array`, an iterable array of int values in argb form point x,y horizontally.
         """
+        #assert count <= self.Width - x + (self.Height - y - 1) * self.Width, 'count > max available from x,y'
         arrayType = ctypes.c_uint32 * count
         values = arrayType()
         _DllClient.instance().dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
@@ -3215,6 +3216,7 @@ class Bitmap:
         Return bool, True if succeed otherwise False.
         """
         count = len(colors)
+        #assert count <= self.Width - x + (self.Height - y - 1) * self.Width, 'len(colors) > max available from x,y'
         arrayType = ctypes.c_uint32 * count
         values = arrayType(*colors)
         return _DllClient.instance().dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
@@ -3226,6 +3228,7 @@ class Bitmap:
         count: int.
         Return `ctypes.Array`, an iterable array of int values in argb form point x,y vertically.
         """
+        #assert count <= self.Height - y + (self.Width - x - 1) * self.Height, 'count > max available from x,y'
         arrayType = ctypes.c_uint32 * count
         values = arrayType()
         _DllClient.instance().dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
@@ -3240,6 +3243,7 @@ class Bitmap:
         Return bool, True if succeed otherwise False.
         """
         count = len(colors)
+        #assert count <= self.Height - y + (self.Width - x - 1) * self.Height, 'len(colors) > max available from x,y'
         arrayType = ctypes.c_uint32 * count
         values = arrayType(*colors)
         return _DllClient.instance().dll.BitmapSetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
@@ -3280,29 +3284,29 @@ class Bitmap:
         colors: Iterable[int], an iterable list of int values in argb, it's length must equal to width*height.
         Return bool.
         """
+        #assert len(colors) == width * height, 'len(colors) != width * height'
         arrayType = ctypes.c_uint32 * (width * height)
         values = arrayType(*colors)
         return bool(_DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, values))
+
+    def SetPixelColorsOfRectByNativeArray(self, x: int, y: int, width: int, height: int, nativeArray: ctypes.Array) -> bool:
+        """
+        x: int.
+        y: int.
+        width: int.
+        height: int.
+        nativeArray: ctypes.Array, such as 'ctypes.c_uint32 * (width * height)', it's length must equal to width*height.
+        Return bool.
+        """
+        #assert len(nativeArray) == width * height, 'len(nativeArray) != width * height'
+        return bool(_DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, nativeArray))
 
     def GetPixelColorsOfRects(self, rects: List[Tuple[int, int, int, int]]) -> List[ctypes.Array]:
         """
         rects: List[Tuple[int, int, int, int]], such as [(0,0,10,10), (10,10,20,20), (x,y,width,height)].
         Return List[ctypes.Array], a list whose elements are ctypes.Array which is an iterable array of int values in argb.
         """
-        rects2 = [(x, y, x + width, y + height) for x, y, width, height in rects]
-        left, top, right, bottom = zip(*rects2)
-        left, top, right, bottom = min(left), min(top), max(right), max(bottom)
-        width, height = right - left, bottom - top
-        allColors = self.GetPixelColorsOfRect(left, top, width, height)
-        colorsOfRects = []
-        for x, y, w, h in rects:
-            x -= left
-            y -= top
-            colors = []
-            for row in range(h):
-                colors.extend(allColors[(y + row) * width + x:(y + row) * width + x + w])
-            colorsOfRects.append(colors)
-        return colorsOfRects
+        return [self.GetPixelColorsOfRect(x, y, width, height) for x, y, width, height in rects]
 
     def GetAllPixelColors(self) -> ctypes.Array:
         """
@@ -3318,9 +3322,9 @@ class Bitmap:
         height: int.
         Return `Bitmap`, a sub bitmap of the input rect.
         """
-        colors = self.GetPixelColorsOfRect(x, y, width, height)
+        nativeArray = self.GetPixelColorsOfRect(x, y, width, height)
         bitmap = Bitmap(width, height)
-        bitmap.SetPixelColorsOfRect(0, 0, width, height, colors)
+        bitmap.SetPixelColorsOfRectByNativeArray(0, 0, width, height, nativeArray)
         return bitmap
 
     def __str__(self) -> str:
