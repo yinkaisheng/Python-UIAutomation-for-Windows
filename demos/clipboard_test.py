@@ -44,7 +44,7 @@ def main():
     auto.InputColorfully('paused, press Enter to test <Color=Cyan>SetClipboardText</Color>', auto.ConsoleColor.Green)
     auto.SetClipboardText('Hello World')
     auto.InputColorfully('<Color=Yellow>You can paste it in Office Word now.</Color>\npaused, press Enter to test <Color=Cyan>SetClipboardHtml</Color>')
-    auto.SetClipboardHtml(htmlText='<h1>Title</h1><br><h3>Hello</h3><br><p>test html</p><br>', srcUrl='https://www.bing.com'),
+    auto.SetClipboardHtml('<h1>Title</h1><br><h3>Hello</h3><br><p>test html</p><br>'),
     auto.InputColorfully('<Color=Yellow>You can paste it in Office Word now.</Color>\npaused, press Enter to test <Color=Cyan>SetClipboardBitmap</Color>')
     c = auto.ControlFromCursor()
     bmp = c.ToBitmap()
