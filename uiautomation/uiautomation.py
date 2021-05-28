@@ -3401,8 +3401,9 @@ def SetClipboardText(text: str) -> bool:
             # application can not write to or free the data once ownership has been transferred to the system
             if ctypes.windll.user32.SetClipboardData(ctypes.c_uint(ClipboardFormat.CF_UNICODETEXT), ctypes.c_void_p(hClipboardData)):
                 ret = True
+            else:
+                ctypes.windll.kernel32.GlobalFree(ctypes.c_void_p(hClipboardData))
             ctypes.windll.user32.CloseClipboard()
-            ctypes.windll.kernel32.GlobalFree(ctypes.c_void_p(hClipboardData))
     return ret
 
 
@@ -3454,8 +3455,9 @@ def SetClipboardHtml(htmlText: str) -> bool:
             # application can not write to or free the data once ownership has been transferred to the system
             if ctypes.windll.user32.SetClipboardData(ctypes.c_uint(ClipboardFormat.CF_HTML), ctypes.c_void_p(hClipboardData)):
                 ret = True
+            else:
+                ctypes.windll.kernel32.GlobalFree(ctypes.c_void_p(hClipboardData))
             ctypes.windll.user32.CloseClipboard()
-            ctypes.windll.kernel32.GlobalFree(ctypes.c_void_p(hClipboardData))
     return ret
 
 
@@ -3497,8 +3499,9 @@ def SetClipboardBitmap(bitmap:Bitmap) -> bool:
             # application can not write to or free the data once ownership has been transferred to the system
             if ctypes.windll.user32.SetClipboardData(ctypes.c_uint(ClipboardFormat.CF_BITMAP), ctypes.c_void_p(hBitmap2)):
                 ret = True
+            else:
+                ctypes.windll.gdi32.DeleteObject(ctypes.c_void_p(hBitmap2))
             ctypes.windll.user32.CloseClipboard()
-            ctypes.windll.gdi32.DeleteObject(ctypes.c_void_p(hBitmap2))
     return ret
 
 
