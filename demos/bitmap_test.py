@@ -39,15 +39,15 @@ def main():
     start = auto.ProcessTime()
     bitmap.SetPixelColorsOfRect(0, 0, width, height, argb)
     cost = auto.ProcessTime() - start
-    auto.Logger.WriteLine('write {}x{} image by SetPixelColorsOfRect cost {:.3f}s'.format(width, height, cost))
+    auto.Logger.WriteLine('write {}x{} image by SetPixelColorsOfRect with List[int] cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_red.png')
 
     arrayType = auto.ctypes.c_uint32 * (width * height)
     nativeArray = arrayType(*argb)
     start = auto.ProcessTime()
-    bitmap.SetPixelColorsOfRectByNativeArray(0, 0, width, height, nativeArray)
+    bitmap.SetPixelColorsOfRect(0, 0, width, height, nativeArray)
     cost = auto.ProcessTime() - start
-    auto.Logger.WriteLine('write {}x{} image by SetPixelColorsOfRectByNativeArray cost {:.3f}s'.format(width, height, cost))
+    auto.Logger.WriteLine('write {}x{} image by SetPixelColorsOfRect with native array cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_red2.png')
 
     start = auto.ProcessTime()
@@ -67,7 +67,7 @@ def main():
     colors = bitmap.GetPixelColorsOfRects([(0, 0, width, height), (100, 100, width, height), (200, 200, width, height)])
     for i, nativeArray in enumerate(colors):
         bitmap = auto.Bitmap(width, height)
-        bitmap.SetPixelColorsOfRectByNativeArray(0, 0, width, height, nativeArray)
+        bitmap.SetPixelColorsOfRect(0, 0, width, height, nativeArray)
         bitmap.ToFile('desk_part{}.png'.format(i))
 
 

@@ -3201,7 +3201,7 @@ class Bitmap:
         count: int.
         Return `ctypes.Array`, an iterable array of int values in argb form point x,y horizontally.
         """
-        #assert count <= self.Width - x + (self.Height - y - 1) * self.Width, 'count > max available from x,y'
+        #assert count <= self.Width * (self.Height - y) - x, 'count > max available from x,y'
         arrayType = ctypes.c_uint32 * count
         values = arrayType()
         _DllClient.instance().dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
@@ -3212,14 +3212,16 @@ class Bitmap:
         Set pixel colors form x,y horizontally.
         x: int.
         y: int.
-        colors: Iterable[int], an iterable list of int color values in argb.
+        colors: Iterable[int], an iterable list of int color values in argb,
+            use ctypes.Array for best performance, such as `ctypes.c_uint32 * length`.
         Return bool, True if succeed otherwise False.
         """
         count = len(colors)
-        #assert count <= self.Width - x + (self.Height - y - 1) * self.Width, 'len(colors) > max available from x,y'
-        arrayType = ctypes.c_uint32 * count
-        values = arrayType(*colors)
-        return _DllClient.instance().dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
+        #assert count <= self.Width * (self.Height - y) - x, 'len(colors) > max available from x,y'
+        if not isinstance(colors, ctypes.Array):
+            arrayType = ctypes.c_uint32 * count
+            colors = arrayType(*colors)
+        return _DllClient.instance().dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, colors, count)
 
     def GetPixelColorsVertically(self, x: int, y: int, count: int) -> ctypes.Array:
         """
@@ -3228,7 +3230,7 @@ class Bitmap:
         count: int.
         Return `ctypes.Array`, an iterable array of int values in argb form point x,y vertically.
         """
-        #assert count <= self.Height - y + (self.Width - x - 1) * self.Height, 'count > max available from x,y'
+        #assert count <= self.Height * (self.Width - x) - y, 'count > max available from x,y'
         arrayType = ctypes.c_uint32 * count
         values = arrayType()
         _DllClient.instance().dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
@@ -3239,14 +3241,16 @@ class Bitmap:
         Set pixel colors form x,y vertically.
         x: int.
         y: int.
-        colors: Iterable[int], an iterable list of int color values in argb.
+        colors: Iterable[int], an iterable list of int color values in argb,
+            use ctypes.Array for best performance, such as `ctypes.c_uint32 * length`.
         Return bool, True if succeed otherwise False.
         """
         count = len(colors)
-        #assert count <= self.Height - y + (self.Width - x - 1) * self.Height, 'len(colors) > max available from x,y'
-        arrayType = ctypes.c_uint32 * count
-        values = arrayType(*colors)
-        return _DllClient.instance().dll.BitmapSetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
+        #assert count <= self.Height * (self.Width - x) - y, 'len(colors) > max available from x,y'
+        if not isinstance(colors, ctypes.Array):
+            arrayType = ctypes.c_uint32 * count
+            colors = arrayType(*colors)
+        return _DllClient.instance().dll.BitmapSetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, colors, count)
 
     def GetPixelColorsOfRow(self, y: int) -> ctypes.Array:
         """
@@ -3281,25 +3285,15 @@ class Bitmap:
         y: int.
         width: int.
         height: int.
-        colors: Iterable[int], an iterable list of int values in argb, it's length must equal to width*height.
+        colors: Iterable[int], an iterable list of int values in argb, it's length must equal to width*height,
+            use ctypes.Array for best performance, such as `ctypes.c_uint32 * (width*height)`.
         Return bool.
         """
         #assert len(colors) == width * height, 'len(colors) != width * height'
-        arrayType = ctypes.c_uint32 * (width * height)
-        values = arrayType(*colors)
-        return bool(_DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, values))
-
-    def SetPixelColorsOfRectByNativeArray(self, x: int, y: int, width: int, height: int, nativeArray: ctypes.Array) -> bool:
-        """
-        x: int.
-        y: int.
-        width: int.
-        height: int.
-        nativeArray: ctypes.Array, such as 'ctypes.c_uint32 * (width * height)', it's length must equal to width*height.
-        Return bool.
-        """
-        #assert len(nativeArray) == width * height, 'len(nativeArray) != width * height'
-        return bool(_DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, nativeArray))
+        if not isinstance(colors, ctypes.Array):        
+            arrayType = ctypes.c_uint32 * (width * height)
+            colors = arrayType(*colors)
+        return bool(_DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, colors))
 
     def GetPixelColorsOfRects(self, rects: List[Tuple[int, int, int, int]]) -> List[ctypes.Array]:
         """
@@ -3324,7 +3318,7 @@ class Bitmap:
         """
         nativeArray = self.GetPixelColorsOfRect(x, y, width, height)
         bitmap = Bitmap(width, height)
-        bitmap.SetPixelColorsOfRectByNativeArray(0, 0, width, height, nativeArray)
+        bitmap.SetPixelColorsOfRect(0, 0, width, height, nativeArray)
         return bitmap
 
     def __str__(self) -> str:
