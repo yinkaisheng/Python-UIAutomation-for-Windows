@@ -20,7 +20,7 @@ import re
 import threading
 import ctypes
 import ctypes.wintypes
-import comtypes #need 'pip install comtypes'
+import comtypes  # need 'pip install comtypes'
 import comtypes.client
 from typing import (Any, Callable, Dict, List, Iterable, Tuple)  # need 'pip install typing' for Python3.4 or lower
 TreeNode = Any
@@ -38,7 +38,7 @@ DEBUG_EXIST_DISAPPEAR = False
 S_OK = 0
 
 IsNT6orHigher = os.sys.getwindowsversion().major >= 6
-ProcessTime = time.perf_counter  #this returns nearly 0 when first call it if python version <= 3.6
+ProcessTime = time.perf_counter  # this returns nearly 0 when first call it if python version <= 3.6
 ProcessTime()  # need to call it once if python version <= 3.6
 
 
@@ -67,7 +67,7 @@ class _AutomationClient:
 1, You may need to install Windows Update KB971513 if your OS is Windows XP, see https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation
 2, you need to use an UIAutomationInitializerInThread object in a thread, see demos/uiautomation_in_thread.py''', ConsoleColor.Yellow)
                     raise ex
-        #Windows dll
+        # Windows dll
         ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
         ctypes.windll.user32.GetDC.restype = ctypes.c_void_p
         ctypes.windll.user32.GetForegroundWindow.restype = ctypes.c_void_p
@@ -134,6 +134,7 @@ class _DllClient:
         else:
             self.dll = None
             Logger.WriteLine('Can not load dll.\nFunctionalities related to Bitmap are not available.\nYou may need to install Microsoft Visual C++ 2015 Redistributable Package.', ConsoleColor.Yellow)
+
     def __del__(self):
         if self.dll:
             self.dll.Uninitialize()
@@ -935,6 +936,7 @@ class TextPatternRangeEndpoint:
     Start = 0
     End = 1
 
+
 class TextAttributeId:
     """
     TextAttributeId from IUIAutomation.
@@ -1172,7 +1174,7 @@ class MB:
     ApplModal = 0x00000000
     SystemModal = 0x00001000
     TaskModal = 0x00002000
-    Help = 0x00004000 # help button
+    Help = 0x00004000  # help button
     NoFocus = 0x00008000
     SetForeground = 0x00010000
     DefaultDesktopOnly = 0x00020000
@@ -1695,6 +1697,7 @@ class Rect():
     """
     class Rect, like `ctypes.wintypes.RECT`.
     """
+
     def __init__(self, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0):
         self.left = left
         self.top = top
@@ -1713,8 +1716,21 @@ class Rect():
     def ycenter(self) -> int:
         return self.top + self.height() // 2
 
+    def isempty(self) -> int:
+        return self.width() == 0 or self.height() == 0
+
     def contains(self, x: int, y: int) -> bool:
         return self.left <= x < self.right and self.top <= y < self.bottom
+
+    def intersect(self, rect: 'Rect') -> 'Rect':
+        left, top, right, bottom = max(self.left, rect.left), max(self.top, rect.top), min(self.right, rect.right), min(self.bottom, rect.bottom)
+        return Rect(left, top, right, bottom)
+
+    def offset(self, x: int, y: int) -> None:
+        self.left += x
+        self.right += x
+        self.top += y
+        self.bottom += y
 
     def __eq__(self, rect):
         return self.left == rect.left and self.top == rect.top and self.right == rect.right and self.bottom == rect.bottom
@@ -1748,8 +1764,8 @@ class ClipboardFormat:
     CF_HTML = ctypes.windll.user32.RegisterClipboardFormatW("HTML Format")
 
 
-def _GetDictKeyName(theDict:Dict, theValue:Any, start:str=None) -> str:
-    for key,value in theDict.items():
+def _GetDictKeyName(theDict: Dict, theValue: Any, start: str = None) -> str:
+    for key, value in theDict.items():
         if theValue == value and ((start and key.startswith(start)) or True):
             return key
     return ''
@@ -2075,7 +2091,7 @@ def WheelDown(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPE
     waitTime: float.
     """
     for i in range(wheelTimes):
-        mouse_event(MouseEventFlag.Wheel, 0, 0, -120, 0)    #WHEEL_DELTA=120
+        mouse_event(MouseEventFlag.Wheel, 0, 0, -120, 0)  # WHEEL_DELTA=120
         time.sleep(interval)
     time.sleep(waitTime)
 
@@ -2088,7 +2104,7 @@ def WheelUp(wheelTimes: int = 1, interval: float = 0.05, waitTime: float = OPERA
     waitTime: float.
     """
     for i in range(wheelTimes):
-        mouse_event(MouseEventFlag.Wheel, 0, 0, 120, 0) #WHEEL_DELTA=120
+        mouse_event(MouseEventFlag.Wheel, 0, 0, 120, 0)  # WHEEL_DELTA=120
         time.sleep(interval)
     time.sleep(waitTime)
 
@@ -2122,6 +2138,7 @@ def GetMonitorsRect() -> List[Rect]:
     """
     MonitorEnumProc = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_size_t, ctypes.c_size_t, ctypes.POINTER(ctypes.wintypes.RECT), ctypes.c_size_t)
     rects = []
+
     def MonitorCallback(hMonitor: int, hdcMonitor: int, lprcMonitor: ctypes.POINTER(ctypes.wintypes.RECT), dwData: int):
         rect = Rect(lprcMonitor.contents.left, lprcMonitor.contents.top, lprcMonitor.contents.right, lprcMonitor.contents.bottom)
         rects.append(rect)
@@ -2186,7 +2203,7 @@ def SwitchToThisWindow(handle: int) -> None:
     SwitchToThisWindow from Win32.
     handle: int, the handle of a native window.
     """
-    ctypes.windll.user32.SwitchToThisWindow(ctypes.c_void_p(handle), ctypes.c_int(1)) #void function, no return
+    ctypes.windll.user32.SwitchToThisWindow(ctypes.c_void_p(handle), ctypes.c_int(1))  # void function, no return
 
 
 def GetAncestor(handle: int, flag: int) -> int:
@@ -2335,10 +2352,10 @@ def GetEditText(handle: int) -> str:
     handle: int, the handle of a native window.
     Return str.
     """
-    textLen = SendMessage(handle, 0x000E, 0, 0) + 1  #WM_GETTEXTLENGTH
+    textLen = SendMessage(handle, 0x000E, 0, 0) + 1  # WM_GETTEXTLENGTH
     arrayType = ctypes.c_wchar * textLen
     values = arrayType()
-    SendMessage(handle, 0x000D, textLen, values)  #WM_GETTEXT
+    SendMessage(handle, 0x000D, textLen, values)  # WM_GETTEXT
     return values.value
 
 
@@ -2430,14 +2447,14 @@ def IsProcess64Bit(processId: int) -> bool:
     Return None if unknown, maybe caused by having no acess right to the process.
     """
     try:
-        func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  #only 64 bit OS has this function
+        func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  # only 64 bit OS has this function
     except Exception as ex:
         return False
     try:
         IsWow64Process = ctypes.windll.kernel32.IsWow64Process
     except Exception as ex:
         return False
-    hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  #PROCESS_QUERY_INFORMATION=0x0400,PROCESS_QUERY_LIMITED_INFORMATION=0x1000
+    hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  # PROCESS_QUERY_INFORMATION=0x0400,PROCESS_QUERY_LIMITED_INFORMATION=0x1000
     if hProcess:
         is64Bit = ctypes.c_int32()
         if IsWow64Process(ctypes.c_void_p(hProcess), ctypes.byref(is64Bit)):
@@ -2551,12 +2568,12 @@ def SendInput(*inputs) -> int:
     for ip in inputs:
         ret = ctypes.windll.user32.SendInput(1, ctypes.byref(ip), cbSize)
     return ret
-    #or one call
+    # or one call
     #nInputs = len(inputs)
     #LPINPUT = INPUT * nInputs
     #pInputs = LPINPUT(*inputs)
     #cbSize = ctypes.c_int(ctypes.sizeof(INPUT))
-    #return ctypes.windll.user32.SendInput(nInputs, ctypes.byref(pInputs), cbSize)
+    # return ctypes.windll.user32.SendInput(nInputs, ctypes.byref(pInputs), cbSize)
 
 
 def SendUnicodeChar(char: str, charMode: bool = True) -> int:
@@ -2663,7 +2680,7 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
     while True:
         if text[i] == '{':
             rindex = text.find('}', i)
-            if rindex == i + 1:#{}}
+            if rindex == i + 1:  # {}}
                 rindex = text.find('}', i + 2)
             if rindex == -1:
                 raise ValueError('"{" or "{}" is not valid, use "{{}" for "{", use "{}}" for "}"')
@@ -2792,28 +2809,28 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
                         if debug:
                             Logger.Write(', sleep({})\n'.format(interval), writeToFile=False)
                     else:
-                        time.sleep(hotkeyInterval)  #must sleep for a while, otherwise combined keys may not be caught
+                        time.sleep(hotkeyInterval)  # must sleep for a while, otherwise combined keys may not be caught
                         if debug:
                             Logger.Write(', sleep({})\n'.format(hotkeyInterval), writeToFile=False)
-                else:  #KeyboardEventFlag.KeyDown
+                else:  # KeyboardEventFlag.KeyDown
                     time.sleep(hotkeyInterval)
                     if debug:
                         Logger.Write(', sleep({})\n'.format(hotkeyInterval), writeToFile=False)
-    #make sure hold keys are not pressed
+    # make sure hold keys are not pressed
     #win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
     #ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
     #alt = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_MENU)
     #shift = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_SHIFT)
-    #if win & 0x8000:
+    # if win & 0x8000:
         #Logger.WriteLine('ERROR: WIN is pressed, it should not be pressed!', ConsoleColor.Red)
         #keybd_event(Keys.VK_LWIN, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
-    #if ctrl & 0x8000:
+    # if ctrl & 0x8000:
         #Logger.WriteLine('ERROR: CTRL is pressed, it should not be pressed!', ConsoleColor.Red)
         #keybd_event(Keys.VK_CONTROL, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
-    #if alt & 0x8000:
+    # if alt & 0x8000:
         #Logger.WriteLine('ERROR: ALT is pressed, it should not be pressed!', ConsoleColor.Red)
         #keybd_event(Keys.VK_MENU, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
-    #if shift & 0x8000:
+    # if shift & 0x8000:
         #Logger.WriteLine('ERROR: SHIFT is pressed, it should not be pressed!', ConsoleColor.Red)
         #keybd_event(Keys.VK_SHIFT, 0, KeyboardEventFlag.KeyUp | KeyboardEventFlag.ExtendedKey, 0)
     time.sleep(waitTime)
@@ -2953,7 +2970,7 @@ class Logger:
                 if index1 > start:
                     text.append((log[start:index1], consoleColor))
                 index2 = log.find('>', index1)
-                colorName = log[index1+7:index2]
+                colorName = log[index1 + 7:index2]
                 index3 = log.find('</Color>', index2 + 1)
                 text.append((log[index2 + 1:index3], Logger.ColorNames[colorName]))
                 start = index3 + 8
@@ -2996,7 +3013,7 @@ class Logger:
 
         t = datetime.datetime.now()
         log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} {}[{}] {} -> {}\n'.format(t.year, t.month, t.day,
-            t.hour, t.minute, t.second, t.microsecond // 1000, scriptFileName, frame.f_lineno, frame.f_code.co_name, log)
+                                                                                t.hour, t.minute, t.second, t.microsecond // 1000, scriptFileName, frame.f_lineno, frame.f_code.co_name, log)
         Logger.Write(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
@@ -3020,7 +3037,7 @@ class Logger:
 
         t = datetime.datetime.now()
         log = '{}-{:02}-{:02} {:02}:{:02}:{:02}.{:03} {}[{}] {} -> {}\n'.format(t.year, t.month, t.day,
-            t.hour, t.minute, t.second, t.microsecond // 1000, scriptFileName, frame.f_lineno, frame.f_code.co_name, log)
+                                                                                t.hour, t.minute, t.second, t.microsecond // 1000, scriptFileName, frame.f_lineno, frame.f_code.co_name, log)
         Logger.ColorfullyWrite(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
@@ -3034,13 +3051,34 @@ class Logger:
     WriteLineColorfully = ColorfullyWriteLine
 
 
+class RotateFlipType:
+    RotateNoneFlipNone = 0
+    Rotate90FlipNone = 1
+    Rotate180FlipNone = 2
+    Rotate270FlipNone = 3
+    RotateNoneFlipX = 4
+    Rotate90FlipX = 5
+    Rotate180FlipX = 6
+    Rotate270FlipX = 7
+    RotateNoneFlipY = Rotate180FlipX
+    Rotate90FlipY = Rotate270FlipX
+    Rotate180FlipY = RotateNoneFlipX
+    Rotate270FlipY = Rotate90FlipX
+    RotateNoneFlipXY = Rotate180FlipNone
+    Rotate90FlipXY = Rotate270FlipNone
+    Rotate180FlipXY = RotateNoneFlipNone
+    Rotate270FlipXY = Rotate90FlipNone
+
+
 class Bitmap:
     """
     A simple Bitmap class wraps Windows GDI+ Gdiplus::Bitmap, but may not have high efficiency.
+    The color format is ARGB.
     """
+
     def __init__(self, width: int = 0, height: int = 0):
         """
-        Create a black bimap of size(width, height).
+        Create a black transparent(ARGB=0x00000000) bimap of size(width, height).
         """
         self._width = width
         self._height = height
@@ -3049,14 +3087,14 @@ class Bitmap:
             self._bitmap = _DllClient.instance().dll.BitmapCreate(width, height)
 
     def __del__(self):
-        self.Release()
+        self._Release()
 
     def _getsize(self) -> None:
         size = _DllClient.instance().dll.BitmapGetWidthAndHeight(self._bitmap)
         self._width = size & 0xFFFF
         self._height = size >> 16
 
-    def Release(self) -> None:
+    def _Release(self) -> None:
         if self._bitmap:
             _DllClient.instance().dll.BitmapRelease(self._bitmap)
             self._bitmap = 0
@@ -3090,7 +3128,7 @@ class Bitmap:
         left, top, right and bottom are control's internal postion(from 0,0).
         Return bool, True if succeed otherwise False.
         """
-        self.Release()
+        self._Release()
         root = GetRootControl()
         rect = ctypes.wintypes.RECT()
         ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
@@ -3114,7 +3152,7 @@ class Bitmap:
         """
         rect = control.BoundingRectangle
         while rect.width() == 0 or rect.height() == 0:
-            #some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
+            # some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
             control = control.GetParentControl()
             if not control:
                 return False
@@ -3148,7 +3186,7 @@ class Bitmap:
         filePath: str.
         Return bool, True if succeed otherwise False.
         """
-        self.Release()
+        self._Release()
         self._bitmap = _DllClient.instance().dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
         self._getsize()
         return self._bitmap > 0
@@ -3160,13 +3198,13 @@ class Bitmap:
         Return bool, True if succeed otherwise False.
         """
         name, ext = os.path.splitext(savePath)
-        extMap = {'.bmp': 'image/bmp'
-                  , '.jpg': 'image/jpeg'
-                  , '.jpeg': 'image/jpeg'
-                  , '.gif': 'image/gif'
-                  , '.tif': 'image/tiff'
-                  , '.tiff': 'image/tiff'
-                  , '.png': 'image/png'
+        extMap = {'.bmp': 'image/bmp',
+                  '.jpg': 'image/jpeg',
+                  '.jpeg': 'image/jpeg',
+                  '.gif': 'image/gif',
+                  '.tif': 'image/tiff',
+                  '.tiff': 'image/tiff',
+                  '.png': 'image/png',
                   }
         gdiplusImageFormat = extMap.get(ext.lower(), 'image/png')
         return bool(_DllClient.instance().dll.BitmapToFile(self._bitmap, ctypes.c_wchar_p(savePath), ctypes.c_wchar_p(gdiplusImageFormat)))
@@ -3176,7 +3214,7 @@ class Bitmap:
         Get color value of a pixel.
         x: int.
         y: int.
-        Return int, argb color.
+        Return int, ARGB color format.
         b = argb & 0x0000FF
         g = (argb & 0x00FF00) >> 8
         r = (argb & 0xFF0000) >> 16
@@ -3189,7 +3227,7 @@ class Bitmap:
         Set color value of a pixel.
         x: int.
         y: int.
-        argb: int, color value.
+        argb: int, ARGB color format.
         Return bool, True if succeed otherwise False.
         """
         return _DllClient.instance().dll.BitmapSetPixel(self._bitmap, x, y, argb)
@@ -3199,7 +3237,7 @@ class Bitmap:
         x: int.
         y: int.
         count: int.
-        Return `ctypes.Array`, an iterable array of int values in argb form point x,y horizontally.
+        Return `ctypes.Array`, an iterable array of int values in ARGB color format form point x,y horizontally.
         """
         #assert count <= self.Width * (self.Height - y) - x, 'count > max available from x,y'
         arrayType = ctypes.c_uint32 * count
@@ -3212,8 +3250,8 @@ class Bitmap:
         Set pixel colors form x,y horizontally.
         x: int.
         y: int.
-        colors: Iterable[int], an iterable list of int color values in argb,
-            use ctypes.Array for best performance, such as `ctypes.c_uint32 * length`.
+        colors: Iterable[int], an iterable list of int color values in ARGB color format,
+            use ctypes.Array for better performance, such as `ctypes.c_uint32 * length`.
         Return bool, True if succeed otherwise False.
         """
         count = len(colors)
@@ -3228,7 +3266,7 @@ class Bitmap:
         x: int.
         y: int.
         count: int.
-        Return `ctypes.Array`, an iterable array of int values in argb form point x,y vertically.
+        Return `ctypes.Array`, an iterable array of int values in ARGB color format form point x,y vertically.
         """
         #assert count <= self.Height * (self.Width - x) - y, 'count > max available from x,y'
         arrayType = ctypes.c_uint32 * count
@@ -3241,8 +3279,8 @@ class Bitmap:
         Set pixel colors form x,y vertically.
         x: int.
         y: int.
-        colors: Iterable[int], an iterable list of int color values in argb,
-            use ctypes.Array for best performance, such as `ctypes.c_uint32 * length`.
+        colors: Iterable[int], an iterable list of int color values in ARGB color format,
+            use ctypes.Array for better performance, such as `ctypes.c_uint32 * length`.
         Return bool, True if succeed otherwise False.
         """
         count = len(colors)
@@ -3255,14 +3293,14 @@ class Bitmap:
     def GetPixelColorsOfRow(self, y: int) -> ctypes.Array:
         """
         y: int, row index.
-        Return `ctypes.Array`, an iterable array of int values in argb of y row.
+        Return `ctypes.Array`, an iterable array of int values in ARGB color format of y row.
         """
         return self.GetPixelColorsOfRect(0, y, self.Width, 1)
 
     def GetPixelColorsOfColumn(self, x: int) -> ctypes.Array:
         """
         x: int, column index.
-        Return `ctypes.Array`, an iterable array of int values in argb of x column.
+        Return `ctypes.Array`, an iterable array of int values in ARGB color format of x column.
         """
         return self.GetPixelColorsOfRect(x, 0, 1, self.Height)
 
@@ -3272,7 +3310,7 @@ class Bitmap:
         y: int.
         width: int.
         height: int.
-        Return `ctypes.Array`, an iterable array of int values in argb of the input rect.
+        Return `ctypes.Array`, an iterable array of int values in ARGB color format of the input rect.
         """
         arrayType = ctypes.c_uint32 * (width * height)
         values = arrayType()
@@ -3285,12 +3323,12 @@ class Bitmap:
         y: int.
         width: int.
         height: int.
-        colors: Iterable[int], an iterable list of int values in argb, it's length must equal to width*height,
-            use ctypes.Array for best performance, such as `ctypes.c_uint32 * (width*height)`.
+        colors: Iterable[int], an iterable list of int values in ARGB color format, it's length must equal to width*height,
+            use ctypes.Array for better performance, such as `ctypes.c_uint32 * (width*height)`.
         Return bool.
         """
         #assert len(colors) == width * height, 'len(colors) != width * height'
-        if not isinstance(colors, ctypes.Array):        
+        if not isinstance(colors, ctypes.Array):
             arrayType = ctypes.c_uint32 * (width * height)
             colors = arrayType(*colors)
         return bool(_DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, colors))
@@ -3298,27 +3336,147 @@ class Bitmap:
     def GetPixelColorsOfRects(self, rects: List[Tuple[int, int, int, int]]) -> List[ctypes.Array]:
         """
         rects: List[Tuple[int, int, int, int]], such as [(0,0,10,10), (10,10,20,20), (x,y,width,height)].
-        Return List[ctypes.Array], a list whose elements are ctypes.Array which is an iterable array of int values in argb.
+        Return List[ctypes.Array], a list whose elements are ctypes.Array which is an iterable array of int values in ARGB color format.
         """
         return [self.GetPixelColorsOfRect(x, y, width, height) for x, y, width, height in rects]
 
     def GetAllPixelColors(self) -> ctypes.Array:
         """
-        Return `ctypes.Array`, an iterable array of int values in argb.
+        Return `ctypes.Array`, an iterable array of int values in ARGB color format.
         """
         return self.GetPixelColorsOfRect(0, 0, self.Width, self.Height)
 
-    def GetSubBitmap(self, x: int, y: int, width: int, height: int) -> 'Bitmap':
+    def SetAllPixelColors(self, colors: Iterable[int]) -> bool:
         """
+        colors: Iterable[int], an iterable list of int values in ARGB color format, it's length must equal to width*height,
+            use ctypes.Array for better performance, such as `ctypes.c_uint32 * (width*height)`.
+        Return bool.
+        """
+        return self.SetPixelColorsOfRect(0, 0, self.Width, self.Height, colors)
+
+    def Clear(self, color: int = 0xFFFFFFFF, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> bool:
+        """
+        Set the color of rect(x,y,width,height).
+        color: int, ARGB color format.
         x: int.
         y: int.
-        width: int.
-        height: int.
-        Return `Bitmap`, a sub bitmap of the input rect.
+        width: int, if == 0, the width will be self.Width-x
+        height: int, if == 0, the height will be self.Height-y
+        Return bool.
         """
+        if width == 0:
+            width = self.Width - x
+        if height == 0:
+            height = self.Height - y
+        arrayType = ctypes.c_uint * (width * height)
+        nativeArray = arrayType()
+        for i in range(len(nativeArray)):
+            nativeArray[i] = color
+        return self.SetPixelColorsOfRect(x, y, width, height, nativeArray)
+
+    def Copy(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> 'Bitmap':
+        """
+        x: int, must >= 0.
+        y: int, must >= 0.
+        width: int, must <= self.Width-x.
+        height: int, must <= self.Height-y.
+        Return `Bitmap`, a new Bitmap copied from (x,y,width,height).
+        """
+        if width == 0:
+            width = self.Width - x
+        if height == 0:
+            height = self.Height - y
         nativeArray = self.GetPixelColorsOfRect(x, y, width, height)
         bitmap = Bitmap(width, height)
         bitmap.SetPixelColorsOfRect(0, 0, width, height, nativeArray)
+        return bitmap
+
+    def Paste(self, x: int, y: int, bitmap: 'Bitmap') -> bool:
+        """
+        Paste bitmap to (x,y) of self, modify the original Bitmap,
+            if x < 0 or x+bitmap.Width > self.Width, only the intersection part of bitmap is pasted.
+            if y < 0 or y+bitmap.Height > self.Height, only the intersection part of bitmap is pasted.
+        x: int, can < 0.
+        y: int, can < 0.
+        bitmap: `Bitmap`.
+        Return bool, True if bitmap or a part of bitmap is pasted.
+        """
+        left, top, right, bottom = max(0, x), max(0, y), min(self.Width, x + bitmap.Width), min(self.Height, y + bitmap.Height)
+        width, height = right - left, bottom - top
+        if width <= 0 or height <= 0:
+            return False
+        srcX = 0 if x >= 0 else -x
+        srcY = 0 if y >= 0 else -y
+        nativeArray = bitmap.GetPixelColorsOfRect(srcX, srcY, width, height)
+        return self.SetPixelColorsOfRect(left, top, width, height, nativeArray)
+
+    def PastePart(self, dstX: int, dstY: int, srcBitmap: 'Bitmap', srcX: int = 0, srcY: int = 0, srcWidth: int = 0, srcHeight: int = 0) -> bool:
+        """
+        Paste (srcX, srcY, srcWidth, srcHeight) of bitmap to (dstX, dstY) of self, modify the original Bitmap,
+            only the intersection part of the bitmap is pasted.
+        dstX: int, must >= 0.
+        dstY: int, must >= 0.
+        srcBitmap: `Bitmap`.
+        srcX: int, must >= 0.
+        srcY: int, must >= 0.
+        srcWidth: int, must >= 0 and <= srcBitmap.Width - srcX
+        srcHeight: int, must >= 0 and <= srcBitmap.Height - srcY
+        Return bool, True if a part of srcBitmap is pasted.
+        """
+        if srcWidth == 0:
+            srcWidth = srcBitmap.Width - srcX
+        if srcHeight == 0:
+            srcHeight = srcBitmap.Height - srcY
+        left, top, right, bottom = max(0, dstX), max(0, dstY), min(self.Width, dstX + srcWidth), min(self.Height, dstY + srcHeight)
+        width, height = right - left, bottom - top
+        if width <= 0 or height <= 0:
+            return False
+        nativeArray = srcBitmap.GetPixelColorsOfRect(srcX, srcY, width, height)
+        return self.SetPixelColorsOfRect(dstX, dstY, width, height, nativeArray)
+
+    def Resize(self, width: int, height: int) -> 'Bitmap':
+        """
+        Resize a copy of the original to size (width, height), the original Bitmap is not modified,
+        width: int.
+        height: int.
+        Return a new `Bitmap`, the original is not modified.
+        """
+        bitmap = Bitmap()
+        bitmap._bitmap = _DllClient.instance().dll.BitmapResizedFrom(self._bitmap, width, height)
+        bitmap._getsize()
+        return bitmap
+
+    def Rotate(self, angle: int, backgroundColor: int = 0xFFFFFFFF) -> 'Bitmap':
+        """
+        Rotate a copy of the original with angle, the original Bitmap is not modified,
+        angle: int.
+        backgroundColor: int, ARGB color format.
+        Return a new `Bitmap`, the original is not modified.
+        """
+        angle %= 360
+        if angle == 0:
+            return self.Copy()
+        elif angle == 90:
+            return self.RotateFlip(RotateFlipType.Rotate90FlipNone)
+        elif angle == 180:
+            return self.RotateFlip(RotateFlipType.Rotate180FlipNone)
+        elif angle == 270:
+            return self.RotateFlip(RotateFlipType.Rotate270FlipNone)
+        else:
+            bitmap = Bitmap()
+            bitmap._bitmap = _DllClient.instance().dll.BitmapRotatedFrom(self._bitmap, angle, backgroundColor)
+            bitmap._getsize()
+            return bitmap
+
+    def RotateFlip(self, rotateFlip: int) -> 'Bitmap':
+        """
+        Rotate 90*n or Filp a copy of the original, the original Bitmap is not modified,
+        rotateFlip: int, a value in class `RotateFlipType`.
+        Return a new `Bitmap`, the original is not modified.
+        """
+        bitmap = self.Copy()
+        _DllClient.instance().dll.BitmapRotateFlip(bitmap._bitmap, rotateFlip)
+        bitmap._getsize()
         return bitmap
 
     def __str__(self) -> str:
@@ -3467,7 +3625,7 @@ def GetClipboardBitmap() -> Bitmap:
                 return bitmap
 
 
-def SetClipboardBitmap(bitmap:Bitmap) -> bool:
+def SetClipboardBitmap(bitmap: Bitmap) -> bool:
     """
     Return bool, True if succeed otherwise False.
     """
@@ -3483,7 +3641,7 @@ def SetClipboardBitmap(bitmap:Bitmap) -> bool:
             ctypes.windll.user32.ReleaseDC(0, ctypes.c_void_p(hdc))
             hOldBmp1 = ctypes.windll.gdi32.SelectObject(ctypes.c_void_p(hdc1), ctypes.c_void_p(hBitmap))
             hOldBmp2 = ctypes.windll.gdi32.SelectObject(ctypes.c_void_p(hdc2), ctypes.c_void_p(hBitmap2))
-            ctypes.windll.gdi32.BitBlt(ctypes.c_void_p(hdc2), 0, 0, bitmap.Width, bitmap.Height, ctypes.c_void_p(hdc1), 0, 0, 0x00CC0020)# SRCCOPY
+            ctypes.windll.gdi32.BitBlt(ctypes.c_void_p(hdc2), 0, 0, bitmap.Width, bitmap.Height, ctypes.c_void_p(hdc1), 0, 0, 0x00CC0020)  # SRCCOPY
             ctypes.windll.gdi32.SelectObject(ctypes.c_void_p(hdc1), ctypes.c_void_p(hOldBmp1))
             ctypes.windll.gdi32.SelectObject(ctypes.c_void_p(hdc2), ctypes.c_void_p(hOldBmp2))
             ctypes.windll.gdi32.DeleteDC(ctypes.c_void_p(hdc1))
@@ -3499,17 +3657,19 @@ def SetClipboardBitmap(bitmap:Bitmap) -> bool:
     return ret
 
 
-def Input(prompt:str, consoleColor:int=ConsoleColor.Default) -> str:
+def Input(prompt: str, consoleColor: int = ConsoleColor.Default) -> str:
     Logger.Write(prompt, consoleColor, writeToFile=False)
     return input()
 
 
-def InputColorfully(prompt:str, consoleColor:int=ConsoleColor.Default) -> str:
+def InputColorfully(prompt: str, consoleColor: int = ConsoleColor.Default) -> str:
     Logger.ColorfullyWrite(prompt, consoleColor, writeToFile=False)
     return input()
 
 
 _PatternIdInterfaces = None
+
+
 def GetPatternIdInterface(patternId: int):
     """
     Get pattern COM interface by pattern id.
@@ -3555,55 +3715,67 @@ def GetPatternIdInterface(patternId: int):
             PatternId.WindowPattern: _AutomationClient.instance().UIAutomationCore.IUIAutomationWindowPattern,
         }
         debug = False
-        #the following patterns doesn't exist on Windows 7 or lower
+        # the following patterns doesn't exist on Windows 7 or lower
         try:
             _PatternIdInterfaces[PatternId.AnnotationPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationAnnotationPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have AnnotationPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have AnnotationPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.CustomNavigationPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationCustomNavigationPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have CustomNavigationPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have CustomNavigationPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.DragPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationDragPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have DragPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have DragPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.DropTargetPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationDropTargetPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have DropTargetPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have DropTargetPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.ObjectModelPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationObjectModelPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have ObjectModelPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have ObjectModelPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.SpreadsheetItemPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationSpreadsheetItemPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have SpreadsheetItemPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have SpreadsheetItemPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.SpreadsheetPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationSpreadsheetPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have SpreadsheetPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have SpreadsheetPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.StylesPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationStylesPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have StylesPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have StylesPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.TextChildPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationTextChildPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have TextChildPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have TextChildPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.TextEditPattern] = _AutomationClient.instance().UIAutomationCore.IUIAutomationTextEditPattern
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have TextEditPattern.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have TextEditPattern.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.TextPattern2] = _AutomationClient.instance().UIAutomationCore.IUIAutomationTextPattern2
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have TextPattern2.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have TextPattern2.', ConsoleColor.Yellow)
         try:
             _PatternIdInterfaces[PatternId.TransformPattern2] = _AutomationClient.instance().UIAutomationCore.IUIAutomationTransformPattern2
         except:
-            if debug: Logger.WriteLine('UIAutomationCore does not have TransformPattern2.', ConsoleColor.Yellow)
+            if debug:
+                Logger.WriteLine('UIAutomationCore does not have TransformPattern2.', ConsoleColor.Yellow)
     return _PatternIdInterfaces[patternId]
 
 
@@ -3930,6 +4102,7 @@ class GridPattern():
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-getitem
         """
         return Control.CreateControlFromElement(self.pattern.GetItem())
+
 
 class InvokePattern():
     def __init__(self, pattern=None):
@@ -4285,6 +4458,7 @@ class ScrollItemPattern():
 
 class ScrollPattern():
     NoScrollValue = -1
+
     def __init__(self, pattern=None):
         """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationscrollpattern"""
         self.pattern = pattern
@@ -4835,7 +5009,7 @@ class TextRange():
         rects = []
         for i in range(len(floats) // 4):
             rect = Rect(int(floats[i * 4]), int(floats[i * 4 + 1]),
-                                        int(floats[i * 4]) + int(floats[i * 4 + 2]), int(floats[i * 4 + 1]) + int(floats[i * 4 + 3]))
+                        int(floats[i * 4]) + int(floats[i * 4 + 2]), int(floats[i * 4 + 1]) + int(floats[i * 4 + 3]))
             rects.append(rect)
         return rects
 
@@ -5484,6 +5658,7 @@ def CreatePattern(patternId: int, pattern: ctypes.POINTER(comtypes.IUnknown)):
 
 class Control():
     ValidKeys = set(['ControlType', 'ClassName', 'AutomationId', 'Name', 'SubName', 'RegexName', 'Depth', 'Compare'])
+
     def __init__(self, searchFromControl: 'Control' = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
         """
         searchFromControl: `Control` or its subclass, if it is None, search from root control(Desktop).
@@ -5534,7 +5709,7 @@ class Control():
             if controlType in ControlConstructors:
                 return ControlConstructors[controlType](element=element)
             else:
-                Logger.WriteLine("element.CurrentControlType returns {}, invalid ControlType!".format(controlType), ConsoleColor.Red)  #rarely happens
+                Logger.WriteLine("element.CurrentControlType returns {}, invalid ControlType!".format(controlType), ConsoleColor.Red)  # rarely happens
 
     @staticmethod
     def CreateControlFromControl(control: 'Control') -> 'Control':
@@ -5582,42 +5757,42 @@ class Control():
     def GetColorfulSearchPropertiesStr(self, keyColor='DarkGreen', valueColor='DarkCyan') -> str:
         """keyColor, valueColor: str, color name in class ConsoleColor"""
         strs = ['<Color={}>{}</Color>: <Color={}>{}</Color>'.format(keyColor if k in Control.ValidKeys else 'DarkYellow', k, valueColor,
-                ControlTypeNames[v] if k == 'ControlType' else repr(v)) for k, v in self.searchProperties.items()]
+                                                                    ControlTypeNames[v] if k == 'ControlType' else repr(v)) for k, v in self.searchProperties.items()]
         return '{' + ', '.join(strs) + '}'
 
-    #BuildUpdatedCache
-    #CachedAcceleratorKey
-    #CachedAccessKey
-    #CachedAriaProperties
-    #CachedAriaRole
-    #CachedAutomationId
-    #CachedBoundingRectangle
-    #CachedClassName
-    #CachedControlType
-    #CachedControllerFor
-    #CachedCulture
-    #CachedDescribedBy
-    #CachedFlowsTo
-    #CachedFrameworkId
-    #CachedHasKeyboardFocus
-    #CachedHelpText
-    #CachedIsContentElement
-    #CachedIsControlElement
-    #CachedIsDataValidForForm
-    #CachedIsEnabled
-    #CachedIsKeyboardFocusable
-    #CachedIsOffscreen
-    #CachedIsPassword
-    #CachedIsRequiredForForm
-    #CachedItemStatus
-    #CachedItemType
-    #CachedLabeledBy
-    #CachedLocalizedControlType
-    #CachedName
-    #CachedNativeWindowHandle
-    #CachedOrientation
-    #CachedProcessId
-    #CachedProviderDescription
+    # BuildUpdatedCache
+    # CachedAcceleratorKey
+    # CachedAccessKey
+    # CachedAriaProperties
+    # CachedAriaRole
+    # CachedAutomationId
+    # CachedBoundingRectangle
+    # CachedClassName
+    # CachedControlType
+    # CachedControllerFor
+    # CachedCulture
+    # CachedDescribedBy
+    # CachedFlowsTo
+    # CachedFrameworkId
+    # CachedHasKeyboardFocus
+    # CachedHelpText
+    # CachedIsContentElement
+    # CachedIsControlElement
+    # CachedIsDataValidForForm
+    # CachedIsEnabled
+    # CachedIsKeyboardFocusable
+    # CachedIsOffscreen
+    # CachedIsPassword
+    # CachedIsRequiredForForm
+    # CachedItemStatus
+    # CachedItemType
+    # CachedLabeledBy
+    # CachedLocalizedControlType
+    # CachedName
+    # CachedNativeWindowHandle
+    # CachedOrientation
+    # CachedProcessId
+    # CachedProviderDescription
 
     @property
     def AcceleratorKey(self) -> str:
@@ -5697,9 +5872,9 @@ class Control():
         """
         return self.Element.CurrentControlType
 
-    #@property
-    #def ControllerFor(self):
-        #return self.Element.CurrentControllerFor
+    # @property
+    # def ControllerFor(self):
+        # return self.Element.CurrentControllerFor
 
     @property
     def Culture(self) -> int:
@@ -5710,13 +5885,13 @@ class Control():
         """
         return self.Element.CurrentCulture
 
-    #@property
-    #def DescribedBy(self):
-        #return self.Element.CurrentDescribedBy
+    # @property
+    # def DescribedBy(self):
+        # return self.Element.CurrentDescribedBy
 
-    #@property
-    #def FlowsTo(self):
-        #return self.Element.CurrentFlowsTo
+    # @property
+    # def FlowsTo(self):
+        # return self.Element.CurrentFlowsTo
 
     @property
     def FrameworkId(self) -> str:
@@ -5836,9 +6011,9 @@ class Control():
         """
         return self.Element.CurrentItemType
 
-    #@property
-    #def LabeledBy(self):
-        #return self.Element.CurrentLabeledBy
+    # @property
+    # def LabeledBy(self):
+        # return self.Element.CurrentLabeledBy
 
     @property
     def LocalizedControlType(self) -> str:
@@ -5896,16 +6071,16 @@ class Control():
         """
         return self.Element.CurrentProviderDescription
 
-    #FindAll
-    #FindAllBuildCache
-    #FindFirst
-    #FindFirstBuildCache
-    #GetCachedChildren
-    #GetCachedParent
-    #GetCachedPattern
-    #GetCachedPatternAs
-    #GetCachedPropertyValue
-    #GetCachedPropertyValueEx
+    # FindAll
+    # FindAllBuildCache
+    # FindFirst
+    # FindFirstBuildCache
+    # GetCachedChildren
+    # GetCachedParent
+    # GetCachedPattern
+    # GetCachedPatternAs
+    # GetCachedPropertyValue
+    # GetCachedPropertyValueEx
 
     def GetClickablePoint(self) -> Tuple[int, int, bool]:
         """
@@ -5969,8 +6144,8 @@ class Control():
         """
         return self.Element.GetRuntimeId()
 
-    #QueryInterface
-    #Release
+    # QueryInterface
+    # Release
 
     def SetFocus(self) -> bool:
         """
@@ -6161,8 +6336,8 @@ class Control():
         Return bool, True if find
         """
         if self._element and self._elementDirectAssign:
-            #if element is directly assigned, not by searching, just check whether self._element is valid
-            #but I can't find an API in UIAutomation that can directly check
+            # if element is directly assigned, not by searching, just check whether self._element is valid
+            # but I can't find an API in UIAutomation that can directly check
             rootElement = GetRootControl().Element
             if self._element == rootElement:
                 return True
@@ -6172,13 +6347,13 @@ class Control():
                     return True
                 else:
                     return False
-        #find the element
+        # find the element
         if len(self.searchProperties) == 0:
             raise LookupError("control's searchProperties must not be empty!")
         self._element = None
         startTime = ProcessTime()
         # Use same timeout(s) parameters for resolve all parents
-        prev =  self.searchFromControl
+        prev = self.searchFromControl
         if prev and not prev._element and not prev.Exists(maxSearchSeconds, searchIntervalSeconds):
             if printIfNotExist or DEBUG_EXIST_DISAPPEAR:
                 Logger.ColorfullyLog(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not exist.</Color>')
@@ -6350,7 +6525,7 @@ class Control():
         Click(x, y, GetDoubleClickTime() * 1.0 / 2000)
         Click(x, y, waitTime)
 
-    def DragDrop(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float=1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def DragDrop(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
         rect = self.BoundingRectangle
         if rect.width() == 0 or rect.height() == 0:
             Logger.ColorfullyLog('<Color=Yellow>Can not move cursor</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
@@ -6362,7 +6537,7 @@ class Control():
         y2 = (rect.top if y2 >= 0 else rect.bottom) + y2
         DragDrop(x1, y1, x2, y2, moveSpeed, waitTime)
 
-    def RightDragDrop(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float=1, waitTime: float = OPERATION_WAIT_TIME) -> None:
+    def RightDragDrop(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = OPERATION_WAIT_TIME) -> None:
         rect = self.BoundingRectangle
         if rect.width() == 0 or rect.height() == 0:
             Logger.ColorfullyLog('<Color=Yellow>Can not move cursor</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
@@ -6558,7 +6733,7 @@ class Control():
                 else:
                     return ControlFromHandle(topHandle)
             else:
-                #self is root control
+                # self is root control
                 pass
         else:
             control = self
@@ -6803,7 +6978,7 @@ class ComboBoxControl(Control):
         if expandCollapsePattern:
             expandCollapsePattern.Expand()
         else:
-            #Windows Form's ComboBoxControl doesn't support ExpandCollapsePattern
+            # Windows Form's ComboBoxControl doesn't support ExpandCollapsePattern
             self.Click(x=-10, ratioY=0.5, simulateMove=simulateMove)
         find = False
         if condition:
@@ -6817,8 +6992,8 @@ class ComboBoxControl(Control):
             listItemControl.Click(simulateMove=simulateMove, waitTime=waitTime)
             find = True
         else:
-            #some ComboBox's popup window is a child of root control
-            listControl = ListControl(searchDepth= 1)
+            # some ComboBox's popup window is a child of root control
+            listControl = ListControl(searchDepth=1)
             if listControl.Exists(1):
                 if condition:
                     listItemControl = listControl.ListItemControl(Compare=lambda c, d: condition(c.Name))
@@ -7189,6 +7364,7 @@ class MenuItemControl(Control):
 
 class TopLevel():
     """Class TopLevel"""
+
     def SetTopmost(self, isTopmost: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
         Set top level window topmost.
@@ -7252,8 +7428,10 @@ class TopLevel():
             rect = self.BoundingRectangle
             screenWidth, screenHeight = GetScreenSize()
             x, y = (screenWidth - rect.width()) // 2, (screenHeight - rect.height()) // 2
-            if x < 0: x = 0
-            if y < 0: y = 0
+            if x < 0:
+                x = 0
+            if y < 0:
+                y = 0
             return SetWindowPos(self.NativeWindowHandle, SWP.HWND_Top, x, y, 0, 0, SWP.SWP_NoSize)
         return False
 
@@ -7808,7 +7986,7 @@ def WalkTree(top, getChildren: Callable[[TreeNode], List[TreeNode]] = None,
                 yield top, 0, 0
         children = getChildren(top)
         childList = [children]
-        while depth >= 0:   #or while childList:
+        while depth >= 0:  # or while childList:
             lastItems = childList[-1]
             if lastItems:
                 if not yieldCondition or yieldCondition(lastItems[0], depth + 1):
@@ -7828,7 +8006,7 @@ def WalkTree(top, getChildren: Callable[[TreeNode], List[TreeNode]] = None,
                 yield top, 0
         child = getFirstChild(top)
         childList = [child]
-        while depth >= 0:  #or while childList:
+        while depth >= 0:  # or while childList:
             lastItem = childList[-1]
             if lastItem:
                 if not yieldCondition or yieldCondition(lastItem, depth + 1):
@@ -7861,18 +8039,18 @@ def GetFocusedControl() -> Control:
 def GetForegroundControl() -> Control:
     """Return `Control` subclass."""
     return ControlFromHandle(GetForegroundWindow())
-    #another implement
+    # another implement
     #focusedControl = GetFocusedControl()
     #parentControl = focusedControl
     #controlList = []
-    #while parentControl:
+    # while parentControl:
         #controlList.insert(0, parentControl)
         #parentControl = parentControl.GetParentControl()
-    #if len(controlList) == 1:
+    # if len(controlList) == 1:
         #parentControl = controlList[0]
-    #else:
+    # else:
         #parentControl = controlList[1]
-    #return parentControl
+    # return parentControl
 
 
 def GetConsoleWindow() -> WindowControl:
@@ -8086,22 +8264,22 @@ def FindControl(control: Control, compare: Callable[[Control, int], bool], maxDe
 def ShowDesktop(waitTime: float = 1) -> None:
     """Show Desktop by pressing win + d"""
     SendKeys('{Win}d', waitTime=waitTime)
-    #another implement
+    # another implement
     #paneTray = PaneControl(searchDepth = 1, ClassName = 'Shell_TrayWnd')
-    #if paneTray.Exists():
+    # if paneTray.Exists():
         #WM_COMMAND = 0x111
         #MIN_ALL = 419
         #MIN_ALL_UNDO = 416
         #PostMessage(paneTray.NativeWindowHandle, WM_COMMAND, MIN_ALL, 0)
-        #time.sleep(1)
+        # time.sleep(1)
 
 
 def WaitHotKeyReleased(hotkey: Tuple[int, int]) -> None:
     """hotkey: Tuple[int, int], two ints tuple (modifierKey, key)"""
     mod = {ModifierKey.Alt: Keys.VK_MENU,
            ModifierKey.Control: Keys.VK_CONTROL,
-                 ModifierKey.Shift: Keys.VK_SHIFT,
-                 ModifierKey.Win: Keys.VK_LWIN
+           ModifierKey.Shift: Keys.VK_SHIFT,
+           ModifierKey.Win: Keys.VK_LWIN
            }
     while True:
         time.sleep(0.05)
@@ -8136,6 +8314,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
                         , (uiautomation.ModifierKey.Control | uiautomation.ModifierKey.Shift, uiautomation.Keys.VK_2))
     """
     import traceback
+
     def getModName(theDict, theValue):
         name = ''
         for key in theDict:
@@ -8144,11 +8323,13 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
                     name += '|'
                 name += key
         return name
+
     def releaseAllKeys():
         for key, value in Keys.__dict__.items():
             if isinstance(value, int) and key.startswith('VK'):
                 if IsKeyPressed(value):
                     ReleaseKey(value)
+
     def threadFunc(function, stopEvent, hotkey, hotkeyName):
         if waitHotKeyReleased:
             WaitHotKeyReleased(hotkey)
@@ -8159,7 +8340,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
                 ex.__class__.__name__, hotkeyName), writeToFile=False)
             print(traceback.format_exc())
         finally:
-            releaseAllKeys()  #need to release keys if some keys were pressed
+            releaseAllKeys()  # need to release keys if some keys were pressed
             Logger.ColorfullyWrite('{} for function <Color=DarkCyan>{}</Color> exits, hotkey <Color=DarkCyan>{}</Color>\n'.format(
                 threading.currentThread(), function.__name__, hotkeyName), ConsoleColor.DarkYellow, writeToFile=False)
 
@@ -8206,7 +8387,7 @@ def RunByHotKey(keyFunctions: Dict[Tuple[int, int], Callable], stopHotKey: Tuple
     stopEvent = threading.Event()
     msg = ctypes.wintypes.MSG()
     while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), ctypes.c_void_p(0), ctypes.c_uint(0), ctypes.c_uint(0)) != 0:
-        if msg.message == 0x0312: # WM_HOTKEY=0x0312
+        if msg.message == 0x0312:  # WM_HOTKEY=0x0312
             if msg.wParam in id2HotKey:
                 if msg.lParam & 0x0000FFFF == id2HotKey[msg.wParam][0] and msg.lParam >> 16 & 0x0000FFFF == id2HotKey[msg.wParam][1]:
                     Logger.ColorfullyWrite('----------hotkey <Color=Cyan>{}</Color> pressed----------\n'.format(id2Name[msg.wParam]), writeToFile=False)

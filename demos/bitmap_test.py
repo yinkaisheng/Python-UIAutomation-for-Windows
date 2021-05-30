@@ -61,14 +61,34 @@ def main():
 
     root = auto.GetRootControl()
     bitmap = root.ToBitmap(0, 0, 400, 400)
+    auto.Logger.WriteLine('save (0,0,400,400) of desktop to desk_part.png')
     bitmap.ToFile('desk_part.png')
 
     width, height = 100, 100
     colors = bitmap.GetPixelColorsOfRects([(0, 0, width, height), (100, 100, width, height), (200, 200, width, height)])
     for i, nativeArray in enumerate(colors):
-        bitmap = auto.Bitmap(width, height)
-        bitmap.SetPixelColorsOfRect(0, 0, width, height, nativeArray)
-        bitmap.ToFile('desk_part{}.png'.format(i))
+        auto.Logger.WriteLine('save part of desk_part.png to desk_part{}.png'.format(i))
+        subBitmap = auto.Bitmap(width, height)
+        subBitmap.SetPixelColorsOfRect(0, 0, width, height, nativeArray)
+        subBitmap.ToFile('desk_part{}.png'.format(i))
+    auto.Logger.WriteLine('save part of desk_part.png to desk_part3.png')
+    subBitmap = bitmap.Copy(300, 300, 100, 100)
+    subBitmap.ToFile('desk_part3.png')
+    auto.Logger.WriteLine('flip X of desk_part.png')
+    bmpFlipX = bitmap.RotateFlip(auto.RotateFlipType.RotateNoneFlipX)
+    bmpFlipX.ToFile('desk_flipX.png')
+    auto.Logger.WriteLine('flip Y of desk_part.png')
+    bmpFlipY = bitmap.RotateFlip(auto.RotateFlipType.RotateNoneFlipY)
+    bmpFlipY.ToFile('desk_flipY.png')
+    auto.Logger.WriteLine('rotate 90 of desk_part.png')
+    bmpRotate90 = bitmap.Rotate(90)
+    bmpRotate90.ToFile('desk_rotate90.png')
+    auto.Logger.WriteLine('rotate 270 of desk_part.png')
+    bmpRotate270 = bitmap.Rotate(270)
+    bmpRotate270.ToFile('desk_rotate270.png')
+    auto.Logger.WriteLine('rotate 45 of desk_part.png')
+    bmpRotate45 = bitmap.Rotate(45)
+    bmpRotate45.ToFile('desk_rotate45.png')
 
 
 if __name__ == '__main__':
