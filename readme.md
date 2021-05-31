@@ -273,3 +273,7 @@ GitHub Desktop (Electron App)
 
 Pretty print dir        
 ![PrettyPrint](images/pretty_print_dir.png)
+
+
+Donate：                                
+![微信](images/yks-wx.png) ![支付宝](images/yks-zfb.png)
