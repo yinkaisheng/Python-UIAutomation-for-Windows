@@ -68,6 +68,7 @@ class _AutomationClient:
 2, you need to use an UIAutomationInitializerInThread object in a thread, see demos/uiautomation_in_thread.py''', ConsoleColor.Yellow)
                     raise ex
         # Windows dll
+        ctypes.windll.user32.GetAncestor.restype = ctypes.c_void_p
         ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
         ctypes.windll.user32.GetDC.restype = ctypes.c_void_p
         ctypes.windll.user32.GetForegroundWindow.restype = ctypes.c_void_p
@@ -80,6 +81,7 @@ class _AutomationClient:
         ctypes.windll.gdi32.CreateCompatibleDC.restype = ctypes.c_void_p
         ctypes.windll.gdi32.SelectObject.restype = ctypes.c_void_p
         ctypes.windll.kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+        ctypes.windll.kernel32.GetConsoleWindow.restype = ctypes.c_void_p
         ctypes.windll.kernel32.GetStdHandle.restype = ctypes.c_void_p
         ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
