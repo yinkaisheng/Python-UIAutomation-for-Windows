@@ -116,19 +116,12 @@ class _DllClient:
                 print(ex)
         if load:
             self.dll.BitmapCreate.restype = ctypes.c_size_t
-            self.dll.BitmapFromWindow.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
             self.dll.BitmapFromWindow.restype = ctypes.c_size_t
-            self.dll.BitmapFromHBITMAP.argtypes = (ctypes.c_size_t, )
             self.dll.BitmapFromHBITMAP.restype = ctypes.c_size_t
-            self.dll.BitmapToHBITMAP.argtypes = (ctypes.c_size_t, ctypes.c_uint)
             self.dll.BitmapToHBITMAP.restype = ctypes.c_size_t
-            self.dll.BitmapFromFile.argtypes = (ctypes.c_wchar_p, )
             self.dll.BitmapFromFile.restype = ctypes.c_size_t
-            self.dll.BitmapToFile.argtypes = (ctypes.c_size_t, ctypes.c_wchar_p, ctypes.c_wchar_p)
-            self.dll.BitmapRelease.argtypes = (ctypes.c_size_t, )
-            self.dll.BitmapGetWidthAndHeight.argtypes = (ctypes.c_size_t, )
-            self.dll.BitmapGetPixel.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
-            self.dll.BitmapSetPixel.argtypes = (ctypes.c_size_t, ctypes.c_int, ctypes.c_int, ctypes.c_uint)
+            self.dll.BitmapResizedFrom.restype = ctypes.c_size_t
+            self.dll.BitmapRotatedFrom.restype = ctypes.c_size_t
 
             self.dll.Initialize()
         else:
@@ -3090,13 +3083,13 @@ class Bitmap:
         self._Release()
 
     def _getsize(self) -> None:
-        size = _DllClient.instance().dll.BitmapGetWidthAndHeight(self._bitmap)
+        size = _DllClient.instance().dll.BitmapGetWidthAndHeight(ctypes.c_size_t(self._bitmap))
         self._width = size & 0xFFFF
         self._height = size >> 16
 
     def _Release(self) -> None:
         if self._bitmap:
-            _DllClient.instance().dll.BitmapRelease(self._bitmap)
+            _DllClient.instance().dll.BitmapRelease(ctypes.c_size_t(self._bitmap))
             self._bitmap = 0
             self._width = 0
             self._height = 0
@@ -3133,7 +3126,7 @@ class Bitmap:
         rect = ctypes.wintypes.RECT()
         ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
         left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
-        self._bitmap = _DllClient.instance().dll.BitmapFromWindow(root.NativeWindowHandle, left, top, right, bottom)
+        self._bitmap = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
         self._getsize()
         return self._bitmap > 0
 
@@ -3207,7 +3200,7 @@ class Bitmap:
                   '.png': 'image/png',
                   }
         gdiplusImageFormat = extMap.get(ext.lower(), 'image/png')
-        return bool(_DllClient.instance().dll.BitmapToFile(self._bitmap, ctypes.c_wchar_p(savePath), ctypes.c_wchar_p(gdiplusImageFormat)))
+        return bool(_DllClient.instance().dll.BitmapToFile(ctypes.c_size_t(self._bitmap), ctypes.c_wchar_p(savePath), ctypes.c_wchar_p(gdiplusImageFormat)))
 
     def GetPixelColor(self, x: int, y: int) -> int:
         """
@@ -3220,7 +3213,7 @@ class Bitmap:
         r = (argb & 0xFF0000) >> 16
         a = (argb & 0xFF0000) >> 24
         """
-        return _DllClient.instance().dll.BitmapGetPixel(self._bitmap, x, y)
+        return _DllClient.instance().dll.BitmapGetPixel(ctypes.c_size_t(self._bitmap), x, y)
 
     def SetPixelColor(self, x: int, y: int, argb: int) -> bool:
         """
@@ -3230,7 +3223,7 @@ class Bitmap:
         argb: int, ARGB color format.
         Return bool, True if succeed otherwise False.
         """
-        return _DllClient.instance().dll.BitmapSetPixel(self._bitmap, x, y, argb)
+        return _DllClient.instance().dll.BitmapSetPixel(ctypes.c_size_t(self._bitmap), x, y, argb)
 
     def GetPixelColorsHorizontally(self, x: int, y: int, count: int) -> ctypes.Array:
         """
@@ -3394,7 +3387,7 @@ class Bitmap:
     def Paste(self, x: int, y: int, bitmap: 'Bitmap') -> bool:
         """
         Paste bitmap to (x,y) of self, modify the original Bitmap,
-            if x < 0 or x+bitmap.Width > self.Width, only the intersection part of bitmap is pasted.
+            if x < 0 or x+bitmap.Width > self.Width, only the intersection part of bitmap is pasted,
             if y < 0 or y+bitmap.Height > self.Height, only the intersection part of bitmap is pasted.
         x: int, can < 0.
         y: int, can < 0.
@@ -3419,8 +3412,8 @@ class Bitmap:
         srcBitmap: `Bitmap`.
         srcX: int, must >= 0.
         srcY: int, must >= 0.
-        srcWidth: int, must >= 0 and <= srcBitmap.Width - srcX
-        srcHeight: int, must >= 0 and <= srcBitmap.Height - srcY
+        srcWidth: int, must >= 0 and <= srcBitmap.Width - srcX.
+        srcHeight: int, must >= 0 and <= srcBitmap.Height - srcY.
         Return bool, True if a part of srcBitmap is pasted.
         """
         if srcWidth == 0:
@@ -3436,19 +3429,19 @@ class Bitmap:
 
     def Resize(self, width: int, height: int) -> 'Bitmap':
         """
-        Resize a copy of the original to size (width, height), the original Bitmap is not modified,
+        Resize a copy of the original to size (width, height), the original Bitmap is not modified.
         width: int.
         height: int.
         Return a new `Bitmap`, the original is not modified.
         """
         bitmap = Bitmap()
-        bitmap._bitmap = _DllClient.instance().dll.BitmapResizedFrom(self._bitmap, width, height)
+        bitmap._bitmap = _DllClient.instance().dll.BitmapResizedFrom(ctypes.c_size_t(self._bitmap), width, height)
         bitmap._getsize()
         return bitmap
 
     def Rotate(self, angle: int, backgroundColor: int = 0xFFFFFFFF) -> 'Bitmap':
         """
-        Rotate a copy of the original with angle, the original Bitmap is not modified,
+        Rotate a copy of the original with angle, the original Bitmap is not modified.
         angle: int.
         backgroundColor: int, ARGB color format.
         Return a new `Bitmap`, the original is not modified.
@@ -3464,18 +3457,18 @@ class Bitmap:
             return self.RotateFlip(RotateFlipType.Rotate270FlipNone)
         else:
             bitmap = Bitmap()
-            bitmap._bitmap = _DllClient.instance().dll.BitmapRotatedFrom(self._bitmap, angle, backgroundColor)
+            bitmap._bitmap = _DllClient.instance().dll.BitmapRotatedFrom(ctypes.c_size_t(self._bitmap), angle, backgroundColor)
             bitmap._getsize()
             return bitmap
 
     def RotateFlip(self, rotateFlip: int) -> 'Bitmap':
         """
-        Rotate 90*n or Filp a copy of the original, the original Bitmap is not modified,
+        Rotate 90*n or Filp a copy of the original, the original Bitmap is not modified.
         rotateFlip: int, a value in class `RotateFlipType`.
         Return a new `Bitmap`, the original is not modified.
         """
         bitmap = self.Copy()
-        _DllClient.instance().dll.BitmapRotateFlip(bitmap._bitmap, rotateFlip)
+        _DllClient.instance().dll.BitmapRotateFlip(ctypes.c_size_t(bitmap._bitmap), rotateFlip)
         bitmap._getsize()
         return bitmap
 
@@ -3619,7 +3612,7 @@ def GetClipboardBitmap() -> Bitmap:
             if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_BITMAP):
                 hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_BITMAP)
                 bitmap = Bitmap()
-                bitmap._bitmap = _DllClient.instance().dll.BitmapFromHBITMAP(hClipboardData, 0, 0, 0, 0)
+                bitmap._bitmap = _DllClient.instance().dll.BitmapFromHBITMAP(ctypes.c_size_t(hClipboardData), 0, 0, 0, 0)
                 bitmap._getsize()
                 ctypes.windll.user32.CloseClipboard()
                 return bitmap
@@ -3633,7 +3626,7 @@ def SetClipboardBitmap(bitmap: Bitmap) -> bool:
     with _ClipboardLock:
         if bitmap._bitmap and _OpenClipboard(0):
             ctypes.windll.user32.EmptyClipboard()
-            hBitmap = _DllClient.instance().dll.BitmapToHBITMAP(bitmap._bitmap, 0xFFFFFFFF)
+            hBitmap = _DllClient.instance().dll.BitmapToHBITMAP(ctypes.c_size_t(bitmap._bitmap), 0xFFFFFFFF)
             hBitmap2 = ctypes.windll.gdi32.CreateBitmap(bitmap.Width, bitmap.Height, 1, 32, 0)
             hdc = ctypes.windll.user32.GetDC(0)
             hdc1 = ctypes.windll.gdi32.CreateCompatibleDC(ctypes.c_void_p(hdc))
