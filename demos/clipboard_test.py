@@ -47,8 +47,8 @@ def main():
     auto.SetClipboardHtml('<h1>Title</h1><br><h3>Hello</h3><br><p>test html</p><br>'),
     auto.InputColorfully('<Color=Yellow>You can paste it in Office Word now.</Color>\npaused, press Enter to test <Color=Cyan>SetClipboardBitmap</Color>')
     c = auto.ControlFromCursor()
-    bmp = c.ToBitmap()
-    auto.SetClipboardBitmap(bmp)
+    with c.ToBitmap() as bmp:
+        auto.SetClipboardBitmap(bmp)
     auto.InputColorfully('<Color=Yellow>You can paste it in Office Word now.</Color>\npaused, press Enter to <Color=Cyan>exit</Color>')
 
 

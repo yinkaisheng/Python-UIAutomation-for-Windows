@@ -35,7 +35,7 @@ def main(args):
     if args.active:
         c = auto.GetForegroundControl()
         CaptureControl(c, args.path, args.up)
-    elif args.cursor:
+    elif args.cursor or args.up:
         c = auto.ControlFromCursor()
         CaptureControl(c, args.path, args.up)
     elif args.fullscreen:

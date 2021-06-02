@@ -3081,18 +3081,31 @@ class Bitmap:
             self._bitmap = _DllClient.instance().dll.BitmapCreate(width, height)
 
     def __del__(self):
-        self._Release()
+        self.Close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exceptionType, exceptionValue, exceptionTraceback):
+        self.Close()
+
+    def __bool__(self):
+        return self._bitmap > 0
 
     def _getsize(self) -> None:
         size = _DllClient.instance().dll.BitmapGetWidthAndHeight(ctypes.c_size_t(self._bitmap))
         self._width = size & 0xFFFF
         self._height = size >> 16
 
-    def _Release(self) -> None:
-        _DllClient.instance().dll.BitmapRelease(ctypes.c_size_t(self._bitmap))
-        self._bitmap = 0
-        self._width = 0
-        self._height = 0
+    def Close(self) -> None:
+        """Close the underlying Gdiplus::Bitmap object."""
+        if self._bitmap:
+            _DllClient.instance().dll.BitmapRelease(ctypes.c_size_t(self._bitmap))
+            self._bitmap = 0
+            self._width = 0
+            self._height = 0
+
+    Release = Close
 
     @property
     def Width(self) -> int:
@@ -3120,17 +3133,17 @@ class Bitmap:
         right: int.
         bottom: int.
         left, top, right and bottom are control's internal postion(from 0,0).
-        Return `Bitmap`.
+        Return `Bitmap` or None.
         """
-        root = GetRootControl()
         rect = ctypes.wintypes.RECT()
-        ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
-        left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
-        bitmap = Bitmap()
-        bitmap._bitmap = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
-        if bitmap._bitmap:
-            bitmap._getsize()
-            return bitmap
+        if ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+            root = GetRootControl()
+            left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
+            bitmap = Bitmap()
+            bitmap._bitmap = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
+            if bitmap._bitmap:
+                bitmap._getsize()
+                return bitmap
 
     @staticmethod
     def FromControl(control: 'Control', x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> 'Bitmap':
@@ -3144,14 +3157,14 @@ class Bitmap:
         x, y: the point in control's internal position(from 0,0)
         width, height: image's width and height from x, y, use 0 for entire area,
         If width(or height) < 0, image size will be control's width(or height) - width(or height).
-        Return `Bitmap`.
+        Return `Bitmap` or None.
         """
         rect = control.BoundingRectangle
         while rect.width() == 0 or rect.height() == 0:
             # some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
             control = control.GetParentControl()
             if not control:
-                return False
+                return
             rect = control.BoundingRectangle
         if width <= 0:
             width = rect.width() + width
@@ -3181,7 +3194,7 @@ class Bitmap:
         """
         Create a `Bitmap` from a file path.
         filePath: str.
-        Return `Bitmap`.
+        Return `Bitmap` or None.
         """
         bitmap = Bitmap()
         bitmap._bitmap = _DllClient.instance().dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
@@ -6703,7 +6716,8 @@ class Control():
         """
         bitmap = Bitmap.FromControl(self, x, y, width, height)
         if bitmap:
-            return bitmap.ToFile(savePath)
+            with bitmap:
+                return bitmap.ToFile(savePath)
         return False
 
     def IsTopLevel(self) -> bool:
