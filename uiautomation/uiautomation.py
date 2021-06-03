@@ -2954,24 +2954,33 @@ class Logger:
         writeToFile: bool.
         printToStdout: bool.
         logFile: str, log file path.
-        ColorfullyWrite('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorNames.
+        ColorfullyWrite('Hello <Color=Green>Green Text</Color> !!!'), Color name must be in `Logger.ColorNames` and can't be nested.
         """
         text = []
         start = 0
         while True:
             index1 = log.find('<Color=', start)
-            if index1 >= 0:
-                if index1 > start:
-                    text.append((log[start:index1], consoleColor))
-                index2 = log.find('>', index1)
-                colorName = log[index1 + 7:index2]
-                index3 = log.find('</Color>', index2 + 1)
-                text.append((log[index2 + 1:index3], Logger.ColorNames[colorName]))
-                start = index3 + 8
-            else:
-                if start < len(log):
-                    text.append((log[start:], consoleColor))
+            if index1 < 0:
+                text.append((log[start:], consoleColor))
                 break
+            if index1 > start:
+                text.append((log[start:index1], consoleColor))
+                start = index1
+            index2 = log.find('>', index1 + 7)
+            if index2 < 0:
+                text.append((log[start:], consoleColor))
+                break
+            colorName = log[index1 + 7:index2]
+            if colorName not in Logger.ColorNames:
+                text.append((log[start:index1 + 7], consoleColor))
+                start = index1 + 7
+                continue
+            index3 = log.find('</Color>', index2 + 1)
+            if index3 < 0:
+                text.append((log[start:], consoleColor))
+                break
+            text.append((log[index2 + 1:index3], Logger.ColorNames[colorName]))
+            start = index3 + 8
         for t, c in text:
             Logger.Write(t, c, writeToFile, printToStdout, logFile)
 
@@ -2984,7 +2993,7 @@ class Logger:
         printToStdout: bool.
         logFile: str, log file path.
 
-        ColorfullyWriteLine('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorNames.
+        ColorfullyWriteLine('Hello <Color=Green>Green Text</Color> !!!'), Color name must be in `Logger.ColorNames` and can't be nested.
         """
         Logger.ColorfullyWrite(log + '\n', consoleColor, writeToFile, printToStdout, logFile)
 
@@ -3014,12 +3023,12 @@ class Logger:
     def ColorfullyLog(log: str = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
         """
         log: any type.
-        consoleColor: int, a value in class ConsoleColor, such as ConsoleColor.DarkGreen.
+        consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
         writeToFile: bool.
         printToStdout: bool.
         logFile: str, log file path.
 
-        ColorfullyLog('Hello <Color=Green>Green</Color> !!!'), color name must be in Logger.ColorNames
+        ColorfullyLog('Hello <Color=Green>Green Text</Color> !!!'), Color name must be in `Logger.ColorNames` and can't be nested.
         """
         frameCount = 1
         while True:
