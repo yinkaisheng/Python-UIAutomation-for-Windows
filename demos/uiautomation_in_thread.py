@@ -16,13 +16,13 @@ def threadFunc(uselessRoot):
     So you can't create a Control or a Pattern in main thread and then pass it to a new thread and use it.
     """
     # print(uselessRoot)# you cannot use uselessRoot because it is a control created in a different thread
-    _uiobj = auto.UIAutomationInitializerInThread(debug=True)
     th = threading.currentThread()
     auto.Logger.WriteLine('\nThis is running in a new thread. {} {}'.format(th.ident, th.name), auto.ConsoleColor.Cyan)
     time.sleep(2)
-    auto.GetConsoleWindow().CaptureToImage('console_newthread.png')
-    newRoot = auto.GetRootControl()  # ok, root control created in current thread
-    auto.EnumAndLogControl(newRoot, 1)
+    with auto.UIAutomationInitializerInThread(debug=True):
+        auto.GetConsoleWindow().CaptureToImage('console_newthread.png')
+        newRoot = auto.GetRootControl()  # ok, root control created in current thread
+        auto.EnumAndLogControl(newRoot, 1)
     auto.Logger.WriteLine('\nThread exits. {} {}'.format(th.ident, th.name), auto.ConsoleColor.Cyan)
 
 

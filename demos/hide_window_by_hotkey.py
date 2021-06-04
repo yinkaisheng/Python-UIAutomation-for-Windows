@@ -15,21 +15,19 @@ WindowsWantToHide = ('Warcraft III', 'Valve001', 'Counter-Strike', 'Notepad')
 
 
 def hide(stopEvent: Event, handles: List[int]):
-    #_uiobj = auto.UIAutomationInitializerInThread()
-    # Hide doesn't call any COM methods, so it doesn't need an UIAutomationInitializerInThread
-    for handle in handles:
-        win = auto.ControlFromHandle(handle)
-        win.Hide(0)
+    with auto.UIAutomationInitializerInThread():
+        for handle in handles:
+            win = auto.ControlFromHandle(handle)
+            win.Hide(0)
 
 
 def show(stopEvent: Event, handle: List[int]):
-    #_uiobj = auto.UIAutomationInitializerInThread()
-    # Show doesn't call any COM methods, so it doesn't need an UIAutomationInitializerInThread
-    for handle in handles:
-        win = auto.ControlFromHandle(handle)
-        win.Show(0)
-        if auto.IsIconic(handle):
-            win.ShowWindow(auto.SW.Restore, 0)
+    with auto.UIAutomationInitializerInThread():
+        for handle in handles:
+            win = auto.ControlFromHandle(handle)
+            win.Show(0)
+            if auto.IsIconic(handle):
+                win.ShowWindow(auto.SW.Restore, 0)
 
 
 if __name__ == '__main__':
