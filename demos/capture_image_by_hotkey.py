@@ -12,10 +12,10 @@ import uiautomation as auto
 
 
 def capture(stopEvent: Event):
-    _uiobj = auto.UIAutomationInitializerInThread(debug=True)
-    control = auto.ControlFromCursor()
-    control.CaptureToImage('control.png')
-    subprocess.Popen('control.png', shell=True)
+    with auto.UIAutomationInitializerInThread(debug=True):
+        control = auto.ControlFromCursor()
+        control.CaptureToImage('control.png')
+        subprocess.Popen('control.png', shell=True)
 
 
 if __name__ == '__main__':

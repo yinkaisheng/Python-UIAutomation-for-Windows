@@ -3582,9 +3582,9 @@ def SetClipboardText(text: str) -> bool:
 def GetClipboardHtml() -> str:
     """
     Return str.
-    Note: the postions(StartHTML, EndHTML ...) are valid for utf-8 encoding html text,
-        when the utf-8 encoding html text is decoded to Python str,
-        the postions may not correspond to the actual locations in the returned str.
+    Note: the positions(StartHTML, EndHTML ...) are valid for utf-8 encoding html text,
+        when the utf-8 encoding html text is decoded to Python unicode str,
+        the positions may not correspond to the actual positions in the returned str.
     """
     with _ClipboardLock:
         if _OpenClipboard(0):
@@ -7909,15 +7909,27 @@ class UIAutomationInitializerInThread:
     def __init__(self, debug: bool = False):
         self.debug = debug
         InitializeUIAutomationInCurrentThread()
+        self.inited = True
         if self.debug:
             th = threading.currentThread()
-            print('\ncall InitializeUIAutomationInCurrentThread in {}'.format(th))
+            print('\ncall InitializeUIAutomationInCurrentThread in {}, inited {}'.format(th, self.inited))
 
     def __del__(self):
-        UninitializeUIAutomationInCurrentThread()
-        if self.debug:
-            th = threading.currentThread()
-            print('\ncall UninitializeUIAutomationInCurrentThread in {}'.format(th))
+        self.Uninitialize()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exceptionType, exceptionValue, exceptionTraceback):
+        self.Uninitialize()
+
+    def Uninitialize(self):
+        if self.inited:
+            UninitializeUIAutomationInCurrentThread()
+            self.inited = False
+            if self.debug:
+                th = threading.currentThread()
+                print('\ncall UninitializeUIAutomationInCurrentThread in {}'.format(th))
 
 
 def InitializeUIAutomationInCurrentThread() -> None:

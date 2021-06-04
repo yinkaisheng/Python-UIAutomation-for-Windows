@@ -1,3 +1,7 @@
+2.0.13
+    add GetClipboardFormats, GetClipboardHtml, SetClipboardHtml, GetClipboardBitmap, SetClipboardBitmap
+    add Clear, Copy, Paste, Rotate, RotateFlip for Bitmap
+    change Bitmap's FromHandle, FromControl and FromFile to static function
 2.0.12
     call SetProcessDpiAwareness when import uiautomation
     remove SetDpiAwareness, add SetThreadDpiAwarenessContext, SetProcessDpiAwareness
