@@ -8,7 +8,7 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>uiautomation</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:f%3A%5Ccodes%5Cpython%5Cpython-uiautomation-for-windows%5Cuiautomation%5Cuiautomation.py">f:\codes\python\python-uiautomation-for-windows\uiautomation\uiautomation.py</a></font></td></tr></table>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:d%3A%5Ccodes%5Cpython%5Cpython-uiautomation-for-windows%5Cuiautomation%5Cuiautomation.py">d:\codes\python\python-uiautomation-for-windows\uiautomation\uiautomation.py</a></font></td></tr></table>
     <p><tt>uiautomation&nbsp;for&nbsp;Python&nbsp;3.<br>
 Author:&nbsp;yinkaisheng@live.com<br>
 Source:&nbsp;https://github.com/yinkaisheng/Python-UIAutomation-for-Windows<br>
@@ -61,6 +61,7 @@ This&nbsp;means&nbsp;that&nbsp;the&nbsp;code&nbsp;can&nbsp;be&nbsp;freely&nbsp;c
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#AnnotationPattern">AnnotationPattern</a>
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#AnnotationType">AnnotationType</a>
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#Bitmap">Bitmap</a>
+</font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#ClipboardFormat">ClipboardFormat</a>
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#ConsoleColor">ConsoleColor</a>
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#Control">Control</a>
 </font></dt><dd>
@@ -140,6 +141,7 @@ This&nbsp;means&nbsp;that&nbsp;the&nbsp;code&nbsp;can&nbsp;be&nbsp;freely&nbsp;c
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#PropertyId">PropertyId</a>
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#RangeValuePattern">RangeValuePattern</a>
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#Rect">Rect</a>
+</font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#RotateFlipType">RotateFlipType</a>
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#RowOrColumnMajor">RowOrColumnMajor</a>
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#SW">SW</a>
 </font></dt><dt><font face="helvetica, arial"><a href="uiautomation.html#SWP">SWP</a>
@@ -826,6 +828,8 @@ waitTime:&nbsp;float.<br>
 <a href="#AppBarControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#AppBarControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="AppBarControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="AppBarControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="AppBarControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -881,7 +885,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="AppBarControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="AppBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="AppBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -1104,39 +1108,32 @@ Data and other attributes inherited from <a href="uiautomation.html#Control">Con
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
 <td colspan=2><tt><a href="#Bitmap">Bitmap</a>(width:&nbsp;int&nbsp;=&nbsp;0,&nbsp;height:&nbsp;int&nbsp;=&nbsp;0)<br>
 &nbsp;<br>
-A&nbsp;simple&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;class&nbsp;wraps&nbsp;Windows&nbsp;GDI+&nbsp;Gdiplus::<a href="#Bitmap">Bitmap</a>,&nbsp;but&nbsp;may&nbsp;not&nbsp;have&nbsp;high&nbsp;efficiency.<br>&nbsp;</tt></td></tr>
+A&nbsp;simple&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;class&nbsp;wraps&nbsp;Windows&nbsp;GDI+&nbsp;Gdiplus::<a href="#Bitmap">Bitmap</a>,&nbsp;but&nbsp;may&nbsp;not&nbsp;have&nbsp;high&nbsp;efficiency.<br>
+The&nbsp;color&nbsp;format&nbsp;is&nbsp;ARGB.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="Bitmap-FromControl"><strong>FromControl</strong></a>(self, control: 'Control', x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; bool</dt><dd><tt>Capture&nbsp;a&nbsp;control&nbsp;to&nbsp;<a href="#Bitmap">Bitmap</a>.<br>
-control:&nbsp;`<a href="#Control">Control</a>`&nbsp;or&nbsp;its&nbsp;subclass.<br>
+<dl><dt><a name="Bitmap-Clear"><strong>Clear</strong></a>(self, color: int = 4294967295, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; bool</dt><dd><tt>Set&nbsp;the&nbsp;color&nbsp;of&nbsp;rect(x,y,width,height).<br>
+color:&nbsp;int,&nbsp;ARGB&nbsp;color&nbsp;format.<br>
 x:&nbsp;int.<br>
 y:&nbsp;int.<br>
-width:&nbsp;int.<br>
-height:&nbsp;int.<br>
-x,&nbsp;y:&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0)<br>
-width,&nbsp;height:&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area,<br>
-If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).<br>
-Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt></dd></dl>
+width:&nbsp;int,&nbsp;if&nbsp;==&nbsp;0,&nbsp;the&nbsp;width&nbsp;will&nbsp;be&nbsp;self.<strong>Width</strong>-x<br>
+height:&nbsp;int,&nbsp;if&nbsp;==&nbsp;0,&nbsp;the&nbsp;height&nbsp;will&nbsp;be&nbsp;self.<strong>Height</strong>-y<br>
+Return&nbsp;bool.</tt></dd></dl>
 
-<dl><dt><a name="Bitmap-FromFile"><strong>FromFile</strong></a>(self, filePath: str) -&gt; bool</dt><dd><tt>Load&nbsp;image&nbsp;from&nbsp;a&nbsp;file.<br>
-filePath:&nbsp;str.<br>
-Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt></dd></dl>
+<dl><dt><a name="Bitmap-Close"><strong>Close</strong></a>(self) -&gt; None</dt><dd><tt>Close&nbsp;the&nbsp;underlying&nbsp;Gdiplus::<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.</tt></dd></dl>
 
-<dl><dt><a name="Bitmap-FromHandle"><strong>FromHandle</strong></a>(self, hwnd: int, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0) -&gt; bool</dt><dd><tt>Capture&nbsp;a&nbsp;native&nbsp;window&nbsp;to&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;by&nbsp;its&nbsp;handle.<br>
-hwnd:&nbsp;int,&nbsp;the&nbsp;handle&nbsp;of&nbsp;a&nbsp;native&nbsp;window.<br>
-left:&nbsp;int.<br>
-top:&nbsp;int.<br>
-right:&nbsp;int.<br>
-bottom:&nbsp;int.<br>
-left,&nbsp;top,&nbsp;right&nbsp;and&nbsp;bottom&nbsp;are&nbsp;control's&nbsp;internal&nbsp;postion(from&nbsp;0,0).<br>
-Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt></dd></dl>
+<dl><dt><a name="Bitmap-Copy"><strong>Copy</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; 'Bitmap'</dt><dd><tt>x:&nbsp;int,&nbsp;must&nbsp;&gt;=&nbsp;0.<br>
+y:&nbsp;int,&nbsp;must&nbsp;&gt;=&nbsp;0.<br>
+width:&nbsp;int,&nbsp;must&nbsp;&lt;=&nbsp;self.<strong>Width</strong>-x.<br>
+height:&nbsp;int,&nbsp;must&nbsp;&lt;=&nbsp;self.<strong>Height</strong>-y.<br>
+Return&nbsp;`<a href="#Bitmap">Bitmap</a>`,&nbsp;a&nbsp;new&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;copied&nbsp;from&nbsp;(x,y,width,height).</tt></dd></dl>
 
-<dl><dt><a name="Bitmap-GetAllPixelColors"><strong>GetAllPixelColors</strong></a>(self) -&gt; _ctypes.Array</dt><dd><tt>Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;argb.</tt></dd></dl>
+<dl><dt><a name="Bitmap-GetAllPixelColors"><strong>GetAllPixelColors</strong></a>(self) -&gt; _ctypes.Array</dt><dd><tt>Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-GetPixelColor"><strong>GetPixelColor</strong></a>(self, x: int, y: int) -&gt; int</dt><dd><tt>Get&nbsp;color&nbsp;value&nbsp;of&nbsp;a&nbsp;pixel.<br>
 x:&nbsp;int.<br>
 y:&nbsp;int.<br>
-Return&nbsp;int,&nbsp;argb&nbsp;color.<br>
+Return&nbsp;int,&nbsp;ARGB&nbsp;color&nbsp;format.<br>
 b&nbsp;=&nbsp;argb&nbsp;&amp;&nbsp;0x0000FF<br>
 g&nbsp;=&nbsp;(argb&nbsp;&amp;&nbsp;0x00FF00)&nbsp;&gt;&gt;&nbsp;8<br>
 r&nbsp;=&nbsp;(argb&nbsp;&amp;&nbsp;0xFF0000)&nbsp;&gt;&gt;&nbsp;16<br>
@@ -1145,68 +1142,138 @@ a&nbsp;=&nbsp;(argb&nbsp;&amp;&nbsp;0xFF0000)&nbsp;&gt;&gt;&nbsp;24</tt></dd></d
 <dl><dt><a name="Bitmap-GetPixelColorsHorizontally"><strong>GetPixelColorsHorizontally</strong></a>(self, x: int, y: int, count: int) -&gt; _ctypes.Array</dt><dd><tt>x:&nbsp;int.<br>
 y:&nbsp;int.<br>
 count:&nbsp;int.<br>
-Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;argb&nbsp;form&nbsp;point&nbsp;x,y&nbsp;horizontally.</tt></dd></dl>
+Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format&nbsp;form&nbsp;point&nbsp;x,y&nbsp;horizontally.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-GetPixelColorsOfColumn"><strong>GetPixelColorsOfColumn</strong></a>(self, x: int) -&gt; _ctypes.Array</dt><dd><tt>x:&nbsp;int,&nbsp;column&nbsp;index.<br>
-Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;argb&nbsp;of&nbsp;x&nbsp;column.</tt></dd></dl>
+Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format&nbsp;of&nbsp;x&nbsp;column.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-GetPixelColorsOfRect"><strong>GetPixelColorsOfRect</strong></a>(self, x: int, y: int, width: int, height: int) -&gt; _ctypes.Array</dt><dd><tt>x:&nbsp;int.<br>
 y:&nbsp;int.<br>
 width:&nbsp;int.<br>
 height:&nbsp;int.<br>
-Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;argb&nbsp;of&nbsp;the&nbsp;input&nbsp;rect.</tt></dd></dl>
+Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format&nbsp;of&nbsp;the&nbsp;input&nbsp;rect.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-GetPixelColorsOfRects"><strong>GetPixelColorsOfRects</strong></a>(self, rects: List[Tuple[int, int, int, int]]) -&gt; List[_ctypes.Array]</dt><dd><tt>rects:&nbsp;List[Tuple[int,&nbsp;int,&nbsp;int,&nbsp;int]],&nbsp;such&nbsp;as&nbsp;[(0,0,10,10),&nbsp;(10,10,20,20),&nbsp;(x,y,width,height)].<br>
-Return&nbsp;List[ctypes.Array],&nbsp;a&nbsp;list&nbsp;whose&nbsp;elements&nbsp;are&nbsp;ctypes.Array&nbsp;which&nbsp;is&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;argb.</tt></dd></dl>
+Return&nbsp;List[ctypes.Array],&nbsp;a&nbsp;list&nbsp;whose&nbsp;elements&nbsp;are&nbsp;ctypes.Array&nbsp;which&nbsp;is&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-GetPixelColorsOfRow"><strong>GetPixelColorsOfRow</strong></a>(self, y: int) -&gt; _ctypes.Array</dt><dd><tt>y:&nbsp;int,&nbsp;row&nbsp;index.<br>
-Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;argb&nbsp;of&nbsp;y&nbsp;row.</tt></dd></dl>
+Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format&nbsp;of&nbsp;y&nbsp;row.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-GetPixelColorsVertically"><strong>GetPixelColorsVertically</strong></a>(self, x: int, y: int, count: int) -&gt; _ctypes.Array</dt><dd><tt>x:&nbsp;int.<br>
 y:&nbsp;int.<br>
 count:&nbsp;int.<br>
-Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;argb&nbsp;form&nbsp;point&nbsp;x,y&nbsp;vertically.</tt></dd></dl>
+Return&nbsp;`ctypes.Array`,&nbsp;an&nbsp;iterable&nbsp;array&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format&nbsp;form&nbsp;point&nbsp;x,y&nbsp;vertically.</tt></dd></dl>
 
-<dl><dt><a name="Bitmap-GetSubBitmap"><strong>GetSubBitmap</strong></a>(self, x: int, y: int, width: int, height: int) -&gt; 'Bitmap'</dt><dd><tt>x:&nbsp;int.<br>
-y:&nbsp;int.<br>
+<dl><dt><a name="Bitmap-Paste"><strong>Paste</strong></a>(self, x: int, y: int, bitmap: 'Bitmap') -&gt; bool</dt><dd><tt>Paste&nbsp;bitmap&nbsp;to&nbsp;(x,y)&nbsp;of&nbsp;self,&nbsp;modify&nbsp;the&nbsp;original&nbsp;<a href="#Bitmap">Bitmap</a>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;x&nbsp;&lt;&nbsp;0&nbsp;or&nbsp;x+bitmap.Width&nbsp;&gt;&nbsp;self.<strong>Width</strong>,&nbsp;only&nbsp;the&nbsp;intersection&nbsp;part&nbsp;of&nbsp;bitmap&nbsp;is&nbsp;pasted,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;y&nbsp;&lt;&nbsp;0&nbsp;or&nbsp;y+bitmap.Height&nbsp;&gt;&nbsp;self.<strong>Height</strong>,&nbsp;only&nbsp;the&nbsp;intersection&nbsp;part&nbsp;of&nbsp;bitmap&nbsp;is&nbsp;pasted.<br>
+x:&nbsp;int,&nbsp;can&nbsp;&lt;&nbsp;0.<br>
+y:&nbsp;int,&nbsp;can&nbsp;&lt;&nbsp;0.<br>
+bitmap:&nbsp;`<a href="#Bitmap">Bitmap</a>`.<br>
+Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;bitmap&nbsp;or&nbsp;a&nbsp;part&nbsp;of&nbsp;bitmap&nbsp;is&nbsp;pasted.</tt></dd></dl>
+
+<dl><dt><a name="Bitmap-PastePart"><strong>PastePart</strong></a>(self, dstX: int, dstY: int, srcBitmap: 'Bitmap', srcX: int = 0, srcY: int = 0, srcWidth: int = 0, srcHeight: int = 0) -&gt; bool</dt><dd><tt>Paste&nbsp;(srcX,&nbsp;srcY,&nbsp;srcWidth,&nbsp;srcHeight)&nbsp;of&nbsp;bitmap&nbsp;to&nbsp;(dstX,&nbsp;dstY)&nbsp;of&nbsp;self,&nbsp;modify&nbsp;the&nbsp;original&nbsp;<a href="#Bitmap">Bitmap</a>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;only&nbsp;the&nbsp;intersection&nbsp;part&nbsp;of&nbsp;the&nbsp;bitmap&nbsp;is&nbsp;pasted.<br>
+dstX:&nbsp;int,&nbsp;must&nbsp;&gt;=&nbsp;0.<br>
+dstY:&nbsp;int,&nbsp;must&nbsp;&gt;=&nbsp;0.<br>
+srcBitmap:&nbsp;`<a href="#Bitmap">Bitmap</a>`.<br>
+srcX:&nbsp;int,&nbsp;must&nbsp;&gt;=&nbsp;0.<br>
+srcY:&nbsp;int,&nbsp;must&nbsp;&gt;=&nbsp;0.<br>
+srcWidth:&nbsp;int,&nbsp;must&nbsp;&gt;=&nbsp;0&nbsp;and&nbsp;&lt;=&nbsp;srcBitmap.Width&nbsp;-&nbsp;srcX.<br>
+srcHeight:&nbsp;int,&nbsp;must&nbsp;&gt;=&nbsp;0&nbsp;and&nbsp;&lt;=&nbsp;srcBitmap.Height&nbsp;-&nbsp;srcY.<br>
+Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;a&nbsp;part&nbsp;of&nbsp;srcBitmap&nbsp;is&nbsp;pasted.</tt></dd></dl>
+
+<dl><dt><a name="Bitmap-Release"><strong>Release</strong></a> = <a href="#Bitmap-Close">Close</a>(self) -&gt; None</dt></dl>
+
+<dl><dt><a name="Bitmap-Resize"><strong>Resize</strong></a>(self, width: int, height: int) -&gt; 'Bitmap'</dt><dd><tt>Resize&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;original&nbsp;to&nbsp;size&nbsp;(width,&nbsp;height),&nbsp;the&nbsp;original&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;is&nbsp;not&nbsp;modified.<br>
 width:&nbsp;int.<br>
 height:&nbsp;int.<br>
-Return&nbsp;`<a href="#Bitmap">Bitmap</a>`,&nbsp;a&nbsp;sub&nbsp;bitmap&nbsp;of&nbsp;the&nbsp;input&nbsp;rect.</tt></dd></dl>
+Return&nbsp;a&nbsp;new&nbsp;`<a href="#Bitmap">Bitmap</a>`,&nbsp;the&nbsp;original&nbsp;is&nbsp;not&nbsp;modified.</tt></dd></dl>
 
-<dl><dt><a name="Bitmap-Release"><strong>Release</strong></a>(self) -&gt; None</dt></dl>
+<dl><dt><a name="Bitmap-Rotate"><strong>Rotate</strong></a>(self, angle: int, backgroundColor: int = 4294967295) -&gt; 'Bitmap'</dt><dd><tt>Rotate&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;original&nbsp;with&nbsp;angle,&nbsp;the&nbsp;original&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;is&nbsp;not&nbsp;modified.<br>
+angle:&nbsp;int.<br>
+backgroundColor:&nbsp;int,&nbsp;ARGB&nbsp;color&nbsp;format.<br>
+Return&nbsp;a&nbsp;new&nbsp;`<a href="#Bitmap">Bitmap</a>`,&nbsp;the&nbsp;original&nbsp;is&nbsp;not&nbsp;modified.</tt></dd></dl>
+
+<dl><dt><a name="Bitmap-RotateFlip"><strong>RotateFlip</strong></a>(self, rotateFlip: int) -&gt; 'Bitmap'</dt><dd><tt>Rotate&nbsp;90*n&nbsp;or&nbsp;Filp&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;original,&nbsp;the&nbsp;original&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;is&nbsp;not&nbsp;modified.<br>
+rotateFlip:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#RotateFlipType">RotateFlipType</a>`.<br>
+Return&nbsp;a&nbsp;new&nbsp;`<a href="#Bitmap">Bitmap</a>`,&nbsp;the&nbsp;original&nbsp;is&nbsp;not&nbsp;modified.</tt></dd></dl>
+
+<dl><dt><a name="Bitmap-SetAllPixelColors"><strong>SetAllPixelColors</strong></a>(self, colors: Iterable[int]) -&gt; bool</dt><dd><tt>colors:&nbsp;Iterable[int],&nbsp;an&nbsp;iterable&nbsp;list&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format,&nbsp;it's&nbsp;length&nbsp;must&nbsp;equal&nbsp;to&nbsp;width*height,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;ctypes.Array&nbsp;for&nbsp;better&nbsp;performance,&nbsp;such&nbsp;as&nbsp;`ctypes.c_uint32&nbsp;*&nbsp;(width*height)`.<br>
+Return&nbsp;bool.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-SetPixelColor"><strong>SetPixelColor</strong></a>(self, x: int, y: int, argb: int) -&gt; bool</dt><dd><tt>Set&nbsp;color&nbsp;value&nbsp;of&nbsp;a&nbsp;pixel.<br>
 x:&nbsp;int.<br>
 y:&nbsp;int.<br>
-argb:&nbsp;int,&nbsp;color&nbsp;value.<br>
+argb:&nbsp;int,&nbsp;ARGB&nbsp;color&nbsp;format.<br>
 Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-SetPixelColorsHorizontally"><strong>SetPixelColorsHorizontally</strong></a>(self, x: int, y: int, colors: Iterable[int]) -&gt; bool</dt><dd><tt>Set&nbsp;pixel&nbsp;colors&nbsp;form&nbsp;x,y&nbsp;horizontally.<br>
 x:&nbsp;int.<br>
 y:&nbsp;int.<br>
-colors:&nbsp;Iterable[int],&nbsp;an&nbsp;iterable&nbsp;list&nbsp;of&nbsp;int&nbsp;color&nbsp;values&nbsp;in&nbsp;argb.<br>
+colors:&nbsp;Iterable[int],&nbsp;an&nbsp;iterable&nbsp;list&nbsp;of&nbsp;int&nbsp;color&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;ctypes.Array&nbsp;for&nbsp;better&nbsp;performance,&nbsp;such&nbsp;as&nbsp;`ctypes.c_uint32&nbsp;*&nbsp;length`.<br>
 Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-SetPixelColorsOfRect"><strong>SetPixelColorsOfRect</strong></a>(self, x: int, y: int, width: int, height: int, colors: Iterable[int]) -&gt; bool</dt><dd><tt>x:&nbsp;int.<br>
 y:&nbsp;int.<br>
 width:&nbsp;int.<br>
 height:&nbsp;int.<br>
-colors:&nbsp;Iterable[int],&nbsp;an&nbsp;iterable&nbsp;list&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;argb,&nbsp;it's&nbsp;length&nbsp;must&nbsp;equal&nbsp;to&nbsp;width*height.<br>
+colors:&nbsp;Iterable[int],&nbsp;an&nbsp;iterable&nbsp;list&nbsp;of&nbsp;int&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format,&nbsp;it's&nbsp;length&nbsp;must&nbsp;equal&nbsp;to&nbsp;width*height,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;ctypes.Array&nbsp;for&nbsp;better&nbsp;performance,&nbsp;such&nbsp;as&nbsp;`ctypes.c_uint32&nbsp;*&nbsp;(width*height)`.<br>
 Return&nbsp;bool.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-SetPixelColorsVertically"><strong>SetPixelColorsVertically</strong></a>(self, x: int, y: int, colors: Iterable[int]) -&gt; bool</dt><dd><tt>Set&nbsp;pixel&nbsp;colors&nbsp;form&nbsp;x,y&nbsp;vertically.<br>
 x:&nbsp;int.<br>
 y:&nbsp;int.<br>
-colors:&nbsp;Iterable[int],&nbsp;an&nbsp;iterable&nbsp;list&nbsp;of&nbsp;int&nbsp;color&nbsp;values&nbsp;in&nbsp;argb.<br>
+colors:&nbsp;Iterable[int],&nbsp;an&nbsp;iterable&nbsp;list&nbsp;of&nbsp;int&nbsp;color&nbsp;values&nbsp;in&nbsp;ARGB&nbsp;color&nbsp;format,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;ctypes.Array&nbsp;for&nbsp;better&nbsp;performance,&nbsp;such&nbsp;as&nbsp;`ctypes.c_uint32&nbsp;*&nbsp;length`.<br>
 Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt></dd></dl>
 
 <dl><dt><a name="Bitmap-ToFile"><strong>ToFile</strong></a>(self, savePath: str) -&gt; bool</dt><dd><tt>Save&nbsp;to&nbsp;a&nbsp;file.<br>
 savePath:&nbsp;str,&nbsp;should&nbsp;end&nbsp;with&nbsp;.bmp,&nbsp;.jpg,&nbsp;.jpeg,&nbsp;.png,&nbsp;.gif,&nbsp;.tif,&nbsp;.tiff.<br>
 Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt></dd></dl>
 
+<dl><dt><a name="Bitmap-__bool__"><strong>__bool__</strong></a>(self)</dt></dl>
+
 <dl><dt><a name="Bitmap-__del__"><strong>__del__</strong></a>(self)</dt></dl>
 
-<dl><dt><a name="Bitmap-__init__"><strong>__init__</strong></a>(self, width: int = 0, height: int = 0)</dt><dd><tt>Create&nbsp;a&nbsp;black&nbsp;bimap&nbsp;of&nbsp;size(width,&nbsp;height).</tt></dd></dl>
+<dl><dt><a name="Bitmap-__enter__"><strong>__enter__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Bitmap-__exit__"><strong>__exit__</strong></a>(self, exceptionType, exceptionValue, exceptionTraceback)</dt></dl>
+
+<dl><dt><a name="Bitmap-__init__"><strong>__init__</strong></a>(self, width: int = 0, height: int = 0)</dt><dd><tt>Create&nbsp;a&nbsp;black&nbsp;transparent(ARGB=0x00000000)&nbsp;bimap&nbsp;of&nbsp;size(width,&nbsp;height).</tt></dd></dl>
+
+<dl><dt><a name="Bitmap-__repr__"><strong>__repr__</strong></a>(self) -&gt; str</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
+
+<dl><dt><a name="Bitmap-__str__"><strong>__str__</strong></a>(self) -&gt; str</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<hr>
+Static methods defined here:<br>
+<dl><dt><a name="Bitmap-FromControl"><strong>FromControl</strong></a>(control: 'Control', x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; 'Bitmap'</dt><dd><tt>Create&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;from&nbsp;a&nbsp;`<a href="#Control">Control</a>`.<br>
+control:&nbsp;`<a href="#Control">Control</a>`&nbsp;or&nbsp;its&nbsp;subclass.<br>
+x:&nbsp;int.<br>
+y:&nbsp;int.<br>
+width:&nbsp;int.<br>
+height:&nbsp;int.<br>
+x,&nbsp;y:&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0)<br>
+width,&nbsp;height:&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area,<br>
+If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).<br>
+Return&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;or&nbsp;None.</tt></dd></dl>
+
+<dl><dt><a name="Bitmap-FromFile"><strong>FromFile</strong></a>(filePath: str) -&gt; 'Bitmap'</dt><dd><tt>Create&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;from&nbsp;a&nbsp;file&nbsp;path.<br>
+filePath:&nbsp;str.<br>
+Return&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;or&nbsp;None.</tt></dd></dl>
+
+<dl><dt><a name="Bitmap-FromHandle"><strong>FromHandle</strong></a>(hwnd: int, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0) -&gt; 'Bitmap'</dt><dd><tt>Create&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;from&nbsp;a&nbsp;native&nbsp;window&nbsp;handle.<br>
+hwnd:&nbsp;int,&nbsp;the&nbsp;handle&nbsp;of&nbsp;a&nbsp;native&nbsp;window.<br>
+left:&nbsp;int.<br>
+top:&nbsp;int.<br>
+right:&nbsp;int.<br>
+bottom:&nbsp;int.<br>
+left,&nbsp;top,&nbsp;right&nbsp;and&nbsp;bottom&nbsp;are&nbsp;control's&nbsp;internal&nbsp;postion(from&nbsp;0,0).<br>
+Return&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;or&nbsp;None.</tt></dd></dl>
 
 <hr>
 Readonly properties defined here:<br>
@@ -1497,6 +1564,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ButtonControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ButtonControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ButtonControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ButtonControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ButtonControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -1552,7 +1621,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ButtonControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ButtonControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ButtonControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -2039,6 +2108,8 @@ waitTime:&nbsp;float.<br>
 <a href="#CalendarControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#CalendarControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="CalendarControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="CalendarControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="CalendarControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -2094,7 +2165,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="CalendarControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="CalendarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="CalendarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -2575,6 +2646,8 @@ waitTime:&nbsp;float.<br>
 <a href="#CheckBoxControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#CheckBoxControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="CheckBoxControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="CheckBoxControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="CheckBoxControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -2630,7 +2703,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="CheckBoxControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="CheckBoxControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="CheckBoxControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -2843,6 +2916,60 @@ Data descriptors inherited from <a href="uiautomation.html#Control">Control</a>:
 <hr>
 Data and other attributes inherited from <a href="uiautomation.html#Control">Control</a>:<br>
 <dl><dt><strong>ValidKeys</strong> = {'AutomationId', 'ClassName', 'Compare', 'ControlType', 'Depth', 'Name', ...}</dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ClipboardFormat">class <strong>ClipboardFormat</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>CF_BITMAP</strong> = 2</dl>
+
+<dl><dt><strong>CF_DIB</strong> = 8</dl>
+
+<dl><dt><strong>CF_DIBV5</strong> = 17</dl>
+
+<dl><dt><strong>CF_DIF</strong> = 5</dl>
+
+<dl><dt><strong>CF_ENHMETAFILE</strong> = 14</dl>
+
+<dl><dt><strong>CF_HDROP</strong> = 15</dl>
+
+<dl><dt><strong>CF_HTML</strong> = 49467</dl>
+
+<dl><dt><strong>CF_LOCALE</strong> = 16</dl>
+
+<dl><dt><strong>CF_MAX</strong> = 18</dl>
+
+<dl><dt><strong>CF_METAFILEPICT</strong> = 3</dl>
+
+<dl><dt><strong>CF_OEMTEXT</strong> = 7</dl>
+
+<dl><dt><strong>CF_PALETTE</strong> = 9</dl>
+
+<dl><dt><strong>CF_PENDATA</strong> = 10</dl>
+
+<dl><dt><strong>CF_RIFF</strong> = 11</dl>
+
+<dl><dt><strong>CF_SYLK</strong> = 4</dl>
+
+<dl><dt><strong>CF_TEXT</strong> = 1</dl>
+
+<dl><dt><strong>CF_TIFF</strong> = 6</dl>
+
+<dl><dt><strong>CF_UNICODETEXT</strong> = 13</dl>
+
+<dl><dt><strong>CF_WAVE</strong> = 12</dl>
 
 </td></tr></table> <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -3124,6 +3251,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ComboBoxControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ComboBoxControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ComboBoxControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ComboBoxControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ComboBoxControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -3179,7 +3308,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ComboBoxControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ComboBoxControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ComboBoxControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -3738,6 +3867,8 @@ waitTime:&nbsp;float.<br>
 <a href="#Control-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#Control-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="Control-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="Control-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="Control-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -3793,7 +3924,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="Control-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="Control-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="Control-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -4393,6 +4524,8 @@ waitTime:&nbsp;float.<br>
 <a href="#CustomControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#CustomControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="CustomControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="CustomControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="CustomControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -4448,7 +4581,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="CustomControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="CustomControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="CustomControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -4963,6 +5096,8 @@ waitTime:&nbsp;float.<br>
 <a href="#DataGridControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#DataGridControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="DataGridControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="DataGridControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="DataGridControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -5018,7 +5153,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="DataGridControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="DataGridControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="DataGridControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -5511,6 +5646,8 @@ waitTime:&nbsp;float.<br>
 <a href="#DataItemControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#DataItemControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="DataItemControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="DataItemControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="DataItemControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -5566,7 +5703,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="DataItemControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="DataItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="DataItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -6117,6 +6254,8 @@ waitTime:&nbsp;float.<br>
 <a href="#DocumentControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#DocumentControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="DocumentControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="DocumentControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="DocumentControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -6172,7 +6311,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="DocumentControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="DocumentControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="DocumentControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -6771,6 +6910,8 @@ waitTime:&nbsp;float.<br>
 <a href="#EditControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#EditControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="EditControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="EditControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="EditControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -6826,7 +6967,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="EditControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="EditControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="EditControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -7522,6 +7663,8 @@ waitTime:&nbsp;float.<br>
 <a href="#GroupControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#GroupControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="GroupControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="GroupControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="GroupControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -7577,7 +7720,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="GroupControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="GroupControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="GroupControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -8108,6 +8251,8 @@ waitTime:&nbsp;float.<br>
 <a href="#HeaderControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#HeaderControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="HeaderControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="HeaderControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="HeaderControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -8163,7 +8308,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="HeaderControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="HeaderControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="HeaderControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -8646,6 +8791,8 @@ waitTime:&nbsp;float.<br>
 <a href="#HeaderItemControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#HeaderItemControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="HeaderItemControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="HeaderItemControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="HeaderItemControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -8701,7 +8848,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="HeaderItemControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="HeaderItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="HeaderItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -9184,6 +9331,8 @@ waitTime:&nbsp;float.<br>
 <a href="#HyperlinkControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#HyperlinkControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="HyperlinkControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="HyperlinkControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="HyperlinkControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -9239,7 +9388,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="HyperlinkControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="HyperlinkControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="HyperlinkControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -9769,6 +9918,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ImageControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ImageControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ImageControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ImageControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ImageControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -9824,7 +9975,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ImageControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ImageControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ImageControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -10954,6 +11105,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ListControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ListControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ListControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ListControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ListControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -11009,7 +11162,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ListControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ListControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ListControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -11502,6 +11655,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ListItemControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ListItemControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ListItemControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ListItemControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ListItemControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -11557,7 +11712,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ListItemControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ListItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ListItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -11782,19 +11937,19 @@ Data and other attributes inherited from <a href="uiautomation.html#Control">Con
 <tr><td>&nbsp;</td>
 <td width="100%">Static methods defined here:<br>
 <dl><dt><a name="Logger-ColorfullyLog"><strong>ColorfullyLog</strong></a>(log: str = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -&gt; None</dt><dd><tt>log:&nbsp;any&nbsp;type.<br>
-consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;<a href="#ConsoleColor">ConsoleColor</a>,&nbsp;such&nbsp;as&nbsp;<a href="#ConsoleColor">ConsoleColor</a>.DarkGreen.<br>
+consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>`,&nbsp;such&nbsp;as&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>.DarkGreen`.<br>
 writeToFile:&nbsp;bool.<br>
 printToStdout:&nbsp;bool.<br>
 logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.<br>
 &nbsp;<br>
-<a href="#Logger-ColorfullyLog">ColorfullyLog</a>('Hello&nbsp;&lt;Color=Green&gt;Green&lt;/Color&gt;&nbsp;!!!'),&nbsp;color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;<a href="#Logger">Logger</a>.ColorNames</tt></dd></dl>
+<a href="#Logger-ColorfullyLog">ColorfullyLog</a>('Hello&nbsp;&lt;Color=Green&gt;Green&nbsp;Text&lt;/Color&gt;&nbsp;!!!'),&nbsp;Color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;`<a href="#Logger">Logger</a>.ColorNames`&nbsp;and&nbsp;can't&nbsp;be&nbsp;nested.</tt></dd></dl>
 
 <dl><dt><a name="Logger-ColorfullyWrite"><strong>ColorfullyWrite</strong></a>(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -&gt; None</dt><dd><tt>log:&nbsp;str.<br>
 consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>`,&nbsp;such&nbsp;as&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>.DarkGreen`.<br>
 writeToFile:&nbsp;bool.<br>
 printToStdout:&nbsp;bool.<br>
 logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.<br>
-<a href="#Logger-ColorfullyWrite">ColorfullyWrite</a>('Hello&nbsp;&lt;Color=Green&gt;Green&lt;/Color&gt;&nbsp;!!!'),&nbsp;color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;<a href="#Logger">Logger</a>.ColorNames.</tt></dd></dl>
+<a href="#Logger-ColorfullyWrite">ColorfullyWrite</a>('Hello&nbsp;&lt;Color=Green&gt;Green&nbsp;Text&lt;/Color&gt;&nbsp;!!!'),&nbsp;Color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;`<a href="#Logger">Logger</a>.ColorNames`&nbsp;and&nbsp;can't&nbsp;be&nbsp;nested.</tt></dd></dl>
 
 <dl><dt><a name="Logger-ColorfullyWriteLine"><strong>ColorfullyWriteLine</strong></a>(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -&gt; None</dt><dd><tt>log:&nbsp;str.<br>
 consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>`,&nbsp;such&nbsp;as&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>.DarkGreen`.<br>
@@ -11802,7 +11957,7 @@ writeToFile:&nbsp;bool.<br>
 printToStdout:&nbsp;bool.<br>
 logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.<br>
 &nbsp;<br>
-<a href="#Logger-ColorfullyWriteLine">ColorfullyWriteLine</a>('Hello&nbsp;&lt;Color=Green&gt;Green&lt;/Color&gt;&nbsp;!!!'),&nbsp;color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;<a href="#Logger">Logger</a>.ColorNames.</tt></dd></dl>
+<a href="#Logger-ColorfullyWriteLine">ColorfullyWriteLine</a>('Hello&nbsp;&lt;Color=Green&gt;Green&nbsp;Text&lt;/Color&gt;&nbsp;!!!'),&nbsp;Color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;`<a href="#Logger">Logger</a>.ColorNames`&nbsp;and&nbsp;can't&nbsp;be&nbsp;nested.</tt></dd></dl>
 
 <dl><dt><a name="Logger-DeleteLog"><strong>DeleteLog</strong></a>() -&gt; None</dt><dd><tt>Delete&nbsp;log&nbsp;file.</tt></dd></dl>
 
@@ -11811,6 +11966,14 @@ consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#Con
 writeToFile:&nbsp;bool.<br>
 printToStdout:&nbsp;bool.<br>
 logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.</tt></dd></dl>
+
+<dl><dt><a name="Logger-LogColorfully"><strong>LogColorfully</strong></a> = ColorfullyLog(log: str = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -&gt; None</dt><dd><tt>log:&nbsp;any&nbsp;type.<br>
+consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>`,&nbsp;such&nbsp;as&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>.DarkGreen`.<br>
+writeToFile:&nbsp;bool.<br>
+printToStdout:&nbsp;bool.<br>
+logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.<br>
+&nbsp;<br>
+<a href="#Logger-ColorfullyLog">ColorfullyLog</a>('Hello&nbsp;&lt;Color=Green&gt;Green&nbsp;Text&lt;/Color&gt;&nbsp;!!!'),&nbsp;Color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;`<a href="#Logger">Logger</a>.ColorNames`&nbsp;and&nbsp;can't&nbsp;be&nbsp;nested.</tt></dd></dl>
 
 <dl><dt><a name="Logger-SetLogFile"><strong>SetLogFile</strong></a>(path: str) -&gt; None</dt></dl>
 
@@ -11821,11 +11984,26 @@ printToStdout:&nbsp;bool.<br>
 logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.<br>
 printTruncateLen:&nbsp;int,&nbsp;if&nbsp;&lt;=&nbsp;0,&nbsp;log&nbsp;is&nbsp;not&nbsp;truncated&nbsp;when&nbsp;print.</tt></dd></dl>
 
+<dl><dt><a name="Logger-WriteColorfully"><strong>WriteColorfully</strong></a> = ColorfullyWrite(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -&gt; None</dt><dd><tt>log:&nbsp;str.<br>
+consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>`,&nbsp;such&nbsp;as&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>.DarkGreen`.<br>
+writeToFile:&nbsp;bool.<br>
+printToStdout:&nbsp;bool.<br>
+logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.<br>
+<a href="#Logger-ColorfullyWrite">ColorfullyWrite</a>('Hello&nbsp;&lt;Color=Green&gt;Green&nbsp;Text&lt;/Color&gt;&nbsp;!!!'),&nbsp;Color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;`<a href="#Logger">Logger</a>.ColorNames`&nbsp;and&nbsp;can't&nbsp;be&nbsp;nested.</tt></dd></dl>
+
 <dl><dt><a name="Logger-WriteLine"><strong>WriteLine</strong></a>(log: Any, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -&gt; None</dt><dd><tt>log:&nbsp;any&nbsp;type.<br>
 consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>`,&nbsp;such&nbsp;as&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>.DarkGreen`.<br>
 writeToFile:&nbsp;bool.<br>
 printToStdout:&nbsp;bool.<br>
 logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.</tt></dd></dl>
+
+<dl><dt><a name="Logger-WriteLineColorfully"><strong>WriteLineColorfully</strong></a> = ColorfullyWriteLine(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -&gt; None</dt><dd><tt>log:&nbsp;str.<br>
+consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>`,&nbsp;such&nbsp;as&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>.DarkGreen`.<br>
+writeToFile:&nbsp;bool.<br>
+printToStdout:&nbsp;bool.<br>
+logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.<br>
+&nbsp;<br>
+<a href="#Logger-ColorfullyWriteLine">ColorfullyWriteLine</a>('Hello&nbsp;&lt;Color=Green&gt;Green&nbsp;Text&lt;/Color&gt;&nbsp;!!!'),&nbsp;Color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;`<a href="#Logger">Logger</a>.ColorNames`&nbsp;and&nbsp;can't&nbsp;be&nbsp;nested.</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -12287,6 +12465,8 @@ waitTime:&nbsp;float.<br>
 <a href="#MenuBarControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#MenuBarControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="MenuBarControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="MenuBarControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="MenuBarControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -12342,7 +12522,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="MenuBarControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="MenuBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="MenuBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -12821,6 +13001,8 @@ waitTime:&nbsp;float.<br>
 <a href="#MenuControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#MenuControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="MenuControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="MenuControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="MenuControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -12876,7 +13058,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="MenuControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="MenuControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="MenuControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -13363,6 +13545,8 @@ waitTime:&nbsp;float.<br>
 <a href="#MenuItemControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#MenuItemControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="MenuItemControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="MenuItemControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="MenuItemControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -13418,7 +13602,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="MenuItemControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="MenuItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="MenuItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -14103,6 +14287,8 @@ waitTime:&nbsp;float.<br>
 <a href="#PaneControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#PaneControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="PaneControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="PaneControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="PaneControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -14158,7 +14344,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="PaneControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="PaneControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="PaneControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -14775,6 +14961,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ProgressBarControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ProgressBarControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ProgressBarControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ProgressBarControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ProgressBarControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -14830,7 +15018,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ProgressBarControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ProgressBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ProgressBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -15677,6 +15865,8 @@ waitTime:&nbsp;float.<br>
 <a href="#RadioButtonControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#RadioButtonControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="RadioButtonControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="RadioButtonControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="RadioButtonControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -15732,7 +15922,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="RadioButtonControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="RadioButtonControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="RadioButtonControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -16039,6 +16229,12 @@ class&nbsp;<a href="#Rect">Rect</a>,&nbsp;like&nbsp;`ctypes.wintypes.RECT`.<br>&
 
 <dl><dt><a name="Rect-height"><strong>height</strong></a>(self) -&gt; int</dt></dl>
 
+<dl><dt><a name="Rect-intersect"><strong>intersect</strong></a>(self, rect: 'Rect') -&gt; 'Rect'</dt></dl>
+
+<dl><dt><a name="Rect-isempty"><strong>isempty</strong></a>(self) -&gt; int</dt></dl>
+
+<dl><dt><a name="Rect-offset"><strong>offset</strong></a>(self, x: int, y: int) -&gt; None</dt></dl>
+
 <dl><dt><a name="Rect-width"><strong>width</strong></a>(self) -&gt; int</dt></dl>
 
 <dl><dt><a name="Rect-xcenter"><strong>xcenter</strong></a>(self) -&gt; int</dt></dl>
@@ -16056,6 +16252,54 @@ Data descriptors defined here:<br>
 <hr>
 Data and other attributes defined here:<br>
 <dl><dt><strong>__hash__</strong> = None</dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="RotateFlipType">class <strong>RotateFlipType</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>Rotate180FlipNone</strong> = 2</dl>
+
+<dl><dt><strong>Rotate180FlipX</strong> = 6</dl>
+
+<dl><dt><strong>Rotate180FlipXY</strong> = 0</dl>
+
+<dl><dt><strong>Rotate180FlipY</strong> = 4</dl>
+
+<dl><dt><strong>Rotate270FlipNone</strong> = 3</dl>
+
+<dl><dt><strong>Rotate270FlipX</strong> = 7</dl>
+
+<dl><dt><strong>Rotate270FlipXY</strong> = 1</dl>
+
+<dl><dt><strong>Rotate270FlipY</strong> = 5</dl>
+
+<dl><dt><strong>Rotate90FlipNone</strong> = 1</dl>
+
+<dl><dt><strong>Rotate90FlipX</strong> = 5</dl>
+
+<dl><dt><strong>Rotate90FlipXY</strong> = 3</dl>
+
+<dl><dt><strong>Rotate90FlipY</strong> = 7</dl>
+
+<dl><dt><strong>RotateNoneFlipNone</strong> = 0</dl>
+
+<dl><dt><strong>RotateNoneFlipX</strong> = 4</dl>
+
+<dl><dt><strong>RotateNoneFlipXY</strong> = 2</dl>
+
+<dl><dt><strong>RotateNoneFlipY</strong> = 6</dl>
 
 </td></tr></table> <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -16482,6 +16726,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ScrollBarControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ScrollBarControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ScrollBarControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ScrollBarControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ScrollBarControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -16537,7 +16783,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ScrollBarControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ScrollBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ScrollBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -17217,6 +17463,8 @@ waitTime:&nbsp;float.<br>
 <a href="#SemanticZoomControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#SemanticZoomControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="SemanticZoomControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="SemanticZoomControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="SemanticZoomControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -17272,7 +17520,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="SemanticZoomControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="SemanticZoomControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="SemanticZoomControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -17751,6 +17999,8 @@ waitTime:&nbsp;float.<br>
 <a href="#SeparatorControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#SeparatorControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="SeparatorControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="SeparatorControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="SeparatorControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -17806,7 +18056,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="SeparatorControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="SeparatorControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="SeparatorControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -18291,6 +18541,8 @@ waitTime:&nbsp;float.<br>
 <a href="#SliderControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#SliderControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="SliderControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="SliderControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="SliderControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -18346,7 +18598,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="SliderControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="SliderControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="SliderControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -18831,6 +19083,8 @@ waitTime:&nbsp;float.<br>
 <a href="#SpinnerControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#SpinnerControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="SpinnerControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="SpinnerControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="SpinnerControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -18886,7 +19140,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="SpinnerControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="SpinnerControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="SpinnerControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -19369,6 +19623,8 @@ waitTime:&nbsp;float.<br>
 <a href="#SplitButtonControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#SplitButtonControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="SplitButtonControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="SplitButtonControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="SplitButtonControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -19424,7 +19680,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="SplitButtonControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="SplitButtonControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="SplitButtonControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -19971,6 +20227,8 @@ waitTime:&nbsp;float.<br>
 <a href="#StatusBarControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#StatusBarControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="StatusBarControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="StatusBarControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="StatusBarControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -20026,7 +20284,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="StatusBarControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="StatusBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="StatusBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -20654,6 +20912,8 @@ waitTime:&nbsp;float.<br>
 <a href="#TabControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#TabControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="TabControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="TabControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="TabControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -20709,7 +20969,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="TabControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="TabControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="TabControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -21190,6 +21450,8 @@ waitTime:&nbsp;float.<br>
 <a href="#TabItemControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#TabItemControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="TabItemControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="TabItemControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="TabItemControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -21245,7 +21507,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="TabItemControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="TabItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="TabItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -21732,6 +21994,8 @@ waitTime:&nbsp;float.<br>
 <a href="#TableControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#TableControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="TableControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="TableControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="TableControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -21787,7 +22051,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="TableControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="TableControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="TableControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -22483,6 +22747,8 @@ waitTime:&nbsp;float.<br>
 <a href="#TextControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#TextControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="TextControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="TextControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="TextControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -22538,7 +22804,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="TextControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="TextControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="TextControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -23330,6 +23596,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ThumbControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ThumbControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ThumbControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ThumbControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ThumbControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -23385,7 +23653,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ThumbControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ThumbControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ThumbControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -23864,6 +24132,8 @@ waitTime:&nbsp;float.<br>
 <a href="#TitleBarControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#TitleBarControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="TitleBarControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="TitleBarControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="TitleBarControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -23919,7 +24189,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="TitleBarControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="TitleBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="TitleBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -24465,6 +24735,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ToolBarControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ToolBarControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ToolBarControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ToolBarControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ToolBarControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -24520,7 +24792,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ToolBarControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ToolBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ToolBarControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -25003,6 +25275,8 @@ waitTime:&nbsp;float.<br>
 <a href="#ToolTipControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#ToolTipControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="ToolTipControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="ToolTipControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="ToolTipControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -25058,7 +25332,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="ToolTipControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="ToolTipControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="ToolTipControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -25709,6 +25983,8 @@ waitTime:&nbsp;float.<br>
 <a href="#TreeControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#TreeControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="TreeControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="TreeControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="TreeControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -25764,7 +26040,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="TreeControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="TreeControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="TreeControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -26253,6 +26529,8 @@ waitTime:&nbsp;float.<br>
 <a href="#TreeItemControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#TreeItemControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="TreeItemControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="TreeItemControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="TreeItemControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -26308,7 +26586,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="TreeItemControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="TreeItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="TreeItemControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -26534,7 +26812,13 @@ Data and other attributes inherited from <a href="uiautomation.html#Control">Con
 <br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
+<dl><dt><a name="UIAutomationInitializerInThread-Uninitialize"><strong>Uninitialize</strong></a>(self)</dt></dl>
+
 <dl><dt><a name="UIAutomationInitializerInThread-__del__"><strong>__del__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="UIAutomationInitializerInThread-__enter__"><strong>__enter__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="UIAutomationInitializerInThread-__exit__"><strong>__exit__</strong></a>(self, exceptionType, exceptionValue, exceptionTraceback)</dt></dl>
 
 <dl><dt><a name="UIAutomationInitializerInThread-__init__"><strong>__init__</strong></a>(self, debug: bool = False)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
 
@@ -26892,6 +27176,8 @@ waitTime:&nbsp;float.<br>
 <a href="#WindowControl-RightClick">RightClick</a>(10,&nbsp;10):&nbsp;right&nbsp;click&nbsp;left+10,&nbsp;top+10.<br>
 <a href="#WindowControl-RightClick">RightClick</a>(-10,&nbsp;-10):&nbsp;right&nbsp;click&nbsp;right-10,&nbsp;bottom-10.</tt></dd></dl>
 
+<dl><dt><a name="WindowControl-RightDragDrop"><strong>RightDragDrop</strong></a>(self, x1: int, y1: int, x2: int, y2: int, moveSpeed: float = 1, waitTime: float = 0.5) -&gt; None</dt></dl>
+
 <dl><dt><a name="WindowControl-ScrollBarControl"><strong>ScrollBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'ScrollBarControl'</dt></dl>
 
 <dl><dt><a name="WindowControl-SemanticZoomControl"><strong>SemanticZoomControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'SemanticZoomControl'</dt></dl>
@@ -26947,7 +27233,7 @@ Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt>
 
 <dl><dt><a name="WindowControl-TitleBarControl"><strong>TitleBarControl</strong></a>(self, searchDepth=4294967295, searchInterval=0.5, foundIndex=1, element=0, **searchProperties) -&gt; 'TitleBarControl'</dt></dl>
 
-<dl><dt><a name="WindowControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;<a href="#Bitmap">Bitmap</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="WindowControl-ToBitmap"><strong>ToBitmap</strong></a>(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -&gt; uiautomation.Bitmap</dt><dd><tt>Capture&nbsp;control&nbsp;to&nbsp;a&nbsp;`<a href="#Bitmap">Bitmap</a>`&nbsp;<a href="builtins.html#object">object</a>.<br>
 x,&nbsp;y:&nbsp;int,&nbsp;the&nbsp;point&nbsp;in&nbsp;control's&nbsp;internal&nbsp;position(from&nbsp;0,0).<br>
 width,&nbsp;height:&nbsp;int,&nbsp;image's&nbsp;width&nbsp;and&nbsp;height&nbsp;from&nbsp;x,&nbsp;y,&nbsp;use&nbsp;0&nbsp;for&nbsp;entire&nbsp;area.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;width(or&nbsp;height)&nbsp;&lt;&nbsp;0,&nbsp;image&nbsp;size&nbsp;will&nbsp;be&nbsp;control's&nbsp;width(or&nbsp;height)&nbsp;-&nbsp;width(or&nbsp;height).</tt></dd></dl>
@@ -27404,6 +27690,14 @@ Return&nbsp;`<a href="#Control">Control</a>`&nbsp;subclass&nbsp;or&nbsp;None&nbs
 handle:&nbsp;int,&nbsp;the&nbsp;handle&nbsp;of&nbsp;a&nbsp;native&nbsp;window.<br>
 index:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#GAFlag">GAFlag</a>`.<br>
 Return&nbsp;int,&nbsp;a&nbsp;native&nbsp;window&nbsp;handle.</tt></dd></dl>
+ <dl><dt><a name="-GetClipboardBitmap"><strong>GetClipboardBitmap</strong></a>() -&gt; uiautomation.Bitmap</dt></dl>
+ <dl><dt><a name="-GetClipboardFormats"><strong>GetClipboardFormats</strong></a>() -&gt; Dict[int, str]</dt><dd><tt>Get&nbsp;clipboard&nbsp;formats&nbsp;that&nbsp;system&nbsp;clipboard&nbsp;has&nbsp;currently.<br>
+Return&nbsp;Dict[int,&nbsp;str].<br>
+The&nbsp;key&nbsp;is&nbsp;a&nbsp;int&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ClipboardFormat">ClipboardFormat</a>`&nbsp;or&nbsp;othes&nbsp;values&nbsp;that&nbsp;apps&nbsp;registered&nbsp;by&nbsp;ctypes.windll.user32.RegisterClipboardFormatW</tt></dd></dl>
+ <dl><dt><a name="-GetClipboardHtml"><strong>GetClipboardHtml</strong></a>() -&gt; str</dt><dd><tt>Return&nbsp;str.<br>
+Note:&nbsp;the&nbsp;positions(StartHTML,&nbsp;EndHTML&nbsp;...)&nbsp;are&nbsp;valid&nbsp;for&nbsp;utf-8&nbsp;encoding&nbsp;html&nbsp;text,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;when&nbsp;the&nbsp;utf-8&nbsp;encoding&nbsp;html&nbsp;text&nbsp;is&nbsp;decoded&nbsp;to&nbsp;Python&nbsp;unicode&nbsp;str,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;positions&nbsp;may&nbsp;not&nbsp;correspond&nbsp;to&nbsp;the&nbsp;actual&nbsp;positions&nbsp;in&nbsp;the&nbsp;returned&nbsp;str.</tt></dd></dl>
  <dl><dt><a name="-GetClipboardText"><strong>GetClipboardText</strong></a>() -&gt; str</dt></dl>
  <dl><dt><a name="-GetConsoleOriginalTitle"><strong>GetConsoleOriginalTitle</strong></a>() -&gt; str</dt><dd><tt>GetConsoleOriginalTitle&nbsp;from&nbsp;Win32.<br>
 Return&nbsp;str.<br>
@@ -27460,6 +27754,8 @@ If&nbsp;you&nbsp;want&nbsp;to&nbsp;use&nbsp;functionalities&nbsp;related&nbsp;to
 You&nbsp;must&nbsp;call&nbsp;this&nbsp;function&nbsp;first&nbsp;in&nbsp;the&nbsp;new&nbsp;thread.<br>
 But&nbsp;you&nbsp;can't&nbsp;use&nbsp;use&nbsp;a&nbsp;<a href="#Control">Control</a>&nbsp;or&nbsp;a&nbsp;Pattern&nbsp;created&nbsp;in&nbsp;a&nbsp;different&nbsp;thread.<br>
 So&nbsp;you&nbsp;can't&nbsp;create&nbsp;a&nbsp;<a href="#Control">Control</a>&nbsp;or&nbsp;a&nbsp;Pattern&nbsp;in&nbsp;main&nbsp;thread&nbsp;and&nbsp;then&nbsp;pass&nbsp;it&nbsp;to&nbsp;a&nbsp;new&nbsp;thread&nbsp;and&nbsp;use&nbsp;it.</tt></dd></dl>
+ <dl><dt><a name="-Input"><strong>Input</strong></a>(prompt: str, consoleColor: int = -1) -&gt; str</dt></dl>
+ <dl><dt><a name="-InputColorfully"><strong>InputColorfully</strong></a>(prompt: str, consoleColor: int = -1) -&gt; str</dt></dl>
  <dl><dt><a name="-IsDesktopLocked"><strong>IsDesktopLocked</strong></a>() -&gt; bool</dt><dd><tt>Check&nbsp;if&nbsp;desktop&nbsp;is&nbsp;locked.<br>
 Return&nbsp;bool.<br>
 Desktop&nbsp;is&nbsp;locked&nbsp;if&nbsp;press&nbsp;Win+L,&nbsp;Ctrl+Alt+Del&nbsp;or&nbsp;in&nbsp;remote&nbsp;desktop&nbsp;mode.</tt></dd></dl>
@@ -27624,6 +27920,10 @@ char:&nbsp;str,&nbsp;len(char)&nbsp;must&nbsp;equal&nbsp;to&nbsp;1.<br>
 charMode:&nbsp;bool,&nbsp;if&nbsp;False,&nbsp;the&nbsp;char&nbsp;typied&nbsp;is&nbsp;depend&nbsp;on&nbsp;the&nbsp;input&nbsp;method&nbsp;if&nbsp;a&nbsp;input&nbsp;method&nbsp;is&nbsp;on.<br>
 Return&nbsp;int,&nbsp;the&nbsp;number&nbsp;of&nbsp;events&nbsp;that&nbsp;it&nbsp;successfully&nbsp;inserted&nbsp;into&nbsp;the&nbsp;keyboard&nbsp;or&nbsp;mouse&nbsp;input&nbsp;stream.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;the&nbsp;function&nbsp;returns&nbsp;zero,&nbsp;the&nbsp;input&nbsp;was&nbsp;already&nbsp;blocked&nbsp;by&nbsp;another&nbsp;thread.</tt></dd></dl>
+ <dl><dt><a name="-SetClipboardBitmap"><strong>SetClipboardBitmap</strong></a>(bitmap: uiautomation.Bitmap) -&gt; bool</dt><dd><tt>Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt></dd></dl>
+ <dl><dt><a name="-SetClipboardHtml"><strong>SetClipboardHtml</strong></a>(htmlText: str) -&gt; bool</dt><dd><tt>htmlText:&nbsp;str,&nbsp;such&nbsp;as&nbsp;'&lt;h1&gt;Title&lt;/h1&gt;&lt;h3&gt;Hello&lt;/h3&gt;&lt;p&gt;hello&nbsp;world&lt;/p&gt;'<br>
+Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.<br>
+Refer:&nbsp;https://docs.microsoft.com/en-us/troubleshoot/cpp/add-html-code-clipboard</tt></dd></dl>
  <dl><dt><a name="-SetClipboardText"><strong>SetClipboardText</strong></a>(text: str) -&gt; bool</dt><dd><tt>Return&nbsp;bool,&nbsp;True&nbsp;if&nbsp;succeed&nbsp;otherwise&nbsp;False.</tt></dd></dl>
  <dl><dt><a name="-SetConsoleColor"><strong>SetConsoleColor</strong></a>(color: int) -&gt; bool</dt><dd><tt>Change&nbsp;the&nbsp;text&nbsp;color&nbsp;on&nbsp;console&nbsp;window.<br>
 color:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>`.<br>
