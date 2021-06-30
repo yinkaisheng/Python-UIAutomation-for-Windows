@@ -149,6 +149,7 @@ edit = notepadWindow.EditControl()
 # use value pattern to get or set value
 edit.GetValuePattern().SetValue('Hello')# or edit.GetPattern(auto.PatternId.ValuePattern)
 edit.SendKeys('{Ctrl}{End}{Enter}World')
+print('current text:', edit.GetValuePattern().Value)
 # find the first TitleBarControl in notepadWindow, 
 # then find the second ButtonControl in TitleBarControl, which is the Maximize button
 notepadWindow.TitleBarControl().ButtonControl(foundIndex=2).Click()

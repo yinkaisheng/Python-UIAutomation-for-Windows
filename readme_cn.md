@@ -136,6 +136,7 @@ edit = notepadWindow.EditControl()
 # 获取EditControl支持的ValuePattern，并用Pattern设置控件文本为"Hello"
 edit.GetValuePattern().SetValue('Hello')# or edit.GetPattern(auto.PatternId.ValuePattern)
 edit.SendKeys('{Ctrl}{End}{Enter}World')# 在文本末尾打字
+print('current text:', edit.GetValuePattern().Value)# 获取当前文本
 # 先从notepadWindow的第一层子控件中查找TitleBarControl, 
 # 然后从TitleBarControl的子孙控件中找第二个ButtonControl, 即最大化按钮，并点击按钮
 notepadWindow.TitleBarControl(Depth=1).ButtonControl(foundIndex=2).Click()
