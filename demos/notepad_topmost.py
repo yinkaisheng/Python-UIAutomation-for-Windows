@@ -8,6 +8,7 @@ import subprocess
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
 
+
 def main():
     auto.ShowDesktop()
     subprocess.Popen('notepad')
@@ -32,8 +33,13 @@ def main():
     mmcWindow.SendKeys('{Alt}f', waitTime=1)
     mmcWindow.SendKeys('X', charMode=False)  # or mmcWindow.SendKey(auto.Keys.VK_X)
     edit.SendKeys('{Ctrl}{End}{Enter 2}You close me.')
+    vp = edit.GetValuePattern()
+    if vp:
+        print('current text:', vp.Value)
     auto.GetConsoleWindow().SetActive()
+
 
 if __name__ == '__main__':
     main()
+    input('Press Enter to exit')
 
