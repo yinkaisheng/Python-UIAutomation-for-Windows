@@ -67,24 +67,6 @@ class _AutomationClient:
 1, You may need to install Windows Update KB971513 if your OS is Windows XP, see https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation
 2, you need to use an UIAutomationInitializerInThread object in a thread, see demos/uiautomation_in_thread.py''', ConsoleColor.Yellow)
                     raise ex
-        # Windows dll
-        ctypes.windll.user32.GetAncestor.restype = ctypes.c_void_p
-        ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
-        ctypes.windll.user32.GetDC.restype = ctypes.c_void_p
-        ctypes.windll.user32.GetForegroundWindow.restype = ctypes.c_void_p
-        ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
-        ctypes.windll.user32.GetWindowLongW.restype = ctypes.wintypes.LONG
-        ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
-        ctypes.windll.user32.SendMessageW.restype = ctypes.wintypes.LONG
-        ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
-        ctypes.windll.gdi32.CreateBitmap.restype = ctypes.c_void_p
-        ctypes.windll.gdi32.CreateCompatibleDC.restype = ctypes.c_void_p
-        ctypes.windll.gdi32.SelectObject.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.GetConsoleWindow.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.GetStdHandle.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
-        ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
 
 
 class _DllClient:
@@ -132,6 +114,26 @@ class _DllClient:
     def __del__(self):
         if self.dll:
             self.dll.Uninitialize()
+
+
+# set Windows dll restype
+ctypes.windll.user32.GetAncestor.restype = ctypes.c_void_p
+ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
+ctypes.windll.user32.GetDC.restype = ctypes.c_void_p
+ctypes.windll.user32.GetForegroundWindow.restype = ctypes.c_void_p
+ctypes.windll.user32.GetWindowDC.restype = ctypes.c_void_p
+ctypes.windll.user32.GetWindowLongW.restype = ctypes.wintypes.LONG
+ctypes.windll.user32.OpenDesktopW.restype = ctypes.c_void_p
+ctypes.windll.user32.SendMessageW.restype = ctypes.wintypes.LONG
+ctypes.windll.user32.WindowFromPoint.restype = ctypes.c_void_p
+ctypes.windll.gdi32.CreateBitmap.restype = ctypes.c_void_p
+ctypes.windll.gdi32.CreateCompatibleDC.restype = ctypes.c_void_p
+ctypes.windll.gdi32.SelectObject.restype = ctypes.c_void_p
+ctypes.windll.kernel32.GetConsoleWindow.restype = ctypes.c_void_p
+ctypes.windll.kernel32.GetStdHandle.restype = ctypes.c_void_p
+ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
+ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
+ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
 
 
 class ControlType:
