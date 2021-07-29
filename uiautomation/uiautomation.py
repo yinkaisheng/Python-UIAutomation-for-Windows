@@ -2922,7 +2922,8 @@ class Logger:
                     sys.stdout.write('\n')
             if isValidColor:
                 ResetConsoleColor()
-            sys.stdout.flush()
+            if sys.stdout:
+                sys.stdout.flush()
         if not writeToFile:
             return
         fileName = logFile if logFile else Logger.FileName
