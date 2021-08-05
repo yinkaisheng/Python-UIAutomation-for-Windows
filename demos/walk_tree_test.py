@@ -18,7 +18,8 @@ def WalkDesktop():
     for control, depth in automation.WalkTree(desktop, getFirstChild=GetFirstChild, getNextSibling=GetNextSibling, includeTop=True, maxDepth=2):
         print(' ' * depth * 4 + str(control))
 
-def WalkQueens(queenCount = 8):
+
+def WalkQueens(queenCount=8):
     def GetNextQueenColumns(place):
         notValid = set()
         nextRow = len(place)
@@ -52,6 +53,7 @@ def WalkQueens(queenCount = 8):
         for x in queens:
             automation.Logger.ColorfullyWriteLine('o ' * x + '<Color=Cyan>x </Color>' + 'o ' * (queenCount - x - 1))
 
+
 def WalkPermutations(uniqueItems):
     def NextPermutations(aTuple):
         left, permutation = aTuple
@@ -67,7 +69,8 @@ def WalkPermutations(uniqueItems):
     count = 0
     for (left, permutation), depth, remain in automation.WalkTree((uniqueItems, []), NextPermutations, yieldCondition=lambda c, d: d == n):
         count += 1
-        print(count, permutation)
+        automation.Logger.ColorfullyWriteLine('<Color=Cyan>{}</Color> {}'.format(count, permutation))
+
 
 def main():
     automation.Logger.WriteLine('\nwalk desktop for 2 depth', automation.ConsoleColor.Cyan)
@@ -79,6 +82,7 @@ def main():
     automation.Logger.WriteLine('\nwalk permutations for "abc"', automation.ConsoleColor.Cyan)
     time.sleep(1)
     WalkPermutations(list("abc"))
+
 
 if __name__ == '__main__':
     main()

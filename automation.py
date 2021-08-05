@@ -76,7 +76,7 @@ def main():
     if seconds > 0:
         auto.Logger.Write('please wait for {0} seconds\n\n'.format(seconds), writeToFile=False)
         time.sleep(seconds)
-    auto.Logger.Log('Starts, Current Cursor Position: {}'.format(auto.GetCursorPos()))
+    auto.Logger.ColorfullyLog('Starts, Current Cursor Position: <Color=Cyan>{}</Color>'.format(auto.GetCursorPos()))
     control = None
     if root:
         control = auto.GetRootControl()
