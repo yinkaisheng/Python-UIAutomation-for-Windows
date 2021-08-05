@@ -95,7 +95,7 @@ def main():
     auto.Logger.Write('\nPress any key to exit', auto.ConsoleColor.Cyan)
     import msvcrt
     while not msvcrt.kbhit():
-        pass
+        time.sleep(0.05)
 
 
 if __name__ == '__main__':
