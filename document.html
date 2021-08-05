@@ -8,9 +8,9 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>uiautomation</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:d%3A%5Ccodes%5Cpython%5Cpython-uiautomation-for-windows%5Cuiautomation%5Cuiautomation.py">d:\codes\python\python-uiautomation-for-windows\uiautomation\uiautomation.py</a></font></td></tr></table>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:f%3A%5Ccodes%5Cpython%5Cpython-uiautomation-for-windows%5Cuiautomation%5Cuiautomation.py">f:\codes\python\python-uiautomation-for-windows\uiautomation\uiautomation.py</a></font></td></tr></table>
     <p><tt>uiautomation&nbsp;for&nbsp;Python&nbsp;3.<br>
-Author:&nbsp;yinkaisheng@live.com<br>
+Author:&nbsp;yinkaisheng@foxmail.com<br>
 Source:&nbsp;https://github.com/yinkaisheng/Python-UIAutomation-for-Windows<br>
 &nbsp;<br>
 This&nbsp;module&nbsp;is&nbsp;for&nbsp;UIAutomation&nbsp;on&nbsp;Windows(Windows&nbsp;XP&nbsp;with&nbsp;SP3,&nbsp;Windows&nbsp;Vista&nbsp;and&nbsp;Windows&nbsp;7/8/8.1/10).<br>
@@ -2945,7 +2945,7 @@ Data and other attributes defined here:<br>
 
 <dl><dt><strong>CF_HDROP</strong> = 15</dl>
 
-<dl><dt><strong>CF_HTML</strong> = 49467</dl>
+<dl><dt><strong>CF_HTML</strong> = 49456</dl>
 
 <dl><dt><strong>CF_LOCALE</strong> = 16</dl>
 
@@ -11975,7 +11975,9 @@ logFile:&nbsp;str,&nbsp;log&nbsp;file&nbsp;path.<br>
 &nbsp;<br>
 <a href="#Logger-ColorfullyLog">ColorfullyLog</a>('Hello&nbsp;&lt;Color=Green&gt;Green&nbsp;Text&lt;/Color&gt;&nbsp;!!!'),&nbsp;Color&nbsp;name&nbsp;must&nbsp;be&nbsp;in&nbsp;`<a href="#Logger">Logger</a>.ColorNames`&nbsp;and&nbsp;can't&nbsp;be&nbsp;nested.</tt></dd></dl>
 
-<dl><dt><a name="Logger-SetLogFile"><strong>SetLogFile</strong></a>(path: str) -&gt; None</dt></dl>
+<dl><dt><a name="Logger-SetLogFile"><strong>SetLogFile</strong></a>(logFile: 'FileObject or str') -&gt; None</dt><dd><tt>logFile:&nbsp;file&nbsp;<a href="builtins.html#object">object</a>&nbsp;or&nbsp;str.<br>
+If&nbsp;logFile&nbsp;is&nbsp;'',&nbsp;no&nbsp;log&nbsp;file&nbsp;will&nbsp;be&nbsp;written.<br>
+The&nbsp;previous&nbsp;log&nbsp;file&nbsp;will&nbsp;be&nbsp;closed&nbsp;immediately.</tt></dd></dl>
 
 <dl><dt><a name="Logger-Write"><strong>Write</strong></a>(log: Any, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None, printTruncateLen: int = 0) -&gt; None</dt><dd><tt>log:&nbsp;any&nbsp;type.<br>
 consoleColor:&nbsp;int,&nbsp;a&nbsp;value&nbsp;in&nbsp;class&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>`,&nbsp;such&nbsp;as&nbsp;`<a href="#ConsoleColor">ConsoleColor</a>.DarkGreen`.<br>
@@ -12017,7 +12019,11 @@ Data descriptors defined here:<br>
 Data and other attributes defined here:<br>
 <dl><dt><strong>ColorNames</strong> = {'Black': 0, 'Blue': 9, 'Cyan': 11, 'DarkBlue': 1, 'DarkCyan': 3, 'DarkGray': 8, 'DarkGreen': 2, 'DarkMagenta': 5, 'DarkRed': 4, 'DarkYellow': 6, ...}</dl>
 
-<dl><dt><strong>FileName</strong> = '@AutomationLog.txt'</dl>
+<dl><dt><strong>FileObj</strong> = None</dl>
+
+<dl><dt><strong>FilePath</strong> = '@AutomationLog.txt'</dl>
+
+<dl><dt><strong>FlushTime</strong> = 0.1570428</dl>
 
 </td></tr></table> <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -28030,7 +28036,7 @@ Return&nbsp;int,&nbsp;a&nbsp;native&nbsp;window&nbsp;handle.</tt></dd></dl>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
     
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><strong>AUTHOR_MAIL</strong> = 'yinkaisheng@live.com'<br>
+<td width="100%"><strong>AUTHOR_MAIL</strong> = 'yinkaisheng@foxmail.com'<br>
 <strong>Any</strong> = typing.Any<br>
 <strong>Callable</strong> = typing.Callable<br>
 <strong>CharacterCodes</strong> = {' ': 32, "'": 222, ',': 188, '-': 189, '.': 190, '/': 191, '0': 48, '1': 49, '2': 50, '3': 51, ...}<br>
