@@ -132,7 +132,7 @@ def CalcOnWindows10():
     calcWindow.ButtonControl(AutomationId = 'TogglePaneButton').Click()
     calcWindow.ListItemControl(AutomationId = 'Scientific').Click()
     calcWindow.ButtonControl(AutomationId='clearButton').Click()
-    if 1:
+    if 0:
         char2Button = {key: calcWindow.ButtonControl(AutomationId=char2Id[key], Desc='Button ' + key) for key in char2Id}
     else:
         #Run faster because it only walk calc window once
@@ -161,4 +161,4 @@ if __name__ == '__main__':
     auto.Logger.Write('\nPress any key to exit', auto.ConsoleColor.Cyan)
     import msvcrt
     while not msvcrt.kbhit():
-        pass
+        time.sleep(0.05)
