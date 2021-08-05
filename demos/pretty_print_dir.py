@@ -18,33 +18,32 @@ def GetDirChildren(directory):
                 files.append(absPath)
         return subdirs + files
 
-def main(directory, maxDepth = 0xFFFFFFFF):
+
+def main(directory, maxDepth=0xFFFFFFFF):
     remain = {}
     texts = []
     absdir = os.path.abspath(directory)
     for it, depth, remainCount in auto.WalkTree(absdir, getChildren=GetDirChildren, includeTop=True, maxDepth=maxDepth):
         remain[depth] = remainCount
         isDir = os.path.isdir(it)
-        prefixLog = ''.join(['│   ' if remain[i + 1] else '    ' for i in range(depth - 1)])
-        prefixPrint = prefixLog
+        prefix = ''.join(['┃   ' if remain[i] else '    ' for i in range(1, depth)])
         if depth > 0:
             if remain[depth] > 0:
-                prefixPrint += '├─→' if isDir else '├── '
-                prefixLog += '├─→ ' if isDir else '├── '
+                prefix += '┣━> ' if isDir else '┣━━ '
             else:
-                prefixPrint += '└─→' if isDir else '└── '
-                prefixLog += '└─→ ' if isDir else '└── '
+                prefix += '┗━> ' if isDir else '┗━━ '
         file = os.path.basename(it)
-        texts.append(prefixLog)
+        texts.append(prefix)
         texts.append(file)
         texts.append('\n')
-        auto.Logger.Write(prefixPrint, writeToFile=False)
+        auto.Logger.Write(prefix, writeToFile=False)
         auto.Logger.WriteLine(file, auto.ConsoleColor.Cyan if isDir else auto.ConsoleColor.Default, writeToFile=False)
     allText = ''.join(texts)
     auto.Logger.WriteLine(allText, printToStdout=False)
-    ret = input('\npress Y to save dir tree to clipboard, press other keys to exit')
+    ret = input('\npress Y to save dir tree to clipboard, press other keys to exit\n')
     if ret.lower() == 'y':
         auto.SetClipboardText(allText)
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:

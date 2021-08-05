@@ -2868,7 +2868,9 @@ class Logger:
     """
     Logger for print and log. Support for printing log with different colors on console.
     """
-    FileName = '@AutomationLog.txt'
+    FilePath = '@AutomationLog.txt'
+    FileObj = None
+    FlushTime = ProcessTime()
     _SelfFileName = os.path.split(__file__)[1]
     ColorNames = {
         "Black": ConsoleColor.Black,
@@ -2890,8 +2892,21 @@ class Logger:
     }
 
     @staticmethod
-    def SetLogFile(path: str) -> None:
-        Logger.FileName = path
+    def SetLogFile(logFile: 'FileObject or str') -> None:
+        """
+        logFile: file object or str.
+        If logFile is '', no log file will be written.
+        The previous log file will be closed immediately.
+        """
+        if Logger.FileObj:
+            Logger.FileObj.close()
+            Logger.FileObj = None
+        if isinstance(logFile, str):
+            Logger.FilePath = logFile
+            if logFile:
+                Logger.FileObj = open(logFile, 'a+', encoding='utf-8')
+        else:
+            Logger.FileObj = logFile
 
     @staticmethod
     def Write(log: Any, consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None, printTruncateLen: int = 0) -> None:
@@ -2926,16 +2941,29 @@ class Logger:
                 sys.stdout.flush()
         if not writeToFile:
             return
-        fileName = logFile if logFile else Logger.FileName
         fout = None
+        close = False
         try:
-            fout = open(fileName, 'a+', encoding='utf-8')
-            fout.write(log)
+            if logFile:
+                fout = open(logFile, 'a+', encoding='utf-8')
+                close = True
+            else:
+                if Logger.FileObj:
+                    fout = Logger.FileObj
+                elif Logger.FilePath:
+                    Logger.FileObj = open(Logger.FilePath, 'a+', encoding='utf-8')
+                    fout = Logger.FileObj
+            if fout:
+                fout.write(log)
+                now = ProcessTime()
+                if now >= Logger.FlushTime + 2:
+                    fout.flush()
+                    Logger.FlushTime = now
         except Exception as ex:
             if sys.stdout:
                 sys.stdout.write(ex.__class__.__name__ + ': can\'t write the log!')
         finally:
-            if fout:
+            if close and fout:
                 fout.close()
 
     @staticmethod
@@ -3049,8 +3077,8 @@ class Logger:
     @staticmethod
     def DeleteLog() -> None:
         """Delete log file."""
-        if os.path.exists(Logger.FileName):
-            os.remove(Logger.FileName)
+        if os.path.exists(Logger.FilePath):
+            os.remove(Logger.FilePath)
 
     LogColorfully = ColorfullyLog
     WriteColorfully = ColorfullyWrite
@@ -5718,7 +5746,7 @@ class Control():
     def __str__(self) -> str:
         rect = self.BoundingRectangle
         return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(
-            self.ControlTypeName, self.ClassName, self.AutomationId, rect, self.Name, self.NativeWindowHandle)
+            self.ControlTypeName, self.ClassName, self.AutomationId, rect, repr(self.Name), self.NativeWindowHandle)
 
     @staticmethod
     def CreateControlFromElement(element) -> 'Control':
@@ -8193,7 +8221,7 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True, showP
     Logger.Write('    Rect: ')
     Logger.Write(control.BoundingRectangle, ConsoleColor.DarkGreen)
     Logger.Write('    Name: ')
-    Logger.Write(control.Name, ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
+    Logger.Write(repr(control.Name), ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
     Logger.Write('    Handle: ')
     Logger.Write('0x{0:X}({0})'.format(control.NativeWindowHandle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
@@ -8205,7 +8233,7 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True, showP
     for pt, name in supportedPatterns:
         if isinstance(pt, ValuePattern):
             Logger.Write('    ValuePattern.Value: ')
-            Logger.Write(pt.Value, ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
+            Logger.Write(repr(pt.Value), ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
         elif isinstance(pt, RangeValuePattern):
             Logger.Write('    RangeValuePattern.Value: ')
             Logger.Write(pt.Value, ConsoleColor.DarkGreen)
@@ -8238,7 +8266,7 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True, showP
             # https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextpattern-get_documentrange
             try:
                 Logger.Write('    TextPattern.Text: ')
-                Logger.Write(pt.DocumentRange.GetText(30), ConsoleColor.DarkGreen)
+                Logger.Write(repr(pt.DocumentRange.GetText(30)), ConsoleColor.DarkGreen)
             except comtypes.COMError as ex:
                 pass
     Logger.Write('    SupportedPattern:')

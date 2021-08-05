@@ -6,7 +6,7 @@ import time
 import threading
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-from uiautomation import uiautomation as auto
+import uiautomation as auto
 
 
 def threadFunc(uselessRoot):
@@ -27,8 +27,8 @@ def threadFunc(uselessRoot):
 
 
 def main():
-    th = threading.currentThread()
-    auto.Logger.WriteLine('This is running in main thread. {} {}'.format(th.ident, th.name), auto.ConsoleColor.Cyan)
+    mth = threading.currentThread()
+    auto.Logger.WriteLine('This is running in main thread. {} {}'.format(mth.ident, mth.name), auto.ConsoleColor.Cyan)
     time.sleep(2)
     auto.GetConsoleWindow().CaptureToImage('console_mainthread.png')
     root = auto.GetRootControl()
@@ -36,7 +36,7 @@ def main():
     th = threading.Thread(target=threadFunc, args=(root, ))
     th.start()
     th.join()
-    auto.Logger.WriteLine('\nMain thread exits. {} {}'.format(th.ident, th.name), auto.ConsoleColor.Cyan)
+    auto.Logger.WriteLine('\nMain thread exits. {} {}'.format(mth.ident, mth.name), auto.ConsoleColor.Cyan)
 
 
 if __name__ == '__main__':
