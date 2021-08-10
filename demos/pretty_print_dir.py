@@ -2,31 +2,32 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-
+from typing import Tuple
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
 
-def GetDirChildren(directory):
-    if os.path.isdir(directory):
-        subdirs = []
+
+def listDir(path: Tuple[str, bool]):
+    if path[1]:
         files = []
-        for it in os.listdir(directory):
-            absPath = os.path.join(directory, it)
+        files2 = []
+        for it in os.listdir(path[0]):
+            absPath = os.path.join(path[0], it)
             if os.path.isdir(absPath):
-                subdirs.append(absPath)
+                files.append((absPath, True))
             else:
-                files.append(absPath)
-        return subdirs + files
+                files2.append((absPath, False))
+        files.extend(files2)
+        return files
 
 
-def main(directory, maxDepth=0xFFFFFFFF):
+def main(directory: str, maxDepth: int = 0xFFFFFFFF):
     remain = {}
     texts = []
     absdir = os.path.abspath(directory)
-    for it, depth, remainCount in auto.WalkTree(absdir, getChildren=GetDirChildren, includeTop=True, maxDepth=maxDepth):
+    for (it, isDir), depth, remainCount in auto.WalkTree((absdir, True), getChildren=listDir, includeTop=True, maxDepth=maxDepth):
         remain[depth] = remainCount
-        isDir = os.path.isdir(it)
-        prefix = ''.join(['┃   ' if remain[i] else '    ' for i in range(1, depth)])
+        prefix = ''.join('┃   ' if remain[i] else '    ' for i in range(1, depth))
         if depth > 0:
             if remain[depth] > 0:
                 prefix += '┣━> ' if isDir else '┣━━ '
