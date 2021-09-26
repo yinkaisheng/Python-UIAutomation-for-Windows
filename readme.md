@@ -211,6 +211,8 @@ auto.uiautomation.SetGlobalSearchTimeout(15)  # set new timeout 15
 def main():
     subprocess.Popen('notepad.exe')
     window = auto.WindowControl(searchDepth=1, ClassName='Notepad')
+    # or use Compare for custom search
+    # window = auto.WindowControl(searchDepth=1, ClassName='Notepad', Compare=lambda control,depth:control.ProcessId==100)
     edit = window.EditControl()
     # when calling SendKeys, uiautomation starts to search window and edit in 15 seconds
     # because SendKeys indirectly calls Control.Element and Control.Element is None
