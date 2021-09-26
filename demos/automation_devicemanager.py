@@ -102,6 +102,7 @@ if __name__ == '__main__':
     if auto.IsUserAnAdmin():
         main()
     else:
+        # need to run as admin
         print('RunScriptAsAdmin', sys.executable, sys.argv)
         auto.RunScriptAsAdmin(sys.argv)
 
