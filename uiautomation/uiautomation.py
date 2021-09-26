@@ -63,9 +63,11 @@ class _AutomationClient:
                 break
             except Exception as ex:
                 if retry + 1 == tryCount:
-                    Logger.WriteLine('''Can not load UIAutomationCore.dll.
+                    Logger.WriteLine('''
+{}
+Can not load UIAutomationCore.dll.
 1, You may need to install Windows Update KB971513 if your OS is Windows XP, see https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation
-2, you need to use an UIAutomationInitializerInThread object in a thread, see demos/uiautomation_in_thread.py''', ConsoleColor.Yellow)
+2, you need to use an UIAutomationInitializerInThread object if use uiautomation in a thread, see demos/uiautomation_in_thread.py'''.format(ex), ConsoleColor.Yellow)
                     raise ex
 
 
