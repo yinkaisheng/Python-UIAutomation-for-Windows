@@ -6473,6 +6473,26 @@ class Control():
                 return False
         return True
 
+    def GetPosition(self, ratioX: float = 0.5, ratioY: float = 0.5) -> Tuple[int, int]:
+        """
+        Gets the position of the center of the control.
+        ratioX: float.
+        ratioY: float.
+        Return Tuple[int, int], two ints tuple (x, y), the cursor positon relative to screen(0, 0)
+
+        """
+        rect = self.BoundingRectangle
+        if rect.width() == 0 or rect.height() == 0:
+            Logger.ColorfullyLog('<Color=Yellow>Can not move cursor</Color>. {}\'s BoundingRectangle is {}. SearchProperties: {}'.format(
+                self.ControlTypeName, rect, self.GetColorfulSearchPropertiesStr()))
+            return
+        
+        x = rect.left + int(rect.width() * ratioX)
+        y = rect.top + int(rect.height() * ratioY)
+
+        return x, y
+        
+
     def MoveCursorToInnerPos(self, x: int = None, y: int = None, ratioX: float = 0.5, ratioY: float = 0.5, simulateMove: bool = True) -> Tuple[int, int]:
         """
         Move cursor to control's internal position, default to center.
@@ -7715,6 +7735,28 @@ class TableControl(Control):
         Return `TableItemPattern` if it supports the pattern else None(Must support according to MSDN).
         """
         return self.GetPattern(PatternId.TableItemPattern)
+    
+    def GetTableItemsValue(self, row: int = -1, column: int = -1)->List[List, Any]:
+        """
+        Get the value of a table
+        row: int. Position of the row in the table
+        column: int. Position of the column in the table
+
+        Return a list with values in the table. 
+        If a row and column is specified, return a cell value. 
+        If only a row is specified, return a list with row values
+        """
+        table = []
+        for row in self.GetChildren():
+            table.append([cell.GetLegacyIAccessiblePattern().Value for cell in row.GetChildren()])
+
+        if row > 0 and column > 0:
+            return table[row][column]
+
+        if row > 0:
+            return table[row]
+            
+        return table
 
 
 class TextControl(Control):
