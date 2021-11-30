@@ -107,7 +107,7 @@ class _DllClient:
             self.dll.BitmapFromFile.restype = ctypes.c_size_t
             self.dll.BitmapResizedFrom.restype = ctypes.c_size_t
             self.dll.BitmapRotatedFrom.restype = ctypes.c_size_t
-
+            self.dll.BitmapGetPixel.restype = ctypes.c_uint32
             self.dll.Initialize()
         else:
             self.dll = None
