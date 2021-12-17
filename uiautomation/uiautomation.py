@@ -85,7 +85,7 @@ class _DllClient:
         binPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
         os.environ["PATH"] = binPath + os.pathsep + os.environ["PATH"]
         load = False
-        if sys.version >= '3.8':
+        if (sys.version_info[0] == 3 and sys.version_info[1] >= 8) or sys.version_info[0] > 3:
             os.add_dll_directory(binPath)
         if sys.maxsize > 0xFFFFFFFF:
             try:
