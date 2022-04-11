@@ -6093,7 +6093,10 @@ class Control():
         Call IUIAutomationElement::get_CurrentNativeWindowHandle.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentnativewindowhandle
         """
-        handle = self.Element.CurrentNativeWindowHandle
+        try:
+            handle = self.Element.CurrentNativeWindowHandle
+        except comtypes.COMError as ex:
+            return 0
         return 0 if handle is None else handle
 
     @property
