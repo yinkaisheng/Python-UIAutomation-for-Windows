@@ -19,29 +19,29 @@ def Calc(window, btns, expression):
     if not expression.endswith('='):
         expression += '='
     for char in expression:
-        auto.Logger.Write(char, writeToFile = False)
+        auto.Logger.Write(char, writeToFile=False)
         btns[char].Click(waitTime=0.05)
     time.sleep(0.1)
-    window.SendKeys('{Ctrl}c', waitTime = 0.1)
+    window.SendKeys('{Ctrl}c', waitTime=0.1)
     result = auto.GetClipboardText()
-    auto.Logger.WriteLine(result, auto.ConsoleColor.Cyan, writeToFile = False)
+    auto.Logger.WriteLine(result, auto.ConsoleColor.Cyan, writeToFile=False)
     time.sleep(1)
 
 
 def CalcOnXP():
     chars = '0123456789.+-*/=()'
-    #Desc is not a valid search property, but it can be used for debug printing
+    # Desc is not a valid search property, but it can be used for debug printing
     calcWindow = auto.WindowControl(searchDepth=1, ClassName='SciCalc', Desc='Calculator Window')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
     calcWindow.SendKeys('{Alt}vs', 0.5)
-    clearBtn = calcWindow.ButtonControl(Name = 'CE')  #
+    clearBtn = calcWindow.ButtonControl(Name='CE')
     clearBtn.Click()
     if 0:
         char2Button = {key: calcWindow.ButtonControl(Name=key, Desc='Button ' + key) for key in chars}
     else:
-        #Run faster because it only walk calc window once
+        # Run faster because it only walk calc window once
         char2Button = {}
         for c, d in auto.WalkControl(calcWindow, maxDepth=1):
             if c.Name in chars:
@@ -56,38 +56,38 @@ def CalcOnXP():
 
 def CalcOnWindows7And8():
     char2Id = {
-        '0' : '130',
-        '1' : '131',
-        '2' : '132',
-        '3' : '133',
-        '4' : '134',
-        '5' : '135',
-        '6' : '136',
-        '7' : '137',
-        '8' : '138',
-        '9' : '139',
-        '.' : '84',
-        '+' : '93',
-        '-' : '94',
-        '*' : '92',
-        '/' : '91',
-        '=' : '121',
-        '(' : '128',
-        ')' : '129',
+        '0': '130',
+        '1': '131',
+        '2': '132',
+        '3': '133',
+        '4': '134',
+        '5': '135',
+        '6': '136',
+        '7': '137',
+        '8': '138',
+        '9': '139',
+        '.': '84',
+        '+': '93',
+        '-': '94',
+        '*': '92',
+        '/': '91',
+        '=': '121',
+        '(': '128',
+        ')': '129',
     }
-    #Desc is not a valid search property, but it can be used for debug printing
-    calcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'CalcFrame', Desc='Calculator Window')
+    # Desc is not a valid search property, but it can be used for debug printing
+    calcWindow = auto.WindowControl(searchDepth=1, ClassName='CalcFrame', Desc='Calculator Window')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
     calcWindow.SendKeys('{Alt}2')
-    clearBtn = calcWindow.ButtonControl(foundIndex= 8, Depth = 3)  #test foundIndex and Depth, the 8th button is clear
+    clearBtn = calcWindow.ButtonControl(foundIndex=8, Depth=3)  # test foundIndex and Depth, the 8th button is clear
     if clearBtn.Exists() and clearBtn.AutomationId == '82':
         clearBtn.Click()
     if 0:
         char2Button = {key: calcWindow.ButtonControl(AutomationId=char2Id[key], Desc='Button ' + key) for key in char2Id}
     else:
-        #Run faster because it only walk calc window once
+        # Run faster because it only walk calc window once
         id2char = {v: k for k, v in char2Id.items()}
         char2Button = {}
         for c, d in auto.WalkControl(calcWindow):
@@ -104,41 +104,41 @@ def CalcOnWindows7And8():
 def CalcOnWindows10():
     """works on Windows 10.0.19042"""
     char2Id = {
-        '0' : 'num0Button',
-        '1' : 'num1Button',
-        '2' : 'num2Button',
-        '3' : 'num3Button',
-        '4' : 'num4Button',
-        '5' : 'num5Button',
-        '6' : 'num6Button',
-        '7' : 'num7Button',
-        '8' : 'num8Button',
-        '9' : 'num9Button',
-        '.' : 'decimalSeparatorButton',
-        '+' : 'plusButton',
-        '-' : 'minusButton',
-        '*' : 'multiplyButton',
-        '/' : 'divideButton',
-        '=' : 'equalButton',
-        '(' : 'openParenthesisButton',
-        ')' : 'closeParenthesisButton',
+        '0': 'num0Button',
+        '1': 'num1Button',
+        '2': 'num2Button',
+        '3': 'num3Button',
+        '4': 'num4Button',
+        '5': 'num5Button',
+        '6': 'num6Button',
+        '7': 'num7Button',
+        '8': 'num8Button',
+        '9': 'num9Button',
+        '.': 'decimalSeparatorButton',
+        '+': 'plusButton',
+        '-': 'minusButton',
+        '*': 'multiplyButton',
+        '/': 'divideButton',
+        '=': 'equalButton',
+        '(': 'openParenthesisButton',
+        ')': 'closeParenthesisButton',
     }
-    #Desc is not a valid search property, but it can be used for debug printing
-    calcWindow = auto.WindowControl(searchDepth = 1, ClassName = 'ApplicationFrameWindow',
-        Compare = lambda c,d : c.Name == 'Calculator' or c.Name == '计算器', Desc='Calculator Window')
+    # Desc is not a valid search property, but it can be used for debug printing
+    calcWindow = auto.WindowControl(searchDepth=1, ClassName='ApplicationFrameWindow',
+                                    Compare=lambda c, d: c.Name == 'Calculator' or c.Name == '计算器', Desc='Calculator Window')
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
-    calcWindow.ButtonControl(AutomationId = 'TogglePaneButton').Click()
-    calcWindow.ListItemControl(AutomationId = 'Scientific').Click()
+    calcWindow.ButtonControl(AutomationId='TogglePaneButton').Click()
+    calcWindow.ListItemControl(AutomationId='Scientific').Click()
     calcWindow.ButtonControl(AutomationId='clearButton').Click()
     if 0:
         char2Button = {key: calcWindow.ButtonControl(AutomationId=char2Id[key], Desc='Button ' + key) for key in char2Id}
     else:
-        #Run faster because it only walk calc window once
+        # Run faster because it only walk calc window once
         id2char = {v: k for k, v in char2Id.items()}
         char2Button = {}
-        for c, d in auto.WalkControl(calcWindow, maxDepth=4):
+        for c, d in auto.WalkControl(calcWindow):
             if c.AutomationId in id2char:
                 char2Button[id2char[c.AutomationId]] = c
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90.8')
@@ -148,6 +148,7 @@ def CalcOnWindows10():
     calcWindow.Disappears(1)
     calcWindow.GetWindowPattern().Close()
     calcWindow.Exists(1)
+
 
 if __name__ == '__main__':
     osVersion = os.sys.getwindowsversion().major
