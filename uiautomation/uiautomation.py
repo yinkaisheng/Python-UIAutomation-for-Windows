@@ -6087,7 +6087,7 @@ class Control():
         return self.Element.CurrentName or ''   # CurrentName may be None
 
     @property
-    def NativeWindowHandle(self) -> str:
+    def NativeWindowHandle(self) -> int:
         """
         Property NativeWindowHandle.
         Call IUIAutomationElement::get_CurrentNativeWindowHandle.
