@@ -4148,13 +4148,13 @@ class GridPattern():
         """
         return self.pattern.CurrentRowCount
 
-    def GetItem(self) -> 'Control':
+    def GetItem(self, row:int, column:int) -> 'Control':
         """
         Call IUIAutomationGridPattern::GetItem.
         Return `Control` subclass, a control representing an item in the grid.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationgridpattern-getitem
         """
-        return Control.CreateControlFromElement(self.pattern.GetItem())
+        return Control.CreateControlFromElement(self.pattern.GetItem(row, column))
 
 
 class InvokePattern():
@@ -7740,8 +7740,8 @@ class TableControl(Control):
         Get the value of a table
         row: int. Position of the row in the table
         column: int. Position of the column in the table
-        Return a list with values in the table. 
-        If a row and column is specified, return a cell value. 
+        Return a list with values in the table.
+        If a row and column is specified, return a cell value.
         If only a row is specified, return a list with row values
         """
         table = []
