@@ -20,7 +20,7 @@ def DemoCN():
     scirptName = 'automation.py'
     scriptDir = os.path.abspath(os.path.join(demoDir, '..'))
     auto.ctypes.windll.shell32.ShellExecuteW(None, "runas", 'cmd.exe', '', scriptDir, auto.SW.ShowNormal)
-    cmdWindow = auto.WindowControl(RegexName='.+cmd.exe')
+    cmdWindow = auto.WindowControl(RegexName='.+cmd.exe$')
     cmdWindow.TitleBarControl().RightClick()
     auto.SendKey(auto.Keys.VK_P)
     optionWindow = cmdWindow.WindowControl(SubName='属性')
@@ -34,6 +34,10 @@ def DemoCN():
         checkBox.Click()
     optionWindow.TabItemControl(SubName='布局').Click()
     layoutTab = optionWindow.PaneControl(SubName='布局')
+    check = layoutTab.CheckBoxControl(AutomationId='504')
+    tg = check.GetTogglePattern()
+    if tg.ToggleState == auto.ToggleState.On:
+        tg.Toggle()
     layoutTab.EditControl(AutomationId='301').GetValuePattern().SetValue('300')
     layoutTab.EditControl(AutomationId='303').GetValuePattern().SetValue('3000')
     layoutTab.EditControl(AutomationId='305').GetValuePattern().SetValue('140')
@@ -115,7 +119,7 @@ def DemoEN():
     scriptName = 'automation.py'
     scriptDir = os.path.abspath(os.path.join(demoDir, '..'))
     auto.ctypes.windll.shell32.ShellExecuteW(None, "runas", 'cmd.exe', '', scriptDir, auto.SW.ShowNormal)
-    cmdWindow = auto.WindowControl(SubName='cmd.exe')
+    cmdWindow = auto.WindowControl(RegexName='.+cmd.exe$')
     rect = cmdWindow.BoundingRectangle
     auto.DragDrop(rect.left + 50, rect.top + 10, 50, 10)
 
