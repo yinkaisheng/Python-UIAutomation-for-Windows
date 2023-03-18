@@ -4,7 +4,7 @@ import os
 import sys
 from typing import Tuple
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-import uiautomation as auto
+from uiautomation import uiautomation as auto
 
 
 def listDir(path: Tuple[str, bool]):
@@ -21,6 +21,20 @@ def listDir(path: Tuple[str, bool]):
         return files
 
 
+def getFileSizeStr(path: str):
+    size = os.path.getsize(path)
+    if size >= 1073741824:  # 1024**3
+        return f'{size/1073741824:.2f} GB'
+    elif size >= 1048576:  # 1024**2
+        return f'{size/1048576:.2f} MB'
+    elif size >= 1024:
+        return f'{size/1024:.2f} KB'
+    elif size > 1:
+        return f'{size:} Bytes'
+    else:
+        return '1 Byte'
+
+
 def main(directory: str, maxDepth: int = 0xFFFFFFFF):
     remain = {}
     texts = []
@@ -34,11 +48,12 @@ def main(directory: str, maxDepth: int = 0xFFFFFFFF):
             else:
                 prefix += '┗━> ' if isDir else '┗━━ '
         file = os.path.basename(it)
+        fileSize = '' if isDir else getFileSizeStr(it)
         texts.append(prefix)
-        texts.append(file)
+        texts.append(f'{file}    {fileSize}')
         texts.append('\n')
         auto.Logger.Write(prefix, writeToFile=False)
-        auto.Logger.WriteLine(file, auto.ConsoleColor.Cyan if isDir else auto.ConsoleColor.Default, writeToFile=False)
+        auto.Logger.WriteLine(f'{file}    {fileSize}', auto.ConsoleColor.Cyan if isDir else auto.ConsoleColor.Default, writeToFile=False)
     allText = ''.join(texts)
     auto.Logger.WriteLine(allText, printToStdout=False)
     ret = input('\npress Y to save dir tree to clipboard, press other keys to exit\n')

@@ -23,20 +23,17 @@ import ctypes.wintypes
 import comtypes  # need 'pip install comtypes'
 import comtypes.client
 from typing import (Any, Callable, Dict, List, Iterable, Tuple)  # need 'pip install typing' for Python3.4 or lower
+from .config import (DpiAwarenessBehavior, DPI_AWARENESS, SEARCH_INTERVAL, MAX_MOVE_SECOND, TIME_OUT_SECOND, OPERATION_WAIT_TIME,
+                     PRINT_LOG, WRITE_LOG, DEBUG_SEARCH_TIME, DEBUG_EXIST_DISAPPEAR)
 TreeNode = Any
 
 
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
-SEARCH_INTERVAL = 0.5  # search control interval seconds
-MAX_MOVE_SECOND = 1  # simulate mouse move or drag max seconds
-TIME_OUT_SECOND = 10
-OPERATION_WAIT_TIME = 0.5
 MAX_PATH = 260
-DEBUG_SEARCH_TIME = False
-DEBUG_EXIST_DISAPPEAR = False
 S_OK = 0
 
+IsPy38OrHigher = sys.version_info[:2] >= (3, 8)
 IsNT6orHigher = os.sys.getwindowsversion().major >= 6
 ProcessTime = time.perf_counter  # this returns nearly 0 when first call it if python version <= 3.6
 ProcessTime()  # need to call it once if python version <= 3.6
@@ -67,7 +64,7 @@ class _AutomationClient:
 {}
 Can not load UIAutomationCore.dll.
 1, You may need to install Windows Update KB971513 if your OS is Windows XP, see https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation
-2, you need to use an UIAutomationInitializerInThread object if use uiautomation in a thread, see demos/uiautomation_in_thread.py'''.format(ex), ConsoleColor.Yellow)
+2, You need to use an UIAutomationInitializerInThread object if use uiautomation in a thread, see demos/uiautomation_in_thread.py'''.format(ex), ConsoleColor.Yellow)
                     raise ex
 
 
@@ -85,7 +82,7 @@ class _DllClient:
         binPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
         os.environ["PATH"] = binPath + os.pathsep + os.environ["PATH"]
         load = False
-        if (sys.version_info[0] == 3 and sys.version_info[1] >= 8) or sys.version_info[0] > 3:
+        if IsPy38OrHigher:
             os.add_dll_directory(binPath)
         if sys.maxsize > 0xFFFFFFFF:
             try:
@@ -2863,7 +2860,14 @@ def SetProcessDpiAwareness(dpiAwareness: int):
         pass
 
 
-SetProcessDpiAwareness(ProcessDpiAwareness.PerMonitorDpiAware)
+#print(f'DPI_AWARENESS={DPI_AWARENESS}')
+if DPI_AWARENESS == DpiAwarenessBehavior.ProcessDpiAwareness:
+    SetProcessDpiAwareness(ProcessDpiAwareness.PerMonitorDpiAware)
+elif DPI_AWARENESS == DpiAwarenessBehavior.ThreadDpiAwareness:
+    SetThreadDpiAwarenessContext(DpiAwarenessContext.PerMonitorAware)
+else:
+    # do nothing
+    pass
 
 
 class Logger:
@@ -2911,7 +2915,7 @@ class Logger:
             Logger.FileObj = logFile
 
     @staticmethod
-    def Write(log: Any, consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None, printTruncateLen: int = 0) -> None:
+    def Write(log: Any, consoleColor: int = ConsoleColor.Default, writeToFile: bool = WRITE_LOG, printToStdout: bool = PRINT_LOG, logFile: str = None, printTruncateLen: int = 0) -> None:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -2969,7 +2973,7 @@ class Logger:
                 fout.close()
 
     @staticmethod
-    def WriteLine(log: Any, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def WriteLine(log: Any, consoleColor: int = ConsoleColor.Default, writeToFile: bool = WRITE_LOG, printToStdout: bool = PRINT_LOG, logFile: str = None) -> None:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -2980,7 +2984,7 @@ class Logger:
         Logger.Write('{}\n'.format(log), consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfullyWrite(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def ColorfullyWrite(log: str, consoleColor: int = ConsoleColor.Default, writeToFile: bool = WRITE_LOG, printToStdout: bool = PRINT_LOG, logFile: str = None) -> None:
         """
         log: str.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -3018,7 +3022,7 @@ class Logger:
             Logger.Write(t, c, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfullyWriteLine(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def ColorfullyWriteLine(log: str, consoleColor: int = ConsoleColor.Default, writeToFile: bool = WRITE_LOG, printToStdout: bool = PRINT_LOG, logFile: str = None) -> None:
         """
         log: str.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -3031,7 +3035,7 @@ class Logger:
         Logger.ColorfullyWrite(log + '\n', consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def Log(log: Any = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def Log(log: Any = '', consoleColor: int = ConsoleColor.Default, writeToFile: bool = WRITE_LOG, printToStdout: bool = PRINT_LOG, logFile: str = None) -> None:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -3053,7 +3057,7 @@ class Logger:
         Logger.Write(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfullyLog(log: str = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: str = None) -> None:
+    def ColorfullyLog(log: str = '', consoleColor: int = ConsoleColor.Default, writeToFile: bool = WRITE_LOG, printToStdout: bool = PRINT_LOG, logFile: str = None) -> None:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -4148,7 +4152,7 @@ class GridPattern():
         """
         return self.pattern.CurrentRowCount
 
-    def GetItem(self, row:int, column:int) -> 'Control':
+    def GetItem(self, row: int, column: int) -> 'Control':
         """
         Call IUIAutomationGridPattern::GetItem.
         Return `Control` subclass, a control representing an item in the grid.
@@ -6384,7 +6388,7 @@ class Control():
             return False
         return True
 
-    def Exists(self, maxSearchSeconds: float = 5, searchIntervalSeconds: float = SEARCH_INTERVAL, printIfNotExist: bool = False) -> bool:
+    def Exists(self, maxSearchSeconds: float = TIME_OUT_SECOND, searchIntervalSeconds: float = SEARCH_INTERVAL, printIfNotExist: bool = False) -> bool:
         """
         maxSearchSeconds: float
         searchIntervalSeconds: float
@@ -6436,7 +6440,7 @@ class Control():
                         Logger.ColorfullyLog(self.GetColorfulSearchPropertiesStr() + '<Color=Red> does not exist.</Color>')
                     return False
 
-    def Disappears(self, maxSearchSeconds: float = 5, searchIntervalSeconds: float = SEARCH_INTERVAL, printIfNotDisappear: bool = False) -> bool:
+    def Disappears(self, maxSearchSeconds: float = TIME_OUT_SECOND, searchIntervalSeconds: float = SEARCH_INTERVAL, printIfNotDisappear: bool = False) -> bool:
         """
         maxSearchSeconds: float
         searchIntervalSeconds: float
@@ -8019,17 +8023,6 @@ def UninitializeUIAutomationInCurrentThread() -> None:
     You must call this function when the new thread exits if you have called InitializeUIAutomationInCurrentThread in the same thread.
     """
     comtypes.CoUninitialize()
-
-
-def SetGlobalSearchTimeout(seconds: float) -> None:
-    """
-    seconds: float.
-    To make this available, you need explicitly import uiautomation:
-        from uiautomation import uiautomation as auto
-        auto.SetGlobalSearchTimeout(10)
-    """
-    global TIME_OUT_SECOND
-    TIME_OUT_SECOND = seconds
 
 
 def WaitForExist(control: Control, timeout: float) -> bool:

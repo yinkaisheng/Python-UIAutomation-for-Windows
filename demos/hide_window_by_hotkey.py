@@ -9,7 +9,7 @@ from typing import List
 from threading import Event
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-import uiautomation as auto
+from uiautomation import uiautomation as auto
 
 WindowsWantToHide = ('Warcraft III', 'Valve001', 'Counter-Strike', 'Notepad')
 

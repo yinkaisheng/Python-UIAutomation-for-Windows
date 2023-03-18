@@ -7,11 +7,15 @@ import time
 import subprocess
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-import uiautomation as auto
 
-auto.uiautomation.DEBUG_EXIST_DISAPPEAR = True  # set it to False and try again, default is False
-auto.uiautomation.DEBUG_SEARCH_TIME = True  # set it to False and try again, default is False
-auto.uiautomation.TIME_OUT_SECOND = 10  # global time out
+from uiautomation import config
+config.DPI_AWARENESS = config.DpiAwarenessBehavior.ProcessDpiAwareness
+config.TIME_OUT_SECOND = 6
+config.OPERATION_WAIT_TIME = 0.05
+config.WRITE_TO_FILE = True
+config.DEBUG_EXIST_DISAPPEAR = True  # set it to False and try again, default is False
+config.DEBUG_SEARCH_TIME = True  # set it to False and try again, default is False
+from uiautomation import uiautomation as auto
 
 
 def Calc(window, btns, expression):

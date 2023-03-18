@@ -6,7 +6,7 @@ import time
 import random
 from threading import Thread
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-import uiautomation as auto
+from uiautomation import uiautomation as auto
 
 
 def threadFunc(num: int):
@@ -20,13 +20,15 @@ def threadFunc(num: int):
 
 
 def testThread():
-    th1 = Thread(None, threadFunc, args=(1, ))
-    th1.start()
-    th2 = Thread(None, threadFunc, args=(2, ))
-    th2.start()
+    ths = []
+    for i in range(2):
+        th = Thread(None, threadFunc, args=(1, ))
+        ths.append(th)
+    for th in ths:
+        th.start()
     time.sleep(2)
-    th1.join()
-    th2.join()
+    for th in ths:
+        th.join()
 
 
 def main():

@@ -7,7 +7,7 @@ import subprocess
 import ctypes
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-import uiautomation as auto
+from uiautomation import uiautomation as auto
 
 text = """The uiautomation module
 

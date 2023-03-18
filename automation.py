@@ -2,8 +2,8 @@
 # -*- coding:utf-8 -*-
 import sys
 import time
-
-import uiautomation as auto
+from uiautomation import version
+from uiautomation import uiautomation as auto
 
 
 def usage():
@@ -36,7 +36,7 @@ automation.py -c -t3
 
 def main():
     import getopt
-    auto.Logger.Write('UIAutomation {} (Python {}.{}.{}, {} bit)\n'.format(auto.VERSION, sys.version_info.major, sys.version_info.minor, sys.version_info.micro, 64 if sys.maxsize > 0xFFFFFFFF else 32))
+    auto.Logger.Write('UIAutomation {} (Python {}.{}.{}, {} bit)\n'.format(version.VERSION, sys.version_info.major, sys.version_info.minor, sys.version_info.micro, 64 if sys.maxsize > 0xFFFFFFFF else 32))
     options, args = getopt.getopt(sys.argv[1:], 'hrfcanpd:t:',
                                   ['help', 'root', 'focus', 'cursor', 'ancestor', 'showAllName', 'depth=',
                                    'time='])

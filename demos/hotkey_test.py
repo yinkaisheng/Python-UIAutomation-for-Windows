@@ -7,7 +7,7 @@ import psutil
 from threading import Event
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
-import uiautomation as auto
+from uiautomation import uiautomation as auto
 
 
 def test1(stopEvent: Event):
@@ -65,6 +65,7 @@ def main():
                       (auto.ModifierKey.Control, auto.Keys.VK_2): test2},
                      (auto.ModifierKey.Control, auto.Keys.VK_4))
     auto.SetConsoleTitle(oriTitle)
+
 
 if __name__ == '__main__':
     main()
