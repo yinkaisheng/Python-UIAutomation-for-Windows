@@ -8298,7 +8298,7 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True, showP
             Logger.Write(pt.ColumnCount, ConsoleColor.DarkGreen)
         elif isinstance(pt, GridItemPattern):
             Logger.Write('    GridItemPattern.Row: ')
-            Logger.Write(pt.Column, ConsoleColor.DarkGreen)
+            Logger.Write(pt.Row, ConsoleColor.DarkGreen)
             Logger.Write('    GridItemPattern.Column: ')
             Logger.Write(pt.Column, ConsoleColor.DarkGreen)
         elif isinstance(pt, TextPattern):
