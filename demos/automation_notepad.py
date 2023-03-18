@@ -24,7 +24,7 @@ This means that the code can be freely copied and distributed, and costs nothing
 
 tip = """
 If your monitor is not 100% DPI and OS is Windows 10 x64, please run this script with 64 bit Python.
-Windows 10 has a bug that 32 bit progroms can't get the correct BoundingRectangle of some controls of Notepad.
+Windows 10 has a bug that 32 bit programs can't get the correct BoundingRectangle of some controls of Notepad.
 See https://github.com/microsoft/accessibility-insights-windows/issues/1122
 """
 
@@ -85,6 +85,12 @@ def testNotepadCN():
     combo = windowFont.ComboBoxControl(AutomationId='1140')
     combo.Select(condition=select3rd)
     combo.Select('中文 GB2312')
+    valuePt = combo.GetValuePattern()
+    if valuePt:
+        print('current selection:', valuePt.Value)
+    selectPt = combo.GetSelectionPattern()
+    if selectPt:
+        print('current selection:', selectPt.GetSelection())
     windowFont.ButtonControl(Name='确定').Click()
     window.GetWindowPattern().Close()
     if auto.WaitForDisappear(window, 3):
