@@ -7745,8 +7745,8 @@ class TableControl(Control):
         If only a row is specified, return a list with row values
         """
         table = []
-        for row in self.GetChildren():
-            table.append([cell.GetLegacyIAccessiblePattern().Value for cell in row.GetChildren()])
+        for item in self.GetChildren():
+            table.append([cell.GetLegacyIAccessiblePattern().Value for cell in item.GetChildren()])
         if row > 0 and column > 0:
             return table[row][column]
         if row > 0:
