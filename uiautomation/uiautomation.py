@@ -37,6 +37,7 @@ DEBUG_SEARCH_TIME = False
 DEBUG_EXIST_DISAPPEAR = False
 S_OK = 0
 
+IsPy38OrHigher = sys.version_info[:2] >= (3, 8)
 IsNT6orHigher = os.sys.getwindowsversion().major >= 6
 ProcessTime = time.perf_counter  # this returns nearly 0 when first call it if python version <= 3.6
 ProcessTime()  # need to call it once if python version <= 3.6
@@ -67,7 +68,7 @@ class _AutomationClient:
 {}
 Can not load UIAutomationCore.dll.
 1, You may need to install Windows Update KB971513 if your OS is Windows XP, see https://github.com/yinkaisheng/WindowsUpdateKB971513ForIUIAutomation
-2, you need to use an UIAutomationInitializerInThread object if use uiautomation in a thread, see demos/uiautomation_in_thread.py'''.format(ex), ConsoleColor.Yellow)
+2, You need to use an UIAutomationInitializerInThread object if use uiautomation in a thread, see demos/uiautomation_in_thread.py'''.format(ex), ConsoleColor.Yellow)
                     raise ex
 
 
@@ -85,7 +86,7 @@ class _DllClient:
         binPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
         os.environ["PATH"] = binPath + os.pathsep + os.environ["PATH"]
         load = False
-        if (sys.version_info[0] == 3 and sys.version_info[1] >= 8) or sys.version_info[0] > 3:
+        if IsPy38OrHigher:
             os.add_dll_directory(binPath)
         if sys.maxsize > 0xFFFFFFFF:
             try:
@@ -4148,7 +4149,7 @@ class GridPattern():
         """
         return self.pattern.CurrentRowCount
 
-    def GetItem(self, row:int, column:int) -> 'Control':
+    def GetItem(self, row: int, column: int) -> 'Control':
         """
         Call IUIAutomationGridPattern::GetItem.
         Return `Control` subclass, a control representing an item in the grid.
