@@ -32,7 +32,7 @@ def show(stopEvent: Event, handle: List[int]):
 
 if __name__ == '__main__':
     for i in range(2):
-        subprocess.Popen('notepad.exe')
+        subprocess.Popen('notepad.exe', shell=True)
         time.sleep(1)
         notepad = auto.WindowControl(searchDepth=1, ClassName='Notepad')
         notepad.MoveWindow(i * 400, 0, 400, 300)
