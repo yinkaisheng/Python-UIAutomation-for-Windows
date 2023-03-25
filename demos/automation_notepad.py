@@ -38,7 +38,7 @@ def testNotepadCN():
     time.sleep(2)
     auto.ShowDesktop()
     # 打开notepad
-    subprocess.Popen('notepad')
+    subprocess.Popen('notepad.exe', shell=True)
     # 查找notepad
     window = auto.WindowControl(searchDepth=1, ClassName='Notepad', RegexName='.* - 记事本')
     # 可以判断window是否存在，如果不判断，找不到window的话会抛出异常
@@ -118,7 +118,7 @@ def testNotepadEN():
     auto.Logger.ColorfullyWriteLine('\nI will open <Color=Green>Notepad</Color> and <Color=Yellow>automate</Color> it. Please wait for a while.')
     time.sleep(2)
     auto.ShowDesktop()
-    subprocess.Popen('notepad')
+    subprocess.Popen('notepad.exe', shell=True)
     # search notepad window, if searchFromControl is None, search from RootControl
     # searchDepth = 1 makes searching faster, only searches RootControl's children, not children's children
     window = auto.WindowControl(searchDepth=1, ClassName='Notepad', RegexName='.* - Notepad')

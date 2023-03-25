@@ -3,8 +3,9 @@
 import os
 import sys
 import time
-import subprocess
 import ctypes
+import traceback
+import subprocess
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
@@ -51,7 +52,7 @@ def DemoCN():
     auto.Logger.ColorfullyWrite('我将运行<Color=Cyan>记事本</Color>并输入<Color=Cyan>Hello!!!</Color>\n\n')
     time.sleep(3)
 
-    subprocess.Popen('notepad')
+    subprocess.Popen('notepad.exe', shell=True)
     notepadWindow = auto.WindowControl(searchDepth=1, ClassName='Notepad')
     cx, cy = auto.GetScreenSize()
     notepadWindow.MoveWindow(cx // 2, 20, cx // 2, cy // 2)
@@ -127,7 +128,7 @@ def DemoEN():
     auto.Logger.ColorfullyWrite('I will run <Color=Cyan>Notepad</Color> and type <Color=Cyan>Hello!!!</Color>\n\n')
     time.sleep(3)
 
-    subprocess.Popen('notepad')
+    subprocess.Popen('notepad.exe', shell=True)
     notepadWindow = auto.WindowControl(searchDepth=1, ClassName='Notepad')
     cx, cy = auto.GetScreenSize()
     notepadWindow.MoveWindow(cx // 2, 20, cx // 2, cy // 2)
@@ -192,7 +193,11 @@ if __name__ == '__main__':
         print('RunScriptAsAdmin', ret)
         sys.exit(0)
     uiLanguage = ctypes.windll.kernel32.GetUserDefaultUILanguage()
-    if uiLanguage == 2052:
-        DemoCN()
-    else:
-        DemoEN()
+    try:
+        if uiLanguage == 2052:
+            DemoCN()
+        else:
+            DemoEN()
+    except Exception as ex:
+        traceback.print_exc()
+        input("\npress Enter to exit")

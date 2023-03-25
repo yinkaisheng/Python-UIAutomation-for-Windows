@@ -11,7 +11,7 @@ import uiautomation as auto
 
 def main():
     auto.ShowDesktop()
-    subprocess.Popen('notepad')
+    subprocess.Popen('notepad.exe', shell=True)
     time.sleep(1)
     note = auto.WindowControl(searchDepth=1, ClassName='Notepad')
     note.SetActive()
