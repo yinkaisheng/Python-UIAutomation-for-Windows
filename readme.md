@@ -132,12 +132,14 @@ Run the following code
 
 ```python
 # -*- coding: utf-8 -*-
+# this script only works with Win32 notepad.exe
+# if you notepad.exe is the Windows Store version in Windows 11, you need to uninstall it.
 import subprocess
 import uiautomation as auto
 
 def test():
     print(auto.GetRootControl())
-    subprocess.Popen('notepad.exe')
+    subprocess.Popen('notepad.exe', shell=True)
     # you should find the top level window first, then find children from the top level window
     notepadWindow = auto.WindowControl(searchDepth=1, ClassName='Notepad')
     if not notepadWindow.Exists(3, 1):
@@ -203,13 +205,15 @@ For example:
 ```python
 #!python3
 # -*- coding:utf-8 -*-
+# this script only works with Win32 notepad.exe
+# if you notepad.exe is the Windows Store version in Windows 11, you need to uninstall it.
 import subprocess
 import uiautomation as auto
 auto.uiautomation.SetGlobalSearchTimeout(15)  # set new timeout 15
 
 
 def main():
-    subprocess.Popen('notepad.exe')
+    subprocess.Popen('notepad.exe', shell=True)
     window = auto.WindowControl(searchDepth=1, ClassName='Notepad')
     # or use Compare for custom search
     # window = auto.WindowControl(searchDepth=1, ClassName='Notepad', Compare=lambda control,depth:control.ProcessId==100)
