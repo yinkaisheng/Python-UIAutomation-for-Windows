@@ -9,7 +9,8 @@ import subprocess
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 
 from uiautomation import config
-config.DPI_AWARENESS = config.DpiAwarenessBehavior.ProcessDpiAwareness
+config.DPI_AWARENESS_BEHAVIOR = config.DpiAwarenessBehavior.ThreadDpiAwareness
+config.DPI_AWARENESS_VALUE = config.DpiAwarenessContext.PerMonitorAwareV2
 config.TIME_OUT_SECOND = 6
 config.OPERATION_WAIT_TIME = 0.05
 config.WRITE_TO_FILE = True
