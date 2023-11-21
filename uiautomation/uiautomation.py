@@ -22,7 +22,6 @@ import ctypes.wintypes
 import comtypes  # need 'pip install comtypes'
 import comtypes.client
 from io import TextIOWrapper
-from types import MappingProxyType
 from typing import (Any, Callable, Dict, List, Iterable, Tuple, Optional, Union,
     Sequence)  # need 'pip install typing' for Python3.4 or lower
 
@@ -1766,10 +1765,14 @@ class ClipboardFormat:
     CF_HTML = ctypes.windll.user32.RegisterClipboardFormatW("HTML Format")
 
 
-def _GetDictKeyName(theDict: MappingProxyType[str, Any], theValue: Any, start: Optional[str] = None) -> str:
+def _GetDictKeyName(theDict: Dict[str, Any], theValue: Any, keyCondition: Optional[Callable[[str], bool]] = None) -> str:
     for key, value in theDict.items():
-        if theValue == value and ((start and key.startswith(start)) or True):
-            return key
+        if keyCondition:
+            if keyCondition(key) and theValue == value:
+                return key
+        else:
+            if theValue == value:
+                return key
     return ''
 
 
@@ -2142,7 +2145,7 @@ def GetMonitorsRect() -> List[Rect]:
     MonitorEnumProc = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_size_t, ctypes.c_size_t, ctypes.POINTER(ctypes.wintypes.RECT), ctypes.c_size_t)
     rects = []
 
-    def MonitorCallback(hMonitor: int, hdcMonitor: int, lprcMonitor: 'ctypes._Pointer[ctypes.wintypes.RECT]', dwData: int):
+    def MonitorCallback(hMonitor: int, hdcMonitor: int, lprcMonitor: ctypes.POINTER(ctypes.wintypes.RECT), dwData: int):
         rect = Rect(lprcMonitor.contents.left, lprcMonitor.contents.top, lprcMonitor.contents.right, lprcMonitor.contents.bottom)
         rects.append(rect)
         return 1
@@ -2474,7 +2477,7 @@ def IsUserAnAdmin() -> bool:
     Return bool.
     Minimum supported OS: Windows XP, Windows Server 2003
     """
-    return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    return bool(ctypes.windll.shell32.IsUserAnAdmin()) if IsNT6orHigher else True
 
 
 def RunScriptAsAdmin(argv: List[str], workingDirectory: str = None, showFlag: int = SW.ShowNormal) -> bool:
@@ -2673,14 +2676,14 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
     SendKeys('[]{{}{}}\\|;:\'\",<.>/?{Enter}')
     """
     holdKeys = ('WIN', 'LWIN', 'RWIN', 'SHIFT', 'LSHIFT', 'RSHIFT', 'CTRL', 'CONTROL', 'LCTRL', 'RCTRL', 'LCONTROL', 'LCONTROL', 'ALT', 'LALT', 'RALT')
-    keys: list = []
-    printKeys: list = []
+    keys = []
+    printKeys = []
     i = 0
     insertIndex = 0
     length = len(text)
     hold = False
     include = False
-    lastKeyValue: Optional[Union[str, int]] = None
+    lastKeyValue = None
     while True:
         if text[i] == '{':
             rindex = text.find('}', i)
@@ -2877,7 +2880,7 @@ class Logger:
     Logger for print and log. Support for printing log with different colors on console.
     """
     FilePath = '@AutomationLog.txt'
-    FileObj: Optional[TextIOWrapper] = None
+    FileObj = None
     FlushTime = ProcessTime()
     _SelfFileName = os.path.split(__file__)[1]
     ColorNames = {
@@ -2975,7 +2978,7 @@ class Logger:
                 fout.close()
 
     @staticmethod
-    def WriteLine(log: Any, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
+    def WriteLine(log: Any, consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -2986,7 +2989,7 @@ class Logger:
         Logger.Write('{}\n'.format(log), consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfullyWrite(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
+    def ColorfullyWrite(log: str, consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
         """
         log: str.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -3024,7 +3027,7 @@ class Logger:
             Logger.Write(t, c, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfullyWriteLine(log: str, consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
+    def ColorfullyWriteLine(log: str, consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
         """
         log: str.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -3037,7 +3040,7 @@ class Logger:
         Logger.ColorfullyWrite(log + '\n', consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def Log(log: Any = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
+    def Log(log: Any = '', consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -3059,7 +3062,7 @@ class Logger:
         Logger.Write(log, consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
-    def ColorfullyLog(log: str = '', consoleColor: int = -1, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
+    def ColorfullyLog(log: str = '', consoleColor: int = ConsoleColor.Default, writeToFile: bool = True, printToStdout: bool = True, logFile: Optional[str] = None) -> None:
         """
         log: any type.
         consoleColor: int, a value in class `ConsoleColor`, such as `ConsoleColor.DarkGreen`.
@@ -3578,7 +3581,7 @@ def GetClipboardFormats() -> Dict[int, str]:
                 ctypes.windll.user32.GetClipboardFormatNameW(formatType, values, len(values))
                 formatName = values.value
                 if not formatName:
-                    formatName = _GetDictKeyName(ClipboardFormat.__dict__, formatType, 'CF_')
+                    formatName = _GetDictKeyName(ClipboardFormat.__dict__, formatType, lambda key: key.startswith('CF_'))
                 formats[formatType] = formatName
             ctypes.windll.user32.CloseClipboard()
     return formats
@@ -4415,7 +4418,7 @@ class ObjectModelPattern():
         """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationobjectmodelpattern"""
         self.pattern = pattern
 
-    def GetUnderlyingObjectModel(self) -> 'ctypes._Pointer[comtypes.IUnknown]':
+    def GetUnderlyingObjectModel(self) -> ctypes.POINTER(comtypes.IUnknown):
         """
         Call IUIAutomationObjectModelPattern::GetUnderlyingObjectModel, todo.
         Return `ctypes.POINTER(comtypes.IUnknown)`, an interface used to access the underlying object model of the provider.
@@ -5053,7 +5056,7 @@ class TextRange():
             return TextRange(textRange=textRange)
         return None
 
-    def GetAttributeValue(self, textAttributeId: int) -> 'ctypes._Pointer[comtypes.IUnknown]':
+    def GetAttributeValue(self, textAttributeId: int) -> ctypes.POINTER(comtypes.IUnknown):
         """
         Call IUIAutomationTextRange::GetAttributeValue.
         textAttributeId: int, a value in class `TextAttributeId`.
@@ -5721,7 +5724,7 @@ PatternConstructors = {
 }
 
 
-def CreatePattern(patternId: int, pattern: 'ctypes._Pointer[comtypes.IUnknown]'):
+def CreatePattern(patternId: int, pattern: ctypes.POINTER(comtypes.IUnknown)):
     """Create a concreate pattern by pattern id and pattern(POINTER(IUnknown))."""
     subPattern = pattern.QueryInterface(GetPatternIdInterface(patternId))
     if subPattern:
@@ -5770,21 +5773,20 @@ class Control():
             self.ControlTypeName, self.ClassName, self.AutomationId, rect, repr(self.Name), self.NativeWindowHandle)
 
     def __getitem__(self, pos: int) -> Optional['Control']:
-        child: Optional['Control']
         if pos == 1:
             return self.GetFirstChildControl()
         elif pos == -1:
             return self.GetLastChildControl()
         elif pos > 1:
             child = self.GetFirstChildControl()
-            for _ in range(pos-1):
+            for _ in range(pos - 1):
                 if child is None:
                     return None
                 child = child.GetNextSiblingControl()
             return child
         elif pos < -1:
             child = self.GetLastChildControl()
-            for _ in range(-pos-1):
+            for _ in range(-pos - 1):
                 if child is None:
                     return None
                 child = child.GetPreviousSiblingControl()
@@ -6308,7 +6310,7 @@ class Control():
                    depth starts with -1 and decreses when search goes up.
         Return `Control` subclass or None.
         """
-        ancestor: Optional['Control'] = self
+        ancestor = self
         depth = 0
         while ancestor is not None:
             ancestor = ancestor.GetParentControl()
@@ -6360,22 +6362,23 @@ class Control():
         condition: Callable[[Control], bool], function(control: Control) -> bool.
         Return `Control` subclass or None.
         """
-        check: Optional['Control']
-        prev: 'Control' = self
-        next_: 'Control' = self
-        
         if not forward:
-            while (check := prev.GetPreviousSiblingControl()) is not None:
-                if condition(check):
-                    return check
-                prev = check
-                
-        while (check := next_.GetNextSiblingControl()) is not None:
-            if condition(check):
-                return check
-            next_ = check
-            
-        return None
+            prev = self
+            while True:
+                prev = prev.GetPreviousSiblingControl()
+                if prev:
+                    if condition(prev):
+                        return prev
+                else:
+                    break
+        next_ = self
+        while True:
+            next_ = next_.GetNextSiblingControl()
+            if next_:
+                if condition(next_):
+                    return next_
+            else:
+                break
 
     def GetChildren(self) -> List['Control']:
         """
@@ -6705,7 +6708,7 @@ class Control():
         """
         handle = self.NativeWindowHandle
         if not handle:
-            control: Optional['Control'] = self
+            control = self
             while not handle and control:
                 control = control.GetParentControl()
                 if control:
@@ -6843,7 +6846,6 @@ class Control():
         If current control is root control, return None.
         Return `PaneControl` or `WindowControl` or None.
         """
-        control: Optional['Control']
         handle = self.NativeWindowHandle
         if handle:
             topHandle = GetAncestor(handle, GAFlag.Root)
@@ -7086,7 +7088,7 @@ class ComboBoxControl(Control):
         """
         return self.GetPattern(PatternId.ValuePattern)
 
-    def Select(self, itemName: str = '', condition: Callable[[str], bool] = None, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+    def Select(self, itemName: str = '', condition: Optional[Callable[[str], bool]] = None, simulateMove: bool = True, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
         Show combobox's popup menu and select a item by name.
         itemName: str.
@@ -8184,7 +8186,7 @@ def GetRootControl() -> PaneControl:
     control = Control.CreateControlFromElement(_AutomationClient.instance().IUIAutomation.GetRootElement())
     if isinstance(control, PaneControl):
         return control
-    
+
     if control is None:
         raise AssertionError('Expected valid root element')
     raise AssertionError('Expected root element to be a PaneControl. Found: %s (%s)' % (type(control), control))
@@ -8391,8 +8393,8 @@ def EnumAndLogControlAncestors(control: Control, showAllName: bool = True, showP
     control: `Control` or its subclass.
     showAllName: bool, if False, print the first 30 characters of control.Name.
     """
-    curr: Optional[Control] = control
-    lists: List[Control] = []
+    curr = control
+    lists = []
     while curr:
         lists.insert(0, curr)
         curr = curr.GetParentControl()
