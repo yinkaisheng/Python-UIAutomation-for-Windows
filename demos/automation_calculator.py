@@ -11,7 +11,12 @@ import uiautomation as auto
 
 auto.uiautomation.DEBUG_EXIST_DISAPPEAR = True  # set it to False and try again, default is False
 auto.uiautomation.DEBUG_SEARCH_TIME = True  # set it to False and try again, default is False
-auto.uiautomation.TIME_OUT_SECOND = 10  # global time out
+auto.uiautomation.TIME_OUT_SECOND = 7  # global time out
+print('timeout: {}, old {} is not effective'.format(auto.uiautomation.TIME_OUT_SECOND, auto.TIME_OUT_SECOND))
+auto.uiautomation.SetGlobalSearchTimeout(6)  # global time out
+print('timeout: {}, old {} is not effective'.format(auto.uiautomation.TIME_OUT_SECOND, auto.TIME_OUT_SECOND))
+
+
 
 
 def Calc(window, btns, expression):
