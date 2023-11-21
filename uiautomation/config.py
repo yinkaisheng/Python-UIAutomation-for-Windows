@@ -7,7 +7,22 @@ class DpiAwarenessBehavior(IntEnum):
     NoDpiAwareness = 3
 
 
-DPI_AWARENESS = DpiAwarenessBehavior.ProcessDpiAwareness
+class ProcessDpiAwareness(IntEnum):
+    DpiUnaware = 0
+    SystemDpiAware = 1
+    PerMonitorDpiAware = 2
+
+
+class DpiAwarenessContext(IntEnum):
+    Unaware = -1
+    SystemAware = -2
+    PerMonitorAware = -3
+    PerMonitorAwareV2 = -4
+    UnawareGdiScaled = -5
+
+
+DPI_AWARENESS_BEHAVIOR = DpiAwarenessBehavior.ProcessDpiAwareness
+DPI_AWARENESS_VALUE = ProcessDpiAwareness.PerMonitorDpiAware # use DpiAwarenessContext value if it's ThreadDpiAwareness
 SEARCH_INTERVAL = 0.5
 MAX_MOVE_SECOND = 1
 TIME_OUT_SECOND = 10
