@@ -5014,17 +5014,18 @@ class TextRange():
         """
         return self.textRange.CompareEndpoints(srcEndPoint, textRange, targetEndPoint)
 
-    def ExpandToEnclosingUnit(self, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+    def ExpandToEnclosingUnit(self, unit: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
         """
         Call IUIAutomationTextRange::ExpandToEnclosingUnit.
         Normalize the text range by the specified text unit.
             The range is expanded if it is smaller than the specified unit,
             or shortened if it is longer than the specified unit.
+        unit: int, a value in class `TextUnit`.
         waitTime: float.
         Return bool, True if succeed otherwise False.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationtextrange-expandtoenclosingunit
         """
-        ret = self.textRange.ExpandToEnclosingUnit() == S_OK
+        ret = self.textRange.ExpandToEnclosingUnit(unit) == S_OK
         time.sleep(waitTime)
         return ret
 
