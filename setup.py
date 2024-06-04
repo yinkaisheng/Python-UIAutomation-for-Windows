@@ -3,11 +3,9 @@ import sys
 from setuptools import find_packages, setup
 from uiautomation import VERSION, AUTHOR_MAIL
 
-requires = [
-        'comtypes>=1.1.10',
-        ]
+requires = ['comtypes>=1.2.1'] if sys.version_info >= (3, 7) else ['comtypes==1.2.1']
 
-if sys.version < '3.5':
+if sys.version_info < (3, 5):
     requires.append('typing')
 
 setup(
@@ -31,6 +29,10 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ],
     install_requires=requires
 )

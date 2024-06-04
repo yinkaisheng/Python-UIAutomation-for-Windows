@@ -1,1 +1,1 @@
-python d:\Python38\Lib\pydoc.py -w uiautomation\uiautomation.py
+python d:\Python312x64\Lib\pydoc.py -w uiautomation\uiautomation.py
