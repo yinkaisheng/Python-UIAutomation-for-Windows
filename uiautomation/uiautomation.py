@@ -17,15 +17,15 @@ import sys
 import time
 import datetime
 import re
+import struct
+import atexit
 import threading
 import ctypes.wintypes
 import comtypes  # need 'pip install comtypes'
 import comtypes.client
 from io import TextIOWrapper
-from typing import (Any, Callable, Dict, List, Iterable, Tuple, Optional, Union,
-    Sequence)  # need 'pip install typing' for Python3.4 or lower
+from typing import (Any, Callable, Dict, Generator, List, Tuple, Optional, Union, Sequence) # need 'pip install typing' for Python3.4
 
-TreeNode = Any
 
 
 AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
@@ -41,8 +41,10 @@ S_OK = 0
 
 IsPy38OrHigher = sys.version_info[:2] >= (3, 8)
 IsNT6orHigher = os.sys.getwindowsversion().major >= 6
+CurrentProcessIs64Bit = sys.maxsize > 0xFFFFFFFF
 ProcessTime = time.perf_counter  # this returns nearly 0 when first call it if python version <= 3.6
 ProcessTime()  # need to call it once if python version <= 3.6
+TreeNode = Any
 
 
 class _AutomationClient:
@@ -90,7 +92,7 @@ class _DllClient:
         load = False
         if IsPy38OrHigher:
             os.add_dll_directory(binPath)
-        if sys.maxsize > 0xFFFFFFFF:
+        if CurrentProcessIs64Bit:
             try:
                 self.dll = ctypes.cdll.UIAutomationClient_VC140_X64
                 load = True
@@ -139,6 +141,7 @@ ctypes.windll.kernel32.GetStdHandle.restype = ctypes.c_void_p
 ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
 ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
 ctypes.windll.kernel32.OpenProcess.restype = ctypes.c_void_p
+ctypes.windll.ntdll.NtQueryInformationProcess.restype = ctypes.c_uint32
 
 
 class ControlType:
@@ -2450,24 +2453,21 @@ def IsProcess64Bit(processId: int) -> Optional[bool]:
     """
     Return True if process is 64 bit.
     Return False if process is 32 bit.
-    Return None if unknown, maybe caused by having no acess right to the process.
+    Return None if unknown, maybe caused by having no access right to the process.
     """
-    try:
-        func = ctypes.windll.ntdll.ZwWow64ReadVirtualMemory64  # only 64 bit OS has this function
-    except Exception as ex:
-        return False
     try:
         IsWow64Process = ctypes.windll.kernel32.IsWow64Process
     except Exception as ex:
         return False
     hProcess = ctypes.windll.kernel32.OpenProcess(0x1000, 0, processId)  # PROCESS_QUERY_INFORMATION=0x0400,PROCESS_QUERY_LIMITED_INFORMATION=0x1000
     if hProcess:
-        is64Bit = ctypes.c_int32()
-        if IsWow64Process(ctypes.c_void_p(hProcess), ctypes.byref(is64Bit)):
-            ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
-            return False if is64Bit.value else True
+        hProcess = ctypes.c_void_p(hProcess)
+        isWow64 = ctypes.wintypes.BOOL()
+        if IsWow64Process(hProcess, ctypes.byref(isWow64)):
+            ctypes.windll.kernel32.CloseHandle(hProcess)
+            return not isWow64
         else:
-            ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hProcess))
+            ctypes.windll.kernel32.CloseHandle(hProcess)
     return None
 
 
@@ -2875,6 +2875,165 @@ def SetProcessDpiAwareness(dpiAwareness: int):
 SetProcessDpiAwareness(ProcessDpiAwareness.PerMonitorDpiAware)
 
 
+class tagPROCESSENTRY32(ctypes.Structure):
+    _fields_ = [
+        ('dwSize', ctypes.wintypes.DWORD),
+        ('cntUsage', ctypes.wintypes.DWORD),
+        ('th32ProcessID', ctypes.wintypes.DWORD),
+        ('th32DefaultHeapID', ctypes.POINTER(ctypes.wintypes.ULONG)),
+        ('th32ModuleID', ctypes.wintypes.DWORD),
+        ('cntThreads', ctypes.wintypes.DWORD),
+        ('th32ParentProcessID', ctypes.wintypes.DWORD),
+        ('pcPriClassBase', ctypes.wintypes.LONG),
+        ('dwFlags', ctypes.wintypes.DWORD),
+        ('szExeFile', ctypes.c_wchar * MAX_PATH)
+    ]
+
+
+class ProcessInfo:
+    def __init__(self, exeName: str, pid: int, ppid: int = -1, exePath: str = '', cmdLine: str = ''):
+        self.pid = pid
+        self.ppid = ppid        # ppid is -1 if failed
+        self.exeName = exeName  # such as explorer.exe
+        self.is64Bit = None     # True if is 64 bit, False if 32 bit, None if failed
+        self.exePath = exePath  # such as C:\Windows\explorer.exe, empty if failed
+        self.cmdLine = cmdLine  # empty if failed
+
+    def __str__(self):
+        return "ProcessInfo(pid={}, ppid={}, exeName='{}', is64Bit={}, exePath='{}', cmdLine='{}'".format(
+            self.pid, self.ppid, self.exeName, self.is64Bit, self.exePath, self.cmdLine)
+
+    def __repr__(self):
+        return '<{} object at 0x{:08X} {}>'.format(self.__class__.__name__, id(self),
+                                                   ', '.join('{}={}'.format(k, v) for k, v in self.__dict__.items()))
+
+
+def GetProcesses(detailedInfo: bool = True) -> List[ProcessInfo]:
+    '''
+    Enum process by Win32 API.
+    detailedInfo: bool, only get pid and exeName if False.
+    You should run python as administrator to call this function.
+    Can not get some system processes' info.
+    '''
+    if detailedInfo:
+        try:
+            IsWow64Process = ctypes.windll.kernel32.IsWow64Process
+        except Exception as ex:
+            IsWow64Process = None
+    hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(15, 0)  # TH32CS_SNAPALL = 15
+    processEntry32 = tagPROCESSENTRY32()
+    processEntry32.dwSize = ctypes.sizeof(processEntry32)
+    processList = []
+    processNext = ctypes.windll.kernel32.Process32FirstW(ctypes.c_void_p(hSnapshot), ctypes.byref(processEntry32))
+    cPointerSize = ctypes.sizeof(ctypes.c_void_p)
+    while processNext:
+        pinfo = ProcessInfo(processEntry32.szExeFile, processEntry32.th32ProcessID)
+        if detailedInfo:
+            #PROCESS_QUERY_INFORMATION=0x0400, PROCESS_QUERY_LIMITED_INFORMATION=0x1000, PROCESS_VM_READ=0x0010
+            queryType = (0x1000 if IsNT6orHigher else 0x0400) | 0x0010
+            hProcess = ctypes.windll.kernel32.OpenProcess(queryType, 0, pinfo.pid)
+            if hProcess:
+                hProcess = ctypes.c_void_p(hProcess)
+                processBasicInformationAddr = 0
+                processBasicInformation = (ctypes.c_size_t * 6)()#sizeof PROCESS_BASIC_INFORMATION
+                outLen = ctypes.c_ulong(0)
+                ctypes.windll.ntdll.NtQueryInformationProcess.restype = ctypes.c_uint32
+                if IsWow64Process:
+                    isWow64 = ctypes.wintypes.BOOL()
+                    if IsWow64Process(hProcess, ctypes.byref(isWow64)):
+                        pinfo.is64Bit = not isWow64
+                else:
+                    pinfo.is64Bit = False
+                ntStatus = ctypes.windll.ntdll.NtQueryInformationProcess(
+                    hProcess, processBasicInformationAddr, processBasicInformation, ctypes.sizeof(processBasicInformation), ctypes.byref(outLen))
+                if ntStatus == 0: #STATUS_SUCCESS=0
+                    pinfo.ppid = processBasicInformation[5]
+                    pebBaseAddress = processBasicInformation[1]
+                    if pebBaseAddress:
+                        pebSize = 712 if CurrentProcessIs64Bit else 472 #sizeof PEB
+                        peb = (ctypes.c_size_t * (pebSize // cPointerSize))()
+                        outLen.value = 0
+                        isok = ctypes.windll.kernel32.ReadProcessMemory(hProcess, ctypes.c_void_p(pebBaseAddress), peb, pebSize, ctypes.byref(outLen))
+                        if isok:
+                            processParametersAddr = ctypes.c_void_p(peb[4])
+                            uppSize = 128 if CurrentProcessIs64Bit else 72 #sizeof RTL_USER_PROCESS_PARAMETERS
+                            upp = (ctypes.c_ubyte * uppSize)()
+                            outLen.value = 0
+                            isok = ctypes.windll.kernel32.ReadProcessMemory(hProcess, processParametersAddr, upp, uppSize, ctypes.byref(outLen))
+                            if isok:
+                                offset = 16 + 10 * cPointerSize
+                                imgPathSize, imgPathSizeMax, imgPathAddr, cmdLineSize, cmdLineSizeMax, cmdLineAddr = struct.unpack('@HHNHHN', bytes(upp[offset:]))
+                                exePath = (ctypes.c_wchar * imgPathSizeMax)()
+                                outLen.value = 0
+                                isok = ctypes.windll.kernel32.ReadProcessMemory(hProcess, ctypes.c_void_p(imgPathAddr), exePath, ctypes.sizeof(exePath), ctypes.byref(outLen))
+                                if isok:
+                                    pinfo.exePath = exePath.value
+                                cmdLine = (ctypes.c_wchar * cmdLineSizeMax)()
+                                outLen.value = 0
+                                isok = ctypes.windll.kernel32.ReadProcessMemory(hProcess, ctypes.c_void_p(cmdLineAddr), cmdLine, ctypes.sizeof(cmdLine), ctypes.byref(outLen))
+                                if isok:
+                                    pinfo.cmdLine = cmdLine.value
+                if not pinfo.exePath:
+                    exePath = (ctypes.c_wchar * MAX_PATH)()
+                    if IsNT6orHigher:
+                        win32PathFormat = 0 #nativeSystemPathFormat = 1
+                        outLen.value = len(exePath)
+                        isok = ctypes.windll.kernel32.QueryFullProcessImageNameW(hProcess, win32PathFormat, exePath, ctypes.byref(outLen))
+                    else:
+                        hModule = None
+                        try:
+                            #strlen =
+                            ctypes.windll.psapi.GetModuleFileNameExW(hProcess, hModule, exePath, len(exePath))
+                        except:
+                            #strlen =
+                            ctypes.windll.kernel32.GetModuleFileNameExW(hProcess, hModule, exePath, len(exePath))
+                        #exePath is nativeSystemPathFormat
+                        #strlen = ctypes.windll.psapi.GetProcessImageFileNameW(hProcess, exePath, len(exePath))
+                        #if exePath.value:
+                            #strlen = ctypes.windll.kernel32.QueryDosDeviceW(ctypes.c_wchar_p(exePath.value), exePath, len(exePath))
+                    pinfo.exePath = exePath.value
+                ctypes.windll.kernel32.CloseHandle(hProcess)
+        processList.append(pinfo)
+        processNext = ctypes.windll.kernel32.Process32NextW(ctypes.c_void_p(hSnapshot), ctypes.byref(processEntry32))
+    ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(hSnapshot))
+    return processList
+
+
+def EnumProcessByWMI() -> Generator[ProcessInfo, None, None]:
+    '''Maybe slower, but can get system processes' info'''
+    import wmi # pip install wmi
+    wobj = wmi.WMI()
+    fields = ['Name', 'ProcessId', 'ParentProcessId', 'ExecutablePath', 'CommandLine']
+    for it in wobj.Win32_Process(fields):   # only query the specified fields, speed up the process
+        pinfo = ProcessInfo(it.Name, it.ProcessId, it.ParentProcessId, it.ExecutablePath, it.CommandLine)
+        yield pinfo
+
+
+def TerminateProcess(pid: int) -> bool:
+    hProcess = ctypes.windll.kernel32.OpenProcess(0x0001, 0, pid)  # PROCESS_TERMINATE=0x0001
+    if hProcess:
+        hProcess = ctypes.c_void_p(hProcess)
+        ret = ctypes.windll.kernel32.TerminateProcess(hProcess, -1)
+        ctypes.windll.kernel32.CloseHandle(hProcess)
+        return bool(ret)
+    return False
+
+
+def TerminateProcessByName(exeName: str, killAll: bool = True) -> int:
+    '''
+    exeName: str, such as notepad.exe
+    return int, process count that was terminated
+    '''
+    count = 0
+    for pinfo in GetProcesses(detailedInfo=False):
+        if pinfo.exeName == exeName:
+            if TerminateProcess(pinfo.pid):
+                count += 1
+                if not killAll:
+                    break
+    return count
+
+
 class Logger:
     """
     Logger for print and log. Support for printing log with different colors on console.
@@ -2915,7 +3074,7 @@ class Logger:
         if isinstance(logFile, str):
             Logger.FilePath = logFile
             if logFile:
-                Logger.FileObj = open(logFile, 'a+', encoding='utf-8')
+                Logger.FileObj = open(logFile, 'a+', encoding='utf-8', newline='\n')
         else:
             Logger.FileObj = logFile
 
@@ -2956,14 +3115,14 @@ class Logger:
         close = False
         try:
             if logFile:
-                fout = open(logFile, 'a+', encoding='utf-8')
+                fout = open(logFile, 'a+', encoding='utf-8', newline='\n')
                 close = True
             else:
                 if Logger.FileObj:
                     fout = Logger.FileObj
                 elif Logger.FilePath:
-                    Logger.FileObj = open(Logger.FilePath, 'a+', encoding='utf-8')
-                    fout = Logger.FileObj
+                    fout = open(Logger.FilePath, 'a+', encoding='utf-8', newline='\n')
+                    Logger.FileObj = fout
             if fout:
                 fout.write(log)
                 now = ProcessTime()
@@ -3094,6 +3253,14 @@ class Logger:
     LogColorfully = ColorfullyLog
     WriteColorfully = ColorfullyWrite
     WriteLineColorfully = ColorfullyWriteLine
+
+
+def _ExitHandler():
+    if Logger.FileObj:
+        Logger.FileObj.close()
+
+
+atexit.register(_ExitHandler)
 
 
 class RotateFlipType:
@@ -3381,13 +3548,13 @@ class Bitmap:
         _DllClient.instance().dll.BitmapGetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, values)
         return values
 
-    def SetPixelColorsOfRect(self, x: int, y: int, width: int, height: int, colors: Iterable[int]) -> bool:
+    def SetPixelColorsOfRect(self, x: int, y: int, width: int, height: int, colors: Sequence[int]) -> bool:
         """
         x: int.
         y: int.
         width: int.
         height: int.
-        colors: Iterable[int], an iterable list of int values in ARGB color format, it's length must equal to width*height,
+        colors: Sequence[int], a sequence of int values in ARGB color format, it's length must equal to width*height,
             use ctypes.Array for better performance, such as `ctypes.c_uint32 * (width*height)`.
         Return bool.
         """
@@ -3410,9 +3577,9 @@ class Bitmap:
         """
         return self.GetPixelColorsOfRect(0, 0, self.Width, self.Height)
 
-    def SetAllPixelColors(self, colors: Iterable[int]) -> bool:
+    def SetAllPixelColors(self, colors: Sequence[int]) -> bool:
         """
-        colors: Iterable[int], an iterable list of int values in ARGB color format, it's length must equal to width*height,
+        colors: Sequence[int], a sequence of int values in ARGB color format, it's length must equal to width*height,
             use ctypes.Array for better performance, such as `ctypes.c_uint32 * (width*height)`.
         Return bool.
         """
@@ -8275,7 +8442,7 @@ def ControlsAreSame(control1: Control, control2: Control) -> bool:
     return bool(_AutomationClient.instance().IUIAutomation.CompareElements(control1.Element, control2.Element))
 
 
-def WalkControl(control: Control, includeTop: bool = False, maxDepth: int = 0xFFFFFFFF):
+def WalkControl(control: Control, includeTop: bool = False, maxDepth: int = 0xFFFFFFFF) -> Generator[Tuple[Control, int], None, None]:
     """
     control: `Control` or its subclass.
     includeTop: bool, if True, yield (control, 0) first.
@@ -8322,7 +8489,7 @@ def LogControl(control: Control, depth: int = 0, showAllName: bool = True, showP
     Logger.Write('    Rect: ')
     Logger.Write(control.BoundingRectangle, ConsoleColor.DarkGreen)
     Logger.Write('    Name: ')
-    Logger.Write(repr(control.Name), ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
+    Logger.Write(control.Name, ConsoleColor.DarkGreen, printTruncateLen=0 if showAllName else 30)
     Logger.Write('    Handle: ')
     Logger.Write('0x{0:X}({0})'.format(control.NativeWindowHandle), ConsoleColor.DarkGreen)
     Logger.Write('    Depth: ')
