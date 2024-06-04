@@ -1,1 +1,2 @@
+comtypes>=1.2.1
 wheel>=0.33.0
