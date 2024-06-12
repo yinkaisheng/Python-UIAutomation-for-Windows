@@ -2364,7 +2364,7 @@ def GetEditText(handle: int) -> str:
     textLen = SendMessage(handle, 0x000E, 0, 0) + 1  # WM_GETTEXTLENGTH
     arrayType = ctypes.c_wchar * textLen
     values = arrayType()
-    SendMessage(handle, 0x000D, textLen, values)  # WM_GETTEXT
+    SendMessage(handle, 0x000D, textLen, ctypes.addressof(values))  # WM_GETTEXT
     return values.value
 
 
