@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 uiautomation for Python 3.
-Author: yinkaisheng@foxmail.com
+Author: yinkaisheng
 Source: https://github.com/yinkaisheng/Python-UIAutomation-for-Windows
 
 This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
@@ -27,8 +27,6 @@ from io import TextIOWrapper
 from typing import (Any, Callable, Dict, Generator, List, Tuple, Optional, Union, Sequence) # need 'pip install typing' for Python3.4
 
 
-
-AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
 SEARCH_INTERVAL = 0.5  # search control interval seconds
 MAX_MOVE_SECOND = 1  # simulate mouse move or drag max seconds
