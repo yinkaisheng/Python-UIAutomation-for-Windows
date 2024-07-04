@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 uiautomation for Python 3.
-Author: yinkaisheng@foxmail.com
+Author: yinkaisheng
 Source: https://github.com/yinkaisheng/Python-UIAutomation-for-Windows
 
 This module is for UIAutomation on Windows(Windows XP with SP3, Windows Vista and Windows 7/8/8.1/10).
@@ -31,7 +31,6 @@ from .config import (DpiAwarenessBehavior, ProcessDpiAwareness, DpiAwarenessCont
                      PRINT_LOG, WRITE_LOG, DEBUG_SEARCH_TIME, DEBUG_EXIST_DISAPPEAR)
 
 
-AUTHOR_MAIL = 'yinkaisheng@foxmail.com'
 METRO_WINDOW_CLASS_NAME = 'Windows.UI.Core.CoreWindow'  # for Windows 8 and 8.1
 MAX_PATH = 260
 S_OK = 0

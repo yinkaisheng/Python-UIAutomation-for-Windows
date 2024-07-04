@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 本脚本可以获取QQ2018(v9.0)群所有成员详细资料，请根据提示做对应的操作
-作者：yinkaisheng@foxmail.com
+作者：yinkaisheng
 """
 import os
 import sys
