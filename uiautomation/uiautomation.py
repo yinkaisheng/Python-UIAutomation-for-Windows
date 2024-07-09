@@ -6604,8 +6604,8 @@ class Control():
         if self._element and self._elementDirectAssign:
             # if element is directly assigned, not by searching, just check whether self._element is valid
             # but I can't find an API in UIAutomation that can directly check
-            rootElement = GetRootControl().Element
-            if self._element == rootElement:
+            rootElement = _AutomationClient.instance().IUIAutomation.GetRootElement()
+            if _AutomationClient.instance().IUIAutomation.CompareElements(self._element, rootElement):
                 return True
             else:
                 parentElement = _AutomationClient.instance().ViewWalker.GetParentElement(self._element)
@@ -6631,7 +6631,7 @@ class Control():
             control = FindControl(self.searchFromControl, self._CompareFunction, self.searchDepth, False, self.foundIndex)
             if control:
                 self._element = control.Element
-                control._element = 0  # control will be destroyed, but the element needs to be stroed in self._element
+                control._element = 0  # control will be destroyed, but the element needs to be stored in self._element
                 if DEBUG_SEARCH_TIME:
                     Logger.ColorfullyLog('{} TraverseControls: <Color=Cyan>{}</Color>, SearchTime: <Color=Cyan>{:.3f}</Color>s[{} - {}]'.format(
                         self.GetColorfulSearchPropertiesStr(), control.traverseCount, ProcessTime() - startTime2,
