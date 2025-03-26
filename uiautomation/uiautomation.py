@@ -3352,7 +3352,7 @@ class Bitmap:
         Return `Bitmap` or None.
         """
         rect = ctypes.wintypes.RECT()
-        if ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+        if ctypes.windll.user32.GetWindowRect(ctypes.c_void_p(hwnd), ctypes.byref(rect)):
             root = GetRootControl()
             left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
             bitmap = Bitmap()
