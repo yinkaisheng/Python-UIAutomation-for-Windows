@@ -16,6 +16,9 @@ import uiautomation as auto
 def walk():
     wiresharkWindow = None
     for win in auto.GetRootControl().GetChildren():
+        if win.ClassName == 'WiresharkMainWindow' and win.AutomationId == 'WiresharkMainWindow':
+            wiresharkWindow = win
+            break
         if win.ClassName == 'MainWindow' and win.AutomationId == 'MainWindow':
             if win.ToolBarControl(AutomationId='MainWindow.displayFilterToolBar').Exists(0, 0):
                 wiresharkWindow = win
