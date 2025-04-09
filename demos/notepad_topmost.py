@@ -10,7 +10,7 @@ import uiautomation as auto
 
 
 def main():
-    auto.ShowDesktop()
+    # auto.ShowDesktop()
     subprocess.Popen('notepad.exe', shell=True)
     time.sleep(1)
     note = auto.WindowControl(searchDepth=1, ClassName='Notepad')
@@ -28,8 +28,8 @@ def main():
     transformMmc.Move(100, 100)
     transformMmc.Resize(400, 300)
     time.sleep(1)
-    auto.DragDrop(160, 110, 900, 110, 0.2)
-    auto.DragDrop(900, 110, 160, 110, 0.2)
+    auto.DragDrop(240, 116, 900, 110, 0.2)
+    auto.DragDrop(900, 110, 240, 116, 0.2)
     mmcWindow.SendKeys('{Alt}f', waitTime=1)
     mmcWindow.SendKeys('X', charMode=False)  # or mmcWindow.SendKey(auto.Keys.VK_X)
     edit.SendKeys('{Ctrl}{End}{Enter 2}You close me.')
