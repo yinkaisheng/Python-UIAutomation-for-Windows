@@ -161,7 +161,7 @@ def testNotepadEN():
     combo.Select('Western')
 
     windowFont.ButtonControl(Name='OK').Click()
-    window.Close()
+    window.GetWindowPattern().Close()
     if auto.WaitForDisappear(window, 3):
         auto.Logger.WriteLine("Notepad closed")
     else:
