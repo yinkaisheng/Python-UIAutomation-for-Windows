@@ -3621,7 +3621,7 @@ class Bitmap:
         b = argb & 0x0000_00FF
         g = (argb & 0x0000_FF00) >> 8
         r = (argb & 0x00FF_0000) >> 16
-        a = (argb & 0xFF0000) >> 24
+        a = (argb & 0xFF00_0000) >> 24
         """
         return _DllClient.instance().dll.BitmapGetPixel(ctypes.c_size_t(self._bitmap), x, y)
 

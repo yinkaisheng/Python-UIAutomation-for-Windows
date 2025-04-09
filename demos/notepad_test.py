@@ -28,6 +28,7 @@ def test():
         # maybe you don't run python as administrator
         # or the control doesn't have a implementation for the pattern method(I have no solution for this)
         pass
+    edit.Click() # this step is optional, but some edits may need it
     edit.SendKeys('{Ctrl}{End}{Enter}World')
     print('current text:', edit.GetValuePattern().Value)
     # find the first TitleBarControl in notepadWindow,
