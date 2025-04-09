@@ -17,8 +17,6 @@ auto.uiautomation.SetGlobalSearchTimeout(6)  # global time out
 print('timeout: {}, old {} is not effective'.format(auto.uiautomation.TIME_OUT_SECOND, auto.TIME_OUT_SECOND))
 
 
-
-
 def Calc(window, btns, expression):
     expression = ''.join(expression.split())
     if not expression.endswith('='):
@@ -134,6 +132,7 @@ def CalcOnWindows10():
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
+    calcWindow.GetTransformPattern().Move(40, 40)
     calcWindow.ButtonControl(AutomationId='TogglePaneButton').Click()
     calcWindow.ListItemControl(AutomationId='Scientific').Click()
     calcWindow.ButtonControl(AutomationId='clearButton').Click()
