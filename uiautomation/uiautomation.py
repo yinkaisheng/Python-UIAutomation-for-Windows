@@ -17,9 +17,11 @@ import sys
 import time
 import datetime
 import re
+import shlex
 import struct
 import atexit
 import threading
+import ctypes
 import ctypes.wintypes
 import comtypes  # need 'pip install comtypes'
 import comtypes.client
@@ -88,7 +90,7 @@ class _DllClient:
         binPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
         os.environ["PATH"] = binPath + os.pathsep + os.environ["PATH"]
         load = False
-        if IsPy38OrHigher:
+        if IsPy38OrHigher and IsNT6orHigher:
             os.add_dll_directory(binPath)
         if CurrentProcessIs64Bit:
             try:
@@ -104,12 +106,14 @@ class _DllClient:
                 print(ex)
         if load:
             self.dll.BitmapCreate.restype = ctypes.c_size_t
+            self.dll.BitmapGetWidthAndHeight.restype = ctypes.c_uint64
             self.dll.BitmapFromWindow.restype = ctypes.c_size_t
             self.dll.BitmapFromHBITMAP.restype = ctypes.c_size_t
             self.dll.BitmapToHBITMAP.restype = ctypes.c_size_t
             self.dll.BitmapFromFile.restype = ctypes.c_size_t
-            self.dll.BitmapResizedFrom.restype = ctypes.c_size_t
-            self.dll.BitmapRotatedFrom.restype = ctypes.c_size_t
+            self.dll.BitmapFromBytes.restype = ctypes.c_size_t
+            self.dll.BitmapResize.restype = ctypes.c_size_t
+            self.dll.BitmapRotate.restype = ctypes.c_size_t
             self.dll.BitmapGetPixel.restype = ctypes.c_uint32
             self.dll.Initialize()
         else:
@@ -2127,6 +2131,33 @@ def GetScreenSize() -> Tuple[int, int]:
     return w, h
 
 
+def SetScreenSize(width: int, height: int) -> bool:
+    """
+    Return bool.
+    """
+    # the size of DEVMODEW structure is too big for wrapping in ctypes,
+    # so I use bytearray to simulate the structure.
+    devModeSize = 220
+    dmSizeOffset = 68
+    dmFieldsOffset = 72
+    dmPelsWidthOffset = 172
+    DM_PELSWIDTH = 0x00080000
+    DM_PELSHEIGHT = 0x00100000
+    DISP_CHANGE_SUCCESSFUL = 0
+    devMode = bytearray(devModeSize)
+    devMode[dmSizeOffset:dmSizeOffset+2] = struct.pack("<H", devModeSize)
+    cDevMode = (ctypes.c_byte*devModeSize).from_buffer(devMode)
+    if ctypes.windll.user32.EnumDisplaySettingsW(None, ctypes.wintypes.DWORD(-1), cDevMode):
+        curWidth, curHeight = struct.unpack("<II", devMode[dmPelsWidthOffset:dmPelsWidthOffset+8])
+        if curWidth == width and curHeight == height:
+            return True
+        devMode[dmFieldsOffset:dmFieldsOffset+4] = struct.pack("<I", DM_PELSWIDTH | DM_PELSHEIGHT)
+        devMode[dmPelsWidthOffset:dmPelsWidthOffset+8] = struct.pack("<II", width, height)
+        if ctypes.windll.user32.ChangeDisplaySettingsW(cDevMode, 0) == DISP_CHANGE_SUCCESSFUL:
+            return True
+    return False
+
+
 def GetVirtualScreenSize() -> Tuple[int, int]:
     """
     Return Tuple[int, int], two ints tuple (width, height).
@@ -2487,7 +2518,7 @@ def RunScriptAsAdmin(argv: List[str], workingDirectory: str = None, showFlag: in
     showFlag: int, a value in class `SW`.
     Return bool, True if succeed.
     """
-    args = ' '.join('"{}"'.format(arg) for arg in argv)
+    args = shlex.join(argv)
     return ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, args, workingDirectory, showFlag) > 32
 
 
@@ -3280,10 +3311,24 @@ class RotateFlipType:
     Rotate270FlipXY = Rotate90FlipNone
 
 
+class RawFormat:
+    Undefined = 0
+    MemoryBMP = 1
+    BMP = 2
+    EMF = 3
+    WMF = 4
+    JPEG = 5
+    PNG = 6
+    GIF = 7     # MultiFrameBitmap
+    TIFF = 8    # MultiFrameBitmap
+    EXIF = 9
+    Icon = 10
+
+
 class Bitmap:
     """
     A simple Bitmap class wraps Windows GDI+ Gdiplus::Bitmap, but may not have high efficiency.
-    The color format is ARGB.
+    The color format is Gdiplus::PixelFormat32bppARGB 0xAARRGGBB, byte order is B G R A.
     """
 
     def __init__(self, width: int = 0, height: int = 0):
@@ -3293,6 +3338,8 @@ class Bitmap:
         self._width = width
         self._height = height
         self._bitmap = 0
+        self._format = RawFormat.Undefined
+        self._formatStr = ''
         if width > 0 and height > 0:
             self._bitmap = _DllClient.instance().dll.BitmapCreate(width, height)
 
@@ -3308,10 +3355,10 @@ class Bitmap:
     def __bool__(self):
         return self._bitmap > 0
 
-    def _getsize(self) -> None:
+    def _GetSize(self) -> None:
         size = _DllClient.instance().dll.BitmapGetWidthAndHeight(ctypes.c_size_t(self._bitmap))
-        self._width = size & 0xFFFF
-        self._height = size >> 16
+        self._width = size & 0xFFFF_FFFF
+        self._height = size >> 32
 
     def Close(self) -> None:
         """Close the underlying Gdiplus::Bitmap object."""
@@ -3340,7 +3387,7 @@ class Bitmap:
         return self._height
 
     @staticmethod
-    def FromHandle(hwnd: int, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0) -> Optional['Bitmap']:
+    def FromHandle(hwnd: int, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0) -> Optional['MemoryBMP']:
         """
         Create a `Bitmap` from a native window handle.
         hwnd: int, the handle of a native window.
@@ -3355,15 +3402,12 @@ class Bitmap:
         if ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect)):
             root = GetRootControl()
             left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
-            bitmap = Bitmap()
-            bitmap._bitmap = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
-            if bitmap._bitmap:
-                bitmap._getsize()
-                return bitmap
+            cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
+            return Bitmap._FromGdiplusBitmap(cbmp)
         return None
 
     @staticmethod
-    def FromControl(control: 'Control', x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> Optional['Bitmap']:
+    def FromControl(control: 'Control', x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> Optional['MemoryBMP']:
         """
         Create a `Bitmap` from a `Control`.
         control: `Control` or its subclass.
@@ -3407,24 +3451,73 @@ class Bitmap:
         return Bitmap.FromHandle(handle, left, top, right, bottom)
 
     @staticmethod
+    def _FromGdiplusBitmap(cbmp: int) -> 'Bitmap':
+        """
+        Return `Bitmap`'s subclass instance or None.
+        """
+        if not cbmp:
+            return None
+        formatType = ctypes.c_uint()
+        _DllClient.instance().dll.BitmapGetRawFormat(cbmp, ctypes.byref(formatType))
+        if formatType.value == RawFormat.JPEG:
+            bitmap = JPEG()
+        elif formatType.value == RawFormat.PNG:
+            bitmap = PNG()
+        elif formatType.value == RawFormat.GIF:
+            bitmap = GIF()
+            bitmap._bitmap = cbmp
+            bitmap._frameCount = _DllClient.instance().dll.MultiBitmapGetFrameCount(ctypes.c_size_t(cbmp))
+            bitmap._GetGifDealy()
+        elif formatType.value == RawFormat.TIFF:
+            bitmap = TIFF()
+            bitmap._frameCount = _DllClient.instance().dll.MultiBitmapGetFrameCount(ctypes.c_size_t(cbmp))
+        elif formatType.value == RawFormat.BMP:
+            bitmap = BMP()
+        elif formatType.value == RawFormat.MemoryBMP:
+            bitmap = MemoryBMP()
+        elif formatType.value == RawFormat.Icon:
+            bitmap = ICON()
+        elif formatType.value == RawFormat.EMF:
+            bitmap = EMF()
+        elif formatType.value == RawFormat.WMF:
+            bitmap = WMF()
+        elif formatType.value == RawFormat.EXIF:
+            bitmap = EXIF()
+        else:
+            bitmap = Bitmap()
+        bitmap._bitmap = cbmp
+        bitmap._format = formatType.value
+        bitmap._GetSize()
+        return bitmap
+
+    @staticmethod
+    def FromBytes(data: bytes) -> Optional['Bitmap']:
+        """
+        Create a `Bitmap` from a bytes object.
+        data: bytes.
+        Return `Bitmap`'s subclass instance or None.
+        """
+        cbmp = _DllClient.instance().dll.BitmapFromBytes(ctypes.c_char_p(data), len(data), 0)
+        return Bitmap._FromGdiplusBitmap(cbmp)
+
+    @staticmethod
     def FromFile(filePath: str) -> Optional['Bitmap']:
         """
         Create a `Bitmap` from a file path.
         filePath: str.
-        Return `Bitmap` or None.
+        Return `Bitmap`'s subclass instance or None.
         """
-        bitmap = Bitmap()
-        bitmap._bitmap = _DllClient.instance().dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
-        if bitmap._bitmap:
-            bitmap._getsize()
-            return bitmap
-        return None
+        cbmp = _DllClient.instance().dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
+        return Bitmap._FromGdiplusBitmap(cbmp)
 
-    def ToFile(self, savePath: str) -> bool:
+    def ToFile(self, savePath: str, *, quality: int = None) -> bool:
         """
         Save to a file.
         savePath: str, should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff.
+        quality: int, 1-100, only used when save to jpeg.
         Return bool, True if succeed otherwise False.
+        Note: If file extension is .gif or .tiff, it is only saved as a single frame.
+              If you want to save a gif or a tiff file with multiple frames, use `GIF.ToGifFile` or `TIFF.ToTiffFile`.
         """
         name, ext = os.path.splitext(savePath)
         extMap = {'.bmp': 'image/bmp',
@@ -3436,17 +3529,98 @@ class Bitmap:
                   '.png': 'image/png',
                   }
         gdiplusImageFormat = extMap.get(ext.lower(), 'image/png')
-        return bool(_DllClient.instance().dll.BitmapToFile(ctypes.c_size_t(self._bitmap), ctypes.c_wchar_p(savePath), ctypes.c_wchar_p(gdiplusImageFormat)))
+        gdiStatus = _DllClient.instance().dll.BitmapToFile(ctypes.c_size_t(self._bitmap), ctypes.c_wchar_p(savePath), ctypes.c_wchar_p(gdiplusImageFormat), quality or 80)
+        return gdiStatus == 0
+
+    def ToBytes(self, format: str, *, quality: int = None) -> bytearray:
+        """
+        Convert to a bytearray in the specified format.
+        format: str, The desired output format. Supported formats include:
+            - 'BGRA': Raw pixel data without any file header.
+            - 'bmp', 'jpg', 'jpeg', 'gif', 'tif', 'tiff', 'png':
+              Standard image file formats with corresponding file headers.
+        quality: int, 1-100, only used when format is jpg and jpeg.
+        Note: If format is gif or tiff, only the active single frame is saved to a bytearray.
+              Currently multiple frames are not supported.
+        """
+        format = format.lower()
+        if format == 'bgra':
+            return bytearray(memoryview(self.GetAllPixelColors()))
+
+        if format[0] != '.':
+            format = '.' + format
+        extMap = {'.bmp': 'image/bmp',
+                  '.jpg': 'image/jpeg',
+                  '.jpeg': 'image/jpeg',
+                  '.gif': 'image/gif',
+                  '.tif': 'image/tiff',
+                  '.tiff': 'image/tiff',
+                  '.png': 'image/png',
+                  }
+        gdiplusImageFormat = extMap.get(format.lower(), 'image/png')
+        stream = ctypes.c_size_t()
+        gdiStatus = _DllClient.instance().dll.BitmapToStream(ctypes.c_size_t(self._bitmap), ctypes.byref(stream), ctypes.c_wchar_p(gdiplusImageFormat), quality or 80)
+        if stream.value == 0:
+            return None
+        streamSize = _DllClient.instance().dll.GetStreamSize(stream.value)
+        if streamSize == 0:
+            return None
+        data = bytearray(streamSize)
+        cdata = (ctypes.c_ubyte * streamSize).from_buffer(data)
+        streamSize = _DllClient.instance().dll.CopyStreamData(stream.value, cdata, streamSize)
+        _DllClient.instance().dll.ReleaseStream(stream.value)
+        return data
+
+    def ToPILImage(self) -> 'PIL.Image.Image':
+        """
+        Convert to a PIL image.
+        usage:
+        image = bitmap.ToPILImage()
+        image.save("pil.png")
+        image.save("pil.png")
+        image.convert('RGB').save('pil.jpg', quality=80, optimize=True)
+        """
+        from PIL import Image
+        return Image.frombytes('RGBA', (self.Width, self.Height), self.ToBytes('BGRA'), 'raw', 'BGRA')
+
+    def ToNDArray(self) -> 'numpy.ndarray':
+        """
+        Convert to a numpy.ndarray(compatible with OpenCV).
+        usage:
+        bgraImage = bitmap.ToNDArray()
+        bgrImage = cv2.cvtColor(bgraImage, cv2.COLOR_BGRA2BGR)
+        """
+        import numpy as np
+        npArray = np.frombuffer(self.ToBytes('BGRA'), dtype=np.uint8)
+        return npArray.reshape((self.Height, self.Width, 4))
+
+    def GetRawFormat(self) -> int:
+        """
+        return a int value in class `RawFormat`
+        """
+        if self._format == RawFormat.Undefined:
+            formatType = ctypes.c_uint()
+            _DllClient.instance().dll.BitmapGetRawFormat(self._bitmap, ctypes.byref(formatType))
+            self._format = formatType.value
+        return self._format
+
+    def GetRawFormatStr(self) -> str:
+        """
+        return the string description of `RawFormat` value
+        """
+        if not self._formatStr:
+            self._formatStr = _GetDictKeyName(RawFormat.__dict__, self.GetRawFormat())
+        return self._formatStr
 
     def GetPixelColor(self, x: int, y: int) -> int:
         """
         Get color value of a pixel.
         x: int.
         y: int.
-        Return int, ARGB color format.
-        b = argb & 0x0000FF
-        g = (argb & 0x00FF00) >> 8
-        r = (argb & 0xFF0000) >> 16
+        Return int, ARGB(0xAARRGGBB) color format.
+        b = argb & 0x0000_00FF
+        g = (argb & 0x0000_FF00) >> 8
+        r = (argb & 0x00FF_0000) >> 16
         a = (argb & 0xFF0000) >> 24
         """
         return _DllClient.instance().dll.BitmapGetPixel(ctypes.c_size_t(self._bitmap), x, y)
@@ -3456,22 +3630,23 @@ class Bitmap:
         Set color value of a pixel.
         x: int.
         y: int.
-        argb: int, ARGB color format.
+        argb: int, ARGB(0xAARRGGBB) color format.
         Return bool, True if succeed otherwise False.
         """
-        return _DllClient.instance().dll.BitmapSetPixel(ctypes.c_size_t(self._bitmap), x, y, argb)
+        gdiStatus = _DllClient.instance().dll.BitmapSetPixel(ctypes.c_size_t(self._bitmap), x, y, argb)
+        return gdiStatus == 0
 
     def GetPixelColorsHorizontally(self, x: int, y: int, count: int) -> ctypes.Array:
         """
         x: int.
         y: int.
         count: int.
-        Return `ctypes.Array`, an iterable array of int values in ARGB color format form point x,y horizontally.
+        Return `ctypes.Array`, an iterable array of int values in ARGB(0xAARRGGBB) color format form point x,y horizontally.
         """
         #assert count <= self.Width * (self.Height - y) - x, 'count > max available from x,y'
         arrayType = ctypes.c_uint32 * count
         values = arrayType()
-        _DllClient.instance().dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
+        gdiStatus = _DllClient.instance().dll.BitmapGetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
     def SetPixelColorsHorizontally(self, x: int, y: int, colors: Sequence[int]) -> bool:
@@ -3479,7 +3654,7 @@ class Bitmap:
         Set pixel colors form x,y horizontally.
         x: int.
         y: int.
-        colors: Sequence[int], an iterable list of int color values in ARGB color format,
+        colors: Sequence[int], an iterable list of int color values in ARGB(0xAARRGGBB) color format,
             use ctypes.Array for better performance, such as `ctypes.c_uint32 * length`.
         Return bool, True if succeed otherwise False.
         """
@@ -3488,19 +3663,20 @@ class Bitmap:
         if not isinstance(colors, ctypes.Array):
             arrayType = ctypes.c_uint32 * count
             colors = arrayType(*colors)
-        return _DllClient.instance().dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, colors, count)
+        gdiStatus = _DllClient.instance().dll.BitmapSetPixelsHorizontally(ctypes.c_size_t(self._bitmap), x, y, colors, count)
+        return gdiStatus == 0
 
     def GetPixelColorsVertically(self, x: int, y: int, count: int) -> ctypes.Array:
         """
         x: int.
         y: int.
         count: int.
-        Return `ctypes.Array`, an iterable array of int values in ARGB color format form point x,y vertically.
+        Return `ctypes.Array`, an iterable array of int values in ARGB(0xAARRGGBB) color format form point x,y vertically.
         """
         #assert count <= self.Height * (self.Width - x) - y, 'count > max available from x,y'
         arrayType = ctypes.c_uint32 * count
         values = arrayType()
-        _DllClient.instance().dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
+        gdiStatus = _DllClient.instance().dll.BitmapGetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, values, count)
         return values
 
     def SetPixelColorsVertically(self, x: int, y: int, colors: Sequence[int]) -> bool:
@@ -3508,7 +3684,7 @@ class Bitmap:
         Set pixel colors form x,y vertically.
         x: int.
         y: int.
-        colors: Sequence[int], an iterable list of int color values in ARGB color format,
+        colors: Sequence[int], an iterable list of int color values in ARGB(0xAARRGGBB) color format,
             use ctypes.Array for better performance, such as `ctypes.c_uint32 * length`.
         Return bool, True if succeed otherwise False.
         """
@@ -3517,19 +3693,20 @@ class Bitmap:
         if not isinstance(colors, ctypes.Array):
             arrayType = ctypes.c_uint32 * count
             colors = arrayType(*colors)
-        return _DllClient.instance().dll.BitmapSetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, colors, count)
+        gdiStatus = _DllClient.instance().dll.BitmapSetPixelsVertically(ctypes.c_size_t(self._bitmap), x, y, colors, count)
+        return gdiStatus == 0
 
     def GetPixelColorsOfRow(self, y: int) -> ctypes.Array:
         """
         y: int, row index.
-        Return `ctypes.Array`, an iterable array of int values in ARGB color format of y row.
+        Return `ctypes.Array`, an iterable array of int values in ARGB(0xAARRGGBB) color format of y row.
         """
         return self.GetPixelColorsOfRect(0, y, self.Width, 1)
 
     def GetPixelColorsOfColumn(self, x: int) -> ctypes.Array:
         """
         x: int, column index.
-        Return `ctypes.Array`, an iterable array of int values in ARGB color format of x column.
+        Return `ctypes.Array`, an iterable array of int values in ARGB(0xAARRGGBB) color format of x column.
         """
         return self.GetPixelColorsOfRect(x, 0, 1, self.Height)
 
@@ -3539,11 +3716,11 @@ class Bitmap:
         y: int.
         width: int.
         height: int.
-        Return `ctypes.Array`, an iterable array of int values in ARGB color format of the input rect.
+        Return `ctypes.Array`, an iterable array of int values in ARGB(0xAARRGGBB) color format of the input rect.
         """
         arrayType = ctypes.c_uint32 * (width * height)
         values = arrayType()
-        _DllClient.instance().dll.BitmapGetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, values)
+        gdiStatus = _DllClient.instance().dll.BitmapGetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, values)
         return values
 
     def SetPixelColorsOfRect(self, x: int, y: int, width: int, height: int, colors: Sequence[int]) -> bool:
@@ -3552,7 +3729,7 @@ class Bitmap:
         y: int.
         width: int.
         height: int.
-        colors: Sequence[int], a sequence of int values in ARGB color format, it's length must equal to width*height,
+        colors: Sequence[int], a sequence of int values in ARGB(0xAARRGGBB) color format, it's length must equal to width*height,
             use ctypes.Array for better performance, such as `ctypes.c_uint32 * (width*height)`.
         Return bool.
         """
@@ -3560,24 +3737,26 @@ class Bitmap:
         if not isinstance(colors, ctypes.Array):
             arrayType = ctypes.c_uint32 * (width * height)
             colors = arrayType(*colors)
-        return bool(_DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, colors))
+        gdiStatus = _DllClient.instance().dll.BitmapSetPixelsOfRect(ctypes.c_size_t(self._bitmap), x, y, width, height, colors)
+        return gdiStatus == 0
 
     def GetPixelColorsOfRects(self, rects: List[Tuple[int, int, int, int]]) -> List[ctypes.Array]:
         """
         rects: List[Tuple[int, int, int, int]], such as [(0,0,10,10), (10,10,20,20), (x,y,width,height)].
-        Return List[ctypes.Array], a list whose elements are ctypes.Array which is an iterable array of int values in ARGB color format.
+        Return List[ctypes.Array], a list whose elements are ctypes.Array which is an iterable array of
+               int values in ARGB(0xAARRGGBB) color format.
         """
         return [self.GetPixelColorsOfRect(x, y, width, height) for x, y, width, height in rects]
 
     def GetAllPixelColors(self) -> ctypes.Array:
         """
-        Return `ctypes.Array`, an iterable array of int values in ARGB color format.
+        Return `ctypes.Array`, an iterable array of int values in ARGB(0xAARRGGBB) color format.
         """
         return self.GetPixelColorsOfRect(0, 0, self.Width, self.Height)
 
     def SetAllPixelColors(self, colors: Sequence[int]) -> bool:
         """
-        colors: Sequence[int], a sequence of int values in ARGB color format, it's length must equal to width*height,
+        colors: Sequence[int], a sequence of int values in ARGB(0xAARRGGBB) color format, it's length must equal to width*height,
             use ctypes.Array for better performance, such as `ctypes.c_uint32 * (width*height)`.
         Return bool.
         """
@@ -3586,7 +3765,7 @@ class Bitmap:
     def Clear(self, color: int = 0xFFFFFFFF, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> bool:
         """
         Set the color of rect(x,y,width,height).
-        color: int, ARGB color format.
+        color: int, ARGB(0xAARRGGBB) color format.
         x: int.
         y: int.
         width: int, if == 0, the width will be self.Width-x
@@ -3598,27 +3777,37 @@ class Bitmap:
         if height == 0:
             height = self.Height - y
         arrayType = ctypes.c_uint * (width * height)
-        nativeArray = arrayType()
-        for i in range(len(nativeArray)):
-            nativeArray[i] = color
+        nativeArray = arrayType(*[color]*(width * height))
         return self.SetPixelColorsOfRect(x, y, width, height, nativeArray)
 
-    def Copy(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> 'Bitmap':
+    def Clone(self) -> 'MemoryBMP':
+        """
+        Return `Bitmap`'s subclass instance.
+        The cloned Bitmap's RawFormat is same as original Bitmap.
+        If Bitmap is multiple frames, the cloned Bitmap is also multiple frames.
+        """
+        cbmp = _DllClient.instance().dll.BitmapClone(ctypes.c_size_t(self._bitmap), 0, 0, self._width, self._height)
+        return Bitmap._FromGdiplusBitmap(cbmp)
+
+    def Copy(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> 'MemoryBMP':
         """
         x: int, must >= 0.
         y: int, must >= 0.
         width: int, must <= self.Width-x.
         height: int, must <= self.Height-y.
-        Return `Bitmap`, a new Bitmap copied from (x,y,width,height).
+        Return `MemoryBMP`, a new Bitmap copied from (x,y,width,height).
+        If Bitmap is multiple frames, the cloned Bitmap is only single frame of the active frame.
         """
         if width == 0:
             width = self.Width - x
         if height == 0:
             height = self.Height - y
         nativeArray = self.GetPixelColorsOfRect(x, y, width, height)
-        bitmap = Bitmap(width, height)
+        bitmap = MemoryBMP(width, height)
         bitmap.SetPixelColorsOfRect(0, 0, width, height, nativeArray)
         return bitmap
+        # cbmp = _DllClient.instance().dll.BitmapClone(ctypes.c_size_t(self._bitmap), x, y, width, height)
+        # return Bitmap._FromGdiplusBitmap(cbmp)
 
     def Paste(self, x: int, y: int, bitmap: 'Bitmap') -> bool:
         """
@@ -3663,56 +3852,183 @@ class Bitmap:
         nativeArray = srcBitmap.GetPixelColorsOfRect(srcX, srcY, width, height)
         return self.SetPixelColorsOfRect(dstX, dstY, width, height, nativeArray)
 
-    def Resize(self, width: int, height: int) -> 'Bitmap':
+    def Resize(self, width: int, height: int) -> 'MemoryBMP':
         """
         Resize a copy of the original to size (width, height), the original Bitmap is not modified.
         width: int.
         height: int.
-        Return a new `Bitmap`, the original is not modified.
+        Return a new `MemoryBMP`, the original is not modified.
         """
-        bitmap = Bitmap()
-        bitmap._bitmap = _DllClient.instance().dll.BitmapResizedFrom(ctypes.c_size_t(self._bitmap), width, height)
-        bitmap._getsize()
-        return bitmap
+        cbmp = _DllClient.instance().dll.BitmapResize(ctypes.c_size_t(self._bitmap), width, height)
+        return Bitmap._FromGdiplusBitmap(cbmp)
 
-    def Rotate(self, angle: int, backgroundColor: int = 0xFFFFFFFF) -> 'Bitmap':
+    def Rotate(self, angle: float, backgroundColor: int = 0xFFFFFFFF) -> 'MemoryBMP':
         """
-        Rotate a copy of the original with angle, the original Bitmap is not modified.
-        angle: int.
-        backgroundColor: int, ARGB color format.
-        Return a new `Bitmap`, the original is not modified.
+        Rotate angle degrees clockwise around the center point.
+        Return a copy of the original with angle, the original Bitmap is not modified.
+        angle: float, closewise.
+        backgroundColor: int, ARGB(0xAARRGGBB) color format.
+        Return a new `MemoryBMP`, the new Bitmap size may not be the same as the original.
         """
-        angle %= 360
-        if angle == 0:
-            return self.Copy()
-        elif angle == 90:
-            return self.RotateFlip(RotateFlipType.Rotate90FlipNone)
-        elif angle == 180:
-            return self.RotateFlip(RotateFlipType.Rotate180FlipNone)
-        elif angle == 270:
-            return self.RotateFlip(RotateFlipType.Rotate270FlipNone)
-        else:
-            bitmap = Bitmap()
-            bitmap._bitmap = _DllClient.instance().dll.BitmapRotatedFrom(ctypes.c_size_t(self._bitmap), angle, backgroundColor)
-            bitmap._getsize()
-            return bitmap
+        cbmp = _DllClient.instance().dll.BitmapRotate(ctypes.c_size_t(self._bitmap), ctypes.c_float(angle), backgroundColor)
+        return Bitmap._FromGdiplusBitmap(cbmp)
 
-    def RotateFlip(self, rotateFlip: int) -> 'Bitmap':
+    def RotateFlip(self, rotateFlip: int) -> 'MemoryBMP':
         """
         Rotate 90*n or Filp a copy of the original, the original Bitmap is not modified.
         rotateFlip: int, a value in class `RotateFlipType`.
-        Return a new `Bitmap`, the original is not modified.
+        Return a new `MemoryBMP`, the original is not modified.
         """
         bitmap = self.Copy()
-        _DllClient.instance().dll.BitmapRotateFlip(ctypes.c_size_t(bitmap._bitmap), rotateFlip)
-        bitmap._getsize()
+        gdiStatus = _DllClient.instance().dll.BitmapRotateFlip(ctypes.c_size_t(bitmap._bitmap), rotateFlip)
+        bitmap._GetSize()
         return bitmap
 
+    def RotateWithSameSize(self, dx: float, dy: float, angle: float, backgroundColor: int = 0xFFFFFFFF) -> 'MemoryBMP':
+        """
+        Rotate angle degrees clockwise around the point (dx, dy) from a copy, the original Bitmap is not modified.
+        angle: float, closewise.
+        backgroundColor: int, ARGB(0xAARRGGBB) color format.
+        Return a new `MemoryBMP`, the original is not modified.
+        """
+        cbmp = _DllClient.instance().dll.BitmapRotateWithSameSize(ctypes.c_size_t(self._bitmap),
+            ctypes.c_float(dx), ctypes.c_float(dy), ctypes.c_float(angle), backgroundColor)
+        return Bitmap._FromGdiplusBitmap(cbmp)
+
     def __str__(self) -> str:
-        return '{}(Width={}, Height={})'.format(self.__class__.__name__, self.Width, self.Height)
+        return '{}(Width={}, Height={})'.format(self.__class__.__name__, self._width, self._height)
 
     def __repr__(self) -> str:
-        return '<{}(Width={}, Height={}) at 0x{:x}>'.format(self.__class__.__name__, self.Width, self.Height, id(self))
+        return '<{}(Width={}, Height={}) at 0x{:X}>'.format(self.__class__.__name__, self._width, self._height, id(self))
+
+
+class MultiFrameBitmap(Bitmap):
+    def __init__(self, width: int = 0, height: int = 0):
+        super().__init__(width, height)
+        self._frameCount = 0
+        self._index = 0
+
+    def SelectActiveFrame(self, index: int) -> bool:
+        gdiStatus = _DllClient.instance().dll.MultiBitmapSelectActiveFrame(ctypes.c_size_t(self._bitmap), index)
+        return gdiStatus == 0
+
+    def GetFrameCount(self) -> int:
+        return self._frameCount
+
+    def __iter__(self):
+        self._index = 0
+        return self
+
+    def __next__(self) -> Bitmap:
+        if self._index < self._frameCount:
+            self.SelectActiveFrame(self._index)
+            self._GetSize()
+            self._index += 1
+            return self.Copy()
+        else:
+            raise StopIteration
+
+    def __str__(self) -> str:
+        return '{}(Width={}, Height={}, FrameCount={})'.format(self.__class__.__name__, self._width, self._height, self._frameCount)
+
+    def __repr__(self) -> str:
+        return '<{}(Width={}, Height={}, FrameCount={}) at 0x{:X}>'.format(self.__class__.__name__, self._width, self._height, self._frameCount, id(self))
+
+
+class MemoryBMP(Bitmap):
+    pass
+
+
+class BMP(Bitmap):
+    pass
+
+
+class JPEG(Bitmap):
+    pass
+
+
+class PNG(Bitmap):
+    pass
+
+
+class EMF(Bitmap):
+    pass
+
+
+class WMF(Bitmap):
+    pass
+
+
+class ICON(Bitmap):
+    pass
+
+
+class EXIF(Bitmap):
+    pass
+
+
+class TIFF(MultiFrameBitmap):
+    @staticmethod
+    def ToTiffFile(path: str, bitmaps: List['Bitmap']) -> bool:
+        '''
+        Save a list of bitmaps to a multi frame tiff file.
+        path: str, file path.
+        bitmaps: List[Bitmap].
+        '''
+        cbitmaps = (ctypes.c_size_t * len(bitmaps))()
+        for i, bmp in enumerate(bitmaps):
+            cbitmaps[i] = bmp._bitmap
+        gdiStatus = _DllClient.instance().dll.MultiBitmapToFile(cbitmaps, None, len(bitmaps),
+                                                                ctypes.c_wchar_p(path), "image/tiff")
+        return gdiStatus == 0
+
+
+class GIF(MultiFrameBitmap):
+    def __init__(self, width: int = 0, height: int = 0):
+        super().__init__(width, height)
+        self._frameDelay = ()
+
+    def _GetGifDealy(self):
+        if self._bitmap:
+            delayDataSize = _DllClient.instance().dll.MultiBitmapGetFrameDelaySize(ctypes.c_size_t(self._bitmap))
+            delayData = (ctypes.c_byte * delayDataSize)()
+            valueOffset = ctypes.c_int()
+            gdiStatus = _DllClient.instance().dll.MultiBitmapGetFrameDelay(ctypes.c_size_t(self._bitmap), delayData, delayDataSize, ctypes.byref(valueOffset))
+            if gdiStatus == 0:
+                valueOffset = valueOffset.value
+                # the uint of frame delay is 1/100 second
+                self._frameDelay = tuple(10*int.from_bytes(delayData[i:i+4], byteorder='little') for i in range(valueOffset, valueOffset+4*self._frameCount, 4))
+
+    def GetFrameDelay(self, index: int) -> int:
+        '''
+        return frame delay in milliseconds
+        '''
+        return self._frameDelay[index]
+
+    def GetFrameDelays(self) -> List[int]:
+        '''
+        return a list of frame delays in milliseconds
+        '''
+        return list(self._frameDelay)
+
+    @staticmethod
+    def ToGifFile(path: str, bitmaps: List[Bitmap], delays: List[int] = None) -> bool:
+        '''
+        Save a list of bitmaps to a multi frame gif file.
+        path: str, file path.
+        bitmaps: List[Bitmap].
+        delays: List[int], frame delay time in milliseconds.
+        Note: every frame delay must be > 10 ms.
+        '''
+        assert len(bitmaps) == len(delays)
+        blen = len(bitmaps)
+        cbitmaps = (ctypes.c_size_t * blen)()
+        cdelays = (ctypes.c_uint32 * blen)()
+        for i, bmp in enumerate(bitmaps):
+            cbitmaps[i] = bmp._bitmap
+            cdelays[i] = delays[i] // 10
+        gdiStatus = _DllClient.instance().dll.SaveGif(cbitmaps, cdelays, blen, ctypes.c_wchar_p(path))
+        return gdiStatus == 0
 
 
 _ClipboardLock = threading.Lock()
@@ -3851,9 +4167,8 @@ def GetClipboardBitmap() -> Optional[Bitmap]:
         if _OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(ClipboardFormat.CF_BITMAP):
                 hClipboardData = ctypes.windll.user32.GetClipboardData(ClipboardFormat.CF_BITMAP)
-                bitmap = Bitmap()
-                bitmap._bitmap = _DllClient.instance().dll.BitmapFromHBITMAP(ctypes.c_size_t(hClipboardData), 0, 0, 0, 0)
-                bitmap._getsize()
+                cbmp = _DllClient.instance().dll.BitmapFromHBITMAP(ctypes.c_size_t(hClipboardData), 0, 0, 0, 0)
+                bitmap = Bitmap._FromGdiplusBitmap(cbmp)
                 ctypes.windll.user32.CloseClipboard()
                 return bitmap
     return None
@@ -5542,6 +5857,13 @@ class TogglePattern():
         time.sleep(waitTime)
         return ret
 
+    def SetToggleState(self, toggleState: int, waitTime: float = OPERATION_WAIT_TIME) -> bool:
+        for i in range(6):
+            if self.ToggleState == toggleState:
+                return True
+            self.Toggle(waitTime)
+        return False
+
 
 class TransformPattern():
     def __init__(self, pattern=None):
@@ -5934,9 +6256,12 @@ class Control():
         self._supportedPatterns = {}
 
     def __str__(self) -> str:
-        rect = self.BoundingRectangle
         return 'ControlType: {0}    ClassName: {1}    AutomationId: {2}    Rect: {3}    Name: {4}    Handle: 0x{5:X}({5})'.format(
-            self.ControlTypeName, self.ClassName, self.AutomationId, rect, repr(self.Name), self.NativeWindowHandle)
+            self.ControlTypeName, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.NativeWindowHandle)
+
+    def __repr__(self) -> str:
+        return '<{0} ClassName={1!r} AutomationId={2} Rect={3} Name={4!r} Handle=0x{5:X}({5})>'.format(
+            self.__class__.__name__, self.ClassName, self.AutomationId, self.BoundingRectangle, self.Name, self.NativeWindowHandle)
 
     def __getitem__(self, pos: int) -> Optional['Control']:
         if pos == 1:
@@ -6614,7 +6939,7 @@ class Control():
                 else:
                     return False
         # find the element
-        if len(self.searchProperties) == 0:
+        if not self.searchProperties:
             raise LookupError("control's searchProperties must not be empty!")
         self._element = None
         startTime = ProcessTime()
@@ -7229,6 +7554,13 @@ class CheckBoxControl(Control):
         Return `TogglePattern` if it supports the pattern else None(Must support according to MSDN).
         """
         return self.GetPattern(PatternId.TogglePattern)
+
+    def SetChecked(self, checked: bool) -> bool:
+        '''Return True if set successfully'''
+        tp = self.GetTogglePattern()
+        if tp:
+            return tp.SetToggleState(ToggleState.On if checked else ToggleState.Off)
+        return False
 
 
 class ComboBoxControl(Control):

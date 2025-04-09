@@ -55,13 +55,15 @@ def main():
     cost = auto.ProcessTime() - start
     print('read {}x{} image by GetAllPixelColors cost {:.3f}s'.format(width, height, cost))
     bitmap.ToFile('image_red.png')
-    bitmap.ToFile('image_red.jpg')
 
-    subprocess.Popen('image_red.png', shell=True)
+    print('bitmap to bytearray, then write it to a file')
+    with open('image_red.jpg', 'wb') as fout:
+        ba = bitmap.ToBytes('jpg', quality=80)
+        fout.write(ba)
 
     root = auto.GetRootControl()
     bitmap = root.ToBitmap(0, 0, 400, 400)
-    print('save (0,0,400,400) of desktop to desk_part.png')
+    print('save {} (0,0,400,400) of desktop to desk_part.png'.format(bitmap))
     bitmap.ToFile('desk_part.png')
 
     width, height = 100, 100
@@ -71,8 +73,8 @@ def main():
         with auto.Bitmap(width, height) as subBitmap:
             subBitmap.SetPixelColorsOfRect(0, 0, width, height, nativeArray)
             subBitmap.ToFile('desk_part{}.png'.format(i))
-    print('save part of desk_part.png to desk_part3.png')
     with bitmap.Copy(300, 300, 100, 100) as subBitmap:
+        print('save part of desk_part.png to desk_part3.png, {} {}'.format(subBitmap, subBitmap.GetRawFormatStr()))
         subBitmap.ToFile('desk_part3.png')
     print('flip X of desk_part.png')
     with bitmap.RotateFlip(auto.RotateFlipType.RotateNoneFlipX) as bmpFlipX:
@@ -83,6 +85,9 @@ def main():
     print('rotate 90 of desk_part.png')
     with bitmap.Rotate(90) as bmpRotate90:
         bmpRotate90.ToFile('desk_rotate90.png')
+    print('rotate 180 of desk_part.png')
+    with bitmap.Rotate(180) as bmpRotate180:
+        bmpRotate180.ToFile('desk_rotate180.png')
     print('rotate 270 of desk_part.png')
     with bitmap.Rotate(270) as bmpRotate270:
         bmpRotate270.ToFile('desk_rotate270.png')

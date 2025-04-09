@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 """
-Tested for Wireshark 3.0.
+Tested for Wireshark 3.x, 4.x.
 Just for fun.
 Wireshark can export packets to csv or txt. This is the fastest way.
 """
@@ -16,9 +16,12 @@ import uiautomation as auto
 def walk():
     wiresharkWindow = None
     for win in auto.GetRootControl().GetChildren():
+        # Wireshark 4.x
         if win.ClassName == 'WiresharkMainWindow' and win.AutomationId == 'WiresharkMainWindow':
             wiresharkWindow = win
             break
+
+        # Wireshark 3.x
         if win.ClassName == 'MainWindow' and win.AutomationId == 'MainWindow':
             if win.ToolBarControl(AutomationId='MainWindow.displayFilterToolBar').Exists(0, 0):
                 wiresharkWindow = win
