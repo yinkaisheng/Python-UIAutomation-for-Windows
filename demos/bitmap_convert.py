@@ -39,7 +39,7 @@ def bitmapToCVImageTest(bitmap: auto.Bitmap):
     print('save jpg by cv2')
     cv2.imwrite('cv2.jpg', bgrImage, [cv2.IMWRITE_JPEG_QUALITY, 80])
 
-def main():
+def BitmapToPILAndCVImage():
     root = auto.GetRootControl()
     bitmap = root.ToBitmap(0, 0, 400, 400)
     print('save {} (0,0,400,400) of desktop to desk_part.png'.format(bitmap))
@@ -47,5 +47,20 @@ def main():
     bitmapToPilImageTest(bitmap)
     bitmapToCVImageTest(bitmap)
 
+def BitmapFromPILAndCVImage():
+    from PIL import Image
+    import numpy as np
+    import cv2
+
+    imgName = 'pil.png'
+    pilImg = Image.open(imgName)
+    bitmap = auto.MemoryBMP(pilImg.width*2+10, pilImg.height)
+    bitmap.Paste(0, 0, auto.Bitmap.FromPILImage(pilImg))
+
+    ndArray = cv2.imread(imgName)
+    bitmap.Paste(pilImg.width+10, 0, auto.Bitmap.FromNDArray(ndArray))
+    bitmap.ToFile('bitmap_from_pil_cv2.png')
+
 if __name__ == '__main__':
-    main()
+    BitmapToPILAndCVImage()
+    BitmapFromPILAndCVImage()

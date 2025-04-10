@@ -3491,12 +3491,29 @@ class Bitmap:
         return bitmap
 
     @staticmethod
-    def FromBytes(data: bytes) -> Optional['Bitmap']:
+    def FromBytes(data: Union[bytes, bytearray], format: str = None, width: int = None, height: int = None) -> Optional['Bitmap']:
         """
-        Create a `Bitmap` from a bytes object.
-        data: bytes.
+        Create a `Bitmap` instance from raw BGRA pixel data or image file byte content.
+        data: bytes or bytearray.
+        format (str, optional): Specifies the format of the input data.
+                - Use 'BGRA' for raw pixel data, byte order is B G R A.
+                - Use None for standard image file data (e.g., PNG, JPEG).
+        width (int, optional): The width of the image. Required only when `format` is 'BGRA'.
+        height (int, optional): The height of the image. Required only when `format` is 'BGRA'.
         Return `Bitmap`'s subclass instance or None.
         """
+        if format is not None:
+            assert format == 'bgra' or format == 'BGRA'
+            assert len(data) == width * height * 4
+            if isinstance(data, bytearray):
+                pixelBytes = data
+            else:
+                pixelBytes = bytearray(data)
+            pixelArrayType = (ctypes.c_uint32 * (len(pixelBytes) // 4))
+            pixelArray = pixelArrayType.from_buffer(pixelBytes)
+            bitmap = Bitmap(width, height)
+            bitmap.SetAllPixelColors(pixelArray)
+            return bitmap
         cbmp = _DllClient.instance().dll.BitmapFromBytes(ctypes.c_char_p(data), len(data), 0)
         return Bitmap._FromGdiplusBitmap(cbmp)
 
@@ -3509,6 +3526,57 @@ class Bitmap:
         """
         cbmp = _DllClient.instance().dll.BitmapFromFile(ctypes.c_wchar_p(filePath))
         return Bitmap._FromGdiplusBitmap(cbmp)
+
+    @staticmethod
+    def FromNDArray(image: 'numpy.ndarray') -> 'MemoryBMP':
+        """
+        Create a `MemoryBMP` from a numpy.ndarray(BGR or BGRA).
+        """
+        import numpy as np
+        assert len(image.shape) == 3 and (image.shape[2] == 3 or image.shape[2] == 4)
+        height, width = image.shape[:2]
+        if image.shape[2] == 3:
+            bgraArray = np.zeros((height, width, 4), dtype=np.uint8)
+            bgraArray[:, :, :3] = image[:, :, :]
+            bgraArray[:, :, 3] = 0xFF
+        else: # 4
+            bgraArray = image
+        pixelBytes = bytearray(bgraArray.tobytes())
+        pixelArrayType = (ctypes.c_uint32 * (len(pixelBytes) // 4))
+        pixelArray = pixelArrayType.from_buffer(pixelBytes)
+        bitmap = MemoryBMP(width, height)
+        bitmap.SetAllPixelColors(pixelArray)
+        return bitmap
+
+    @staticmethod
+    def FromPILImage(image: 'PIL.Image.Image') -> 'MemoryBMP':
+        """
+        Create a `MemoryBMP` from a PIL Image.
+        """
+        assert image.mode == 'RGB' or image.mode == 'RGBA'
+        try:
+            import numpy as np
+            imgArray = np.array(image)
+            if image.mode == 'RGB':
+                imgArray = imgArray[:, :, ::-1]
+            else: # 'RGBA'
+                imgArray = imgArray[:, :, [2, 1, 0, 3]]
+            return Bitmap.FromNDArray(imgArray)
+        except:
+            if image.mode == 'RGB':
+                rgbaImg = image.convert('RGBA')
+                rgbaBytes = rgbaImg.tobytes()
+            else: # 'RGBA'
+                rgbaBytes = image.tobytes()
+            pixelBytes = bytearray(rgbaBytes)
+            for i in range(0, len(pixelBytes), 4):
+                pixel = pixelBytes[i:i+4]
+                pixelBytes[i:i+4] = pixel[2], pixel[1], pixel[0], pixel[3]
+            pixelArrayType = (ctypes.c_uint32 * (len(pixelBytes) // 4))
+            pixelArray = pixelArrayType.from_buffer(pixelBytes)
+            bitmap = MemoryBMP(image.width, image.height)
+            bitmap.SetAllPixelColors(pixelArray)
+            return bitmap
 
     def ToFile(self, savePath: str, *, quality: int = None) -> bool:
         """
@@ -3536,7 +3604,7 @@ class Bitmap:
         """
         Convert to a bytearray in the specified format.
         format: str, The desired output format. Supported formats include:
-            - 'BGRA': Raw pixel data without any file header.
+            - 'BGRA': Raw pixel data without any file header, byte order is B G R A.
             - 'bmp', 'jpg', 'jpeg', 'gif', 'tif', 'tiff', 'png':
               Standard image file formats with corresponding file headers.
         quality: int, 1-100, only used when format is jpg and jpeg.
