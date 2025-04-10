@@ -3387,10 +3387,10 @@ class Bitmap:
         return self._height
 
     @staticmethod
-    def FromHandle(hwnd: int, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0) -> Optional['MemoryBMP']:
+    def FromHandle(handle: int, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0) -> Optional['MemoryBMP']:
         """
         Create a `Bitmap` from a native window handle.
-        hwnd: int, the handle of a native window.
+        handle: int, the handle of a native window.
         left: int.
         top: int.
         right: int.
@@ -3399,7 +3399,7 @@ class Bitmap:
         Return `Bitmap` or None.
         """
         rect = ctypes.wintypes.RECT()
-        if ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+        if ctypes.windll.user32.GetWindowRect(ctypes.c_void_p(handle), ctypes.byref(rect)):
             root = GetRootControl()
             left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
             cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
