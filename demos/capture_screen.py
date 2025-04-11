@@ -43,7 +43,7 @@ def main(args):
         rects = auto.GetMonitorsRect()
         dot = args.path.rfind('.')
         for i, rect in enumerate(rects):
-            path = args.path[:dot] + '_' * i + args.path[dot:]
+            path = args.path[:dot] + '_screen' + str(i) + args.path[dot:]
             c.CaptureToImage(path, rect.left, rect.top, rect.width(), rect.height())
             auto.Logger.WriteLine('capture image: ' + path)
     auto.Logger.WriteLine('cost time: {:.3f} s'.format(time.time() - start))
