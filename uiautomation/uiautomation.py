@@ -3458,7 +3458,7 @@ class Bitmap:
         if not cbmp:
             return None
         formatType = ctypes.c_uint()
-        _DllClient.instance().dll.BitmapGetRawFormat(cbmp, ctypes.byref(formatType))
+        _DllClient.instance().dll.BitmapGetRawFormat(ctypes.c_size_t(cbmp), ctypes.byref(formatType))
         if formatType.value == RawFormat.JPEG:
             bitmap = JPEG()
         elif formatType.value == RawFormat.PNG:
