@@ -2320,7 +2320,7 @@ def ShowWindow(handle: int, cmdShow: int) -> bool:
     cmdShow: int, a value in clas `SW`.
     Return bool, True if succeed otherwise False.
     """
-    return ctypes.windll.user32.ShowWindow(ctypes.c_void_p(handle), ctypes.c_int(cmdShow))
+    return bool(ctypes.windll.user32.ShowWindow(ctypes.c_void_p(handle), ctypes.c_int(cmdShow)))
 
 
 def MoveWindow(handle: int, x: int, y: int, width: int, height: int, repaint: int = 1) -> bool:
@@ -2349,7 +2349,7 @@ def SetWindowPos(handle: int, hWndInsertAfter: int, x: int, y: int, width: int, 
     flags: int, values whose name starts with 'SWP' in class `SWP`.
     Return bool, True if succeed otherwise False.
     """
-    return ctypes.windll.user32.SetWindowPos(ctypes.c_void_p(handle), ctypes.c_void_p(hWndInsertAfter), ctypes.c_int(x), ctypes.c_int(y), ctypes.c_int(width), ctypes.c_int(height), ctypes.c_uint(flags))
+    return bool(ctypes.windll.user32.SetWindowPos(ctypes.c_void_p(handle), ctypes.c_void_p(hWndInsertAfter), ctypes.c_int(x), ctypes.c_int(y), ctypes.c_int(width), ctypes.c_int(height), ctypes.c_uint(flags)))
 
 
 def SetWindowTopmost(handle: int, isTopmost: bool) -> bool:
@@ -2359,7 +2359,7 @@ def SetWindowTopmost(handle: int, isTopmost: bool) -> bool:
     Return bool, True if succeed otherwise False.
     """
     topValue = SWP.HWND_Topmost if isTopmost else SWP.HWND_NoTopmost
-    return bool(SetWindowPos(handle, topValue, 0, 0, 0, 0, SWP.SWP_NoSize | SWP.SWP_NoMove))
+    return SetWindowPos(handle, topValue, 0, 0, 0, 0, SWP.SWP_NoSize | SWP.SWP_NoMove)
 
 
 def GetWindowText(handle: int) -> str:
@@ -4988,7 +4988,7 @@ class RangeValuePattern():
         Return bool, indicates whether the value of the element can be changed.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationrangevaluepattern-get_currentisreadonly
         """
-        return self.pattern.CurrentIsReadOnly
+        return bool(self.pattern.CurrentIsReadOnly)
 
     @property
     def LargeChange(self) -> float:
@@ -6095,7 +6095,7 @@ class ValuePattern():
         Return bool, indicates whether the value of the element is read-only.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationvaluepattern-get_currentisreadonly
         """
-        return self.pattern.CurrentIsReadOnly
+        return bool(self.pattern.CurrentIsReadOnly)
 
     @property
     def Value(self) -> str:
@@ -6641,7 +6641,7 @@ class Control():
         Call IUIAutomationElement::get_CurrentIsEnabled.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisenabled
         """
-        return self.Element.CurrentIsEnabled
+        return bool(self.Element.CurrentIsEnabled)
 
     @property
     def IsKeyboardFocusable(self) -> bool:
@@ -6650,7 +6650,7 @@ class Control():
         Call IUIAutomationElement::get_CurrentIsKeyboardFocusable.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentiskeyboardfocusable
         """
-        return self.Element.CurrentIsKeyboardFocusable
+        return bool(self.Element.CurrentIsKeyboardFocusable)
 
     @property
     def IsOffscreen(self) -> bool:
@@ -6659,7 +6659,7 @@ class Control():
         Call IUIAutomationElement::get_CurrentIsOffscreen.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisoffscreen
         """
-        return self.Element.CurrentIsOffscreen
+        return bool(self.Element.CurrentIsOffscreen)
 
     @property
     def IsPassword(self) -> bool:
@@ -6668,7 +6668,7 @@ class Control():
         Call IUIAutomationElement::get_CurrentIsPassword.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentispassword
         """
-        return self.Element.CurrentIsPassword
+        return bool(self.Element.CurrentIsPassword)
 
     @property
     def IsRequiredForForm(self) -> bool:
@@ -6677,7 +6677,7 @@ class Control():
         Call IUIAutomationElement::get_CurrentIsRequiredForForm.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-get_currentisrequiredforform
         """
-        return self.Element.CurrentIsRequiredForForm
+        return bool(self.Element.CurrentIsRequiredForForm)
 
     @property
     def ItemStatus(self) -> str:
