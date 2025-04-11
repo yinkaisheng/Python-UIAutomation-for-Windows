@@ -3668,7 +3668,7 @@ class Bitmap:
         """
         if self._format == RawFormat.Undefined:
             formatType = ctypes.c_uint()
-            _DllClient.instance().dll.BitmapGetRawFormat(self._bitmap, ctypes.byref(formatType))
+            _DllClient.instance().dll.BitmapGetRawFormat(ctypes.c_size_t(self._bitmap), ctypes.byref(formatType))
             self._format = formatType.value
         return self._format
 
