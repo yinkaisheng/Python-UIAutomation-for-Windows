@@ -10328,7 +10328,11 @@ def GetForegroundControl() -> Control:
 
 def GetConsoleWindow() -> Optional[WindowControl]:
     """Return `WindowControl` or None, a console window that runs python."""
-    return ControlFromHandle(ctypes.windll.kernel32.GetConsoleWindow())
+    consoleWindow = ControlFromHandle(ctypes.windll.kernel32.GetConsoleWindow())
+    if consoleWindow and consoleWindow.ClassName == 'PseudoConsoleWindow':
+        # Windows Terminal
+        consoleWindow = consoleWindow.GetParentControl()
+    return consoleWindow
 
 
 def ControlFromPoint(x: int, y: int) -> Optional[Control]:
