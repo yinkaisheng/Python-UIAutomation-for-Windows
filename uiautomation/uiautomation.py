@@ -3387,7 +3387,7 @@ class Bitmap:
         return self._height
 
     @staticmethod
-    def FromHandle(handle: int, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0) -> Optional['MemoryBMP']:
+    def FromHandle(handle: int, left: int, top: int, right: int, bottom: int) -> Optional['MemoryBMP']:
         """
         Create a `Bitmap` from a native window handle.
         handle: int, the handle of a native window.
@@ -6290,24 +6290,36 @@ def CreatePattern(patternId: int, pattern: ctypes.POINTER(comtypes.IUnknown)):
 class Control():
     ValidKeys = set(['ControlType', 'ClassName', 'AutomationId', 'Name', 'SubName', 'RegexName', 'Depth', 'Compare'])
 
-    def __init__(self, searchFromControl: Optional['Control'] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
+    def __init__(self, searchFromControl: Optional['Control'] = None, searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None,
+                 ControlType: Optional[int] = None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
         """
         searchFromControl: `Control` or its subclass, if it is None, search from root control(Desktop).
         searchDepth: int, max search depth from searchFromControl.
         foundIndex: int, starts with 1, >= 1.
         searchInterval: float, wait searchInterval after every search in self.Refind and self.Exists, the global timeout is TIME_OUT_SECOND.
         element: `ctypes.POINTER(IUIAutomationElement)`, internal use only.
-        searchProperties: defines how to search, the following keys can be used:
-                            ControlType: int, a value in class `ControlType`.
-                            ClassName: str.
-                            AutomationId: str.
-                            Name: str.
-                            SubName: str, a part str in Name.
-                            RegexName: str, supports regex using re.match.
-                                You can only use one of Name, SubName, RegexName in searchProperties.
-                            Depth: int, only search controls in relative depth from searchFromControl, ignore controls in depth(0~Depth-1),
-                                if set, searchDepth will be set to Depth too.
-                            Compare: Callable[[Control, int], bool], custom compare function(control: Control, depth: int) -> bool.
+
+        ControlType: int, a value in class `ControlType`.
+        Name: str.
+        SubName: str, a part str in Name.
+        RegexName: str, supports regex using re.match.
+            You can only use one of Name, SubName, RegexName.
+        ClassName: str.
+        AutomationId: str.
+        Depth: int, only search controls in relative depth from searchFromControl, ignore controls in depth(0~Depth-1),
+            if set, searchDepth will be set to Depth too.
+        Compare: Callable[[Control, int], bool], custom compare function(control: Control, depth: int) -> bool.
+
+        searchProperties, other properties specified for the control, only for debug log.
 
         `Control` wraps IUIAutomationElement.
         Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationelement
@@ -6315,12 +6327,29 @@ class Control():
         self._element = element
         self._elementDirectAssign = True if element else False
         self.searchFromControl = searchFromControl
-        self.searchDepth = searchProperties.get('Depth', searchDepth)
+        self.searchDepth = Depth or searchDepth
         self.searchInterval = searchInterval
         self.foundIndex = foundIndex
         self.searchProperties = searchProperties
-        regName = searchProperties.get('RegexName', '')
-        self.regexName = re.compile(regName) if regName else None
+        if Name is not None:
+            searchProperties['Name'] = Name
+        if SubName is not None:
+            searchProperties['SubName'] = SubName
+        if RegexName is not None:
+            searchProperties['RegexName'] = RegexName
+            self.regexName = re.compile(RegexName)
+        else:
+            self.regexName = None
+        if ClassName is not None:
+            searchProperties['ClassName'] = ClassName
+        if AutomationId is not None:
+            searchProperties['AutomationId'] = AutomationId
+        if ControlType is not None:
+            searchProperties['ControlType'] = ControlType
+        if Depth is not None:
+            searchProperties['Depth'] = Depth
+        if Compare is not None:
+            searchProperties['Compare'] = Compare
         self._supportedPatterns = {}
 
     def __str__(self) -> str:
@@ -7428,140 +7457,877 @@ class Control():
                     return ControlFromHandle(topHandle)
         return None
 
-    def Control(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'Control':
-        return Control(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def Control(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                Name: Optional[str] = None,
+                SubName: Optional[str] = None,
+                RegexName: Optional[str] = None,
+                ClassName: Optional[str] = None,
+                AutomationId: Optional[str] = None,
+                Depth: Optional[int] = None,
+                Compare: Optional[Callable[[TreeNode], bool]] = None,
+                **searchProperties) -> 'Control':
+        return Control(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                       foundIndex=foundIndex, element=element,
+                       Name=Name,
+                       SubName=SubName,
+                       RegexName=RegexName,
+                       ClassName=ClassName,
+                       AutomationId=AutomationId,
+                       Depth=Depth,
+                       Compare=Compare,
+                       **searchProperties)
 
-    def ButtonControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ButtonControl':
-        return ButtonControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ButtonControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                      Name: Optional[str] = None,
+                      SubName: Optional[str] = None,
+                      RegexName: Optional[str] = None,
+                      ClassName: Optional[str] = None,
+                      AutomationId: Optional[str] = None,
+                      Depth: Optional[int] = None,
+                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      **searchProperties) -> 'ButtonControl':
+        return ButtonControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                             foundIndex=foundIndex, element=element,
+                             Name=Name,
+                             SubName=SubName,
+                             RegexName=RegexName,
+                             ClassName=ClassName,
+                             AutomationId=AutomationId,
+                             Depth=Depth,
+                             Compare=Compare,
+                             **searchProperties)
 
-    def CalendarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'CalendarControl':
-        return CalendarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def CalendarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'CalendarControl':
+        return CalendarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                               foundIndex=foundIndex, element=element,
+                               Name=Name,
+                               SubName=SubName,
+                               RegexName=RegexName,
+                               ClassName=ClassName,
+                               AutomationId=AutomationId,
+                               Depth=Depth,
+                               Compare=Compare,
+                               **searchProperties)
 
-    def CheckBoxControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'CheckBoxControl':
-        return CheckBoxControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def CheckBoxControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'CheckBoxControl':
+        return CheckBoxControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                               foundIndex=foundIndex, element=element,
+                               Name=Name,
+                               SubName=SubName,
+                               RegexName=RegexName,
+                               ClassName=ClassName,
+                               AutomationId=AutomationId,
+                               Depth=Depth,
+                               Compare=Compare,
+                               **searchProperties)
 
-    def ComboBoxControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ComboBoxControl':
-        return ComboBoxControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ComboBoxControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'ComboBoxControl':
+        return ComboBoxControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                               foundIndex=foundIndex, element=element,
+                               Name=Name,
+                               SubName=SubName,
+                               RegexName=RegexName,
+                               ClassName=ClassName,
+                               AutomationId=AutomationId,
+                               Depth=Depth,
+                               Compare=Compare,
+                               **searchProperties)
 
-    def CustomControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'CustomControl':
-        return CustomControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def CustomControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                      Name: Optional[str] = None,
+                      SubName: Optional[str] = None,
+                      RegexName: Optional[str] = None,
+                      ClassName: Optional[str] = None,
+                      AutomationId: Optional[str] = None,
+                      Depth: Optional[int] = None,
+                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      **searchProperties) -> 'CustomControl':
+        return CustomControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                             foundIndex=foundIndex, element=element,
+                             Name=Name,
+                             SubName=SubName,
+                             RegexName=RegexName,
+                             ClassName=ClassName,
+                             AutomationId=AutomationId,
+                             Depth=Depth,
+                             Compare=Compare,
+                             **searchProperties)
 
-    def DataGridControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'DataGridControl':
-        return DataGridControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def DataGridControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'DataGridControl':
+        return DataGridControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                               foundIndex=foundIndex, element=element,
+                               Name=Name,
+                               SubName=SubName,
+                               RegexName=RegexName,
+                               ClassName=ClassName,
+                               AutomationId=AutomationId,
+                               Depth=Depth,
+                               Compare=Compare,
+                               **searchProperties)
 
-    def DataItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'DataItemControl':
-        return DataItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def DataItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'DataItemControl':
+        return DataItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                               foundIndex=foundIndex, element=element,
+                               Name=Name,
+                               SubName=SubName,
+                               RegexName=RegexName,
+                               ClassName=ClassName,
+                               AutomationId=AutomationId,
+                               Depth=Depth,
+                               Compare=Compare,
+                               **searchProperties)
 
-    def DocumentControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'DocumentControl':
-        return DocumentControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def DocumentControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'DocumentControl':
+        return DocumentControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                               foundIndex=foundIndex, element=element,
+                               Name=Name,
+                               SubName=SubName,
+                               RegexName=RegexName,
+                               ClassName=ClassName,
+                               AutomationId=AutomationId,
+                               Depth=Depth,
+                               Compare=Compare,
+                               **searchProperties)
 
-    def EditControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'EditControl':
-        return EditControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def EditControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                    Name: Optional[str] = None,
+                    SubName: Optional[str] = None,
+                    RegexName: Optional[str] = None,
+                    ClassName: Optional[str] = None,
+                    AutomationId: Optional[str] = None,
+                    Depth: Optional[int] = None,
+                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    **searchProperties) -> 'EditControl':
+        return EditControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                           oundIndex=foundIndex, element=element,
+                           Name=Name,
+                           SubName=SubName,
+                           RegexName=RegexName,
+                           ClassName=ClassName,
+                           AutomationId=AutomationId,
+                           Depth=Depth,
+                           Compare=Compare,
+                           **searchProperties)
 
-    def GroupControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'GroupControl':
-        return GroupControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def GroupControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                     Name: Optional[str] = None,
+                     SubName: Optional[str] = None,
+                     RegexName: Optional[str] = None,
+                     ClassName: Optional[str] = None,
+                     AutomationId: Optional[str] = None,
+                     Depth: Optional[int] = None,
+                     Compare: Optional[Callable[[TreeNode], bool]] = None,
+                     **searchProperties) -> 'GroupControl':
+        return GroupControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                            foundIndex=foundIndex, element=element,
+                            Name=Name,
+                            SubName=SubName,
+                            RegexName=RegexName,
+                            ClassName=ClassName,
+                            AutomationId=AutomationId,
+                            Depth=Depth,
+                            Compare=Compare,
+                            **searchProperties)
 
-    def HeaderControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'HeaderControl':
-        return HeaderControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def HeaderControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                      Name: Optional[str] = None,
+                      SubName: Optional[str] = None,
+                      RegexName: Optional[str] = None,
+                      ClassName: Optional[str] = None,
+                      AutomationId: Optional[str] = None,
+                      Depth: Optional[int] = None,
+                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      **searchProperties) -> 'HeaderControl':
+        return HeaderControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                             foundIndex=foundIndex, element=element,
+                             Name=Name,
+                             SubName=SubName,
+                             RegexName=RegexName,
+                             ClassName=ClassName,
+                             AutomationId=AutomationId,
+                             Depth=Depth,
+                             Compare=Compare,
+                             **searchProperties)
 
-    def HeaderItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'HeaderItemControl':
-        return HeaderItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def HeaderItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                          Name: Optional[str] = None,
+                          SubName: Optional[str] = None,
+                          RegexName: Optional[str] = None,
+                          ClassName: Optional[str] = None,
+                          AutomationId: Optional[str] = None,
+                          Depth: Optional[int] = None,
+                          Compare: Optional[Callable[[TreeNode], bool]] = None,
+                          **searchProperties) -> 'HeaderItemControl':
+        return HeaderItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                                 foundIndex=foundIndex, element=element,
+                                 Name=Name,
+                                 SubName=SubName,
+                                 RegexName=RegexName,
+                                 ClassName=ClassName,
+                                 AutomationId=AutomationId,
+                                 Depth=Depth,
+                                 Compare=Compare,
+                                 **searchProperties)
 
-    def HyperlinkControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'HyperlinkControl':
-        return HyperlinkControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def HyperlinkControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                         Name: Optional[str] = None,
+                         SubName: Optional[str] = None,
+                         RegexName: Optional[str] = None,
+                         ClassName: Optional[str] = None,
+                         AutomationId: Optional[str] = None,
+                         Depth: Optional[int] = None,
+                         Compare: Optional[Callable[[TreeNode], bool]] = None,
+                         **searchProperties) -> 'HyperlinkControl':
+        return HyperlinkControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                                foundIndex=foundIndex, element=element,
+                                Name=Name,
+                                SubName=SubName,
+                                RegexName=RegexName,
+                                ClassName=ClassName,
+                                AutomationId=AutomationId,
+                                Depth=Depth,
+                                Compare=Compare,
+                                **searchProperties)
 
-    def ImageControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ImageControl':
-        return ImageControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ImageControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                     Name: Optional[str] = None,
+                     SubName: Optional[str] = None,
+                     RegexName: Optional[str] = None,
+                     ClassName: Optional[str] = None,
+                     AutomationId: Optional[str] = None,
+                     Depth: Optional[int] = None,
+                     Compare: Optional[Callable[[TreeNode], bool]] = None,
+                     **searchProperties) -> 'ImageControl':
+        return ImageControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                            foundIndex=foundIndex, element=element,
+                            Name=Name,
+                            SubName=SubName,
+                            RegexName=RegexName,
+                            ClassName=ClassName,
+                            AutomationId=AutomationId,
+                            Depth=Depth,
+                            Compare=Compare,
+                            **searchProperties)
 
-    def ListControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ListControl':
-        return ListControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ListControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                    Name: Optional[str] = None,
+                    SubName: Optional[str] = None,
+                    RegexName: Optional[str] = None,
+                    ClassName: Optional[str] = None,
+                    AutomationId: Optional[str] = None,
+                    Depth: Optional[int] = None,
+                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    **searchProperties) -> 'ListControl':
+        return ListControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                           foundIndex=foundIndex, element=element,
+                           Name=Name,
+                           SubName=SubName,
+                           RegexName=RegexName,
+                           ClassName=ClassName,
+                           AutomationId=AutomationId,
+                           Depth=Depth,
+                           Compare=Compare,
+                           **searchProperties)
 
-    def ListItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ListItemControl':
-        return ListItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ListItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'ListItemControl':
+        return ListItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                               foundIndex=foundIndex, element=element,
+                               Name=Name,
+                               SubName=SubName,
+                               RegexName=RegexName,
+                               ClassName=ClassName,
+                               AutomationId=AutomationId,
+                               Depth=Depth,
+                               Compare=Compare,
+                               **searchProperties)
 
-    def MenuControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'MenuControl':
-        return MenuControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def MenuControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                    Name: Optional[str] = None,
+                    SubName: Optional[str] = None,
+                    RegexName: Optional[str] = None,
+                    ClassName: Optional[str] = None,
+                    AutomationId: Optional[str] = None,
+                    Depth: Optional[int] = None,
+                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    **searchProperties) -> 'MenuControl':
+        return MenuControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                           foundIndex=foundIndex, element=element,
+                           Name=Name,
+                           SubName=SubName,
+                           RegexName=RegexName,
+                           ClassName=ClassName,
+                           AutomationId=AutomationId,
+                           Depth=Depth,
+                           Compare=Compare,
+                           **searchProperties)
 
-    def MenuBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'MenuBarControl':
-        return MenuBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def MenuBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                       Name: Optional[str] = None,
+                       SubName: Optional[str] = None,
+                       RegexName: Optional[str] = None,
+                       ClassName: Optional[str] = None,
+                       AutomationId: Optional[str] = None,
+                       Depth: Optional[int] = None,
+                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       **searchProperties) -> 'MenuBarControl':
+        return MenuBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                              foundIndex=foundIndex, element=element,
+                              Name=Name,
+                              SubName=SubName,
+                              RegexName=RegexName,
+                              ClassName=ClassName,
+                              AutomationId=AutomationId,
+                              Depth=Depth,
+                              Compare=Compare,
+                              **searchProperties)
 
-    def MenuItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'MenuItemControl':
-        return MenuItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def MenuItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'MenuItemControl':
+        return MenuItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                              foundIndex=foundIndex, element=element,
+                              Name=Name,
+                              SubName=SubName,
+                              RegexName=RegexName,
+                              ClassName=ClassName,
+                              AutomationId=AutomationId,
+                              Depth=Depth,
+                              Compare=Compare,
+                              **searchProperties)
 
-    def PaneControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'PaneControl':
-        return PaneControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def PaneControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                    Name: Optional[str] = None,
+                    SubName: Optional[str] = None,
+                    RegexName: Optional[str] = None,
+                    ClassName: Optional[str] = None,
+                    AutomationId: Optional[str] = None,
+                    Depth: Optional[int] = None,
+                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    **searchProperties) -> 'PaneControl':
+        return PaneControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                           foundIndex=foundIndex, element=element,
+                           Name=Name,
+                           SubName=SubName,
+                           RegexName=RegexName,
+                           ClassName=ClassName,
+                           AutomationId=AutomationId,
+                           Depth=Depth,
+                           Compare=Compare,
+                           **searchProperties)
 
-    def ProgressBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ProgressBarControl':
-        return ProgressBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ProgressBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                           Name: Optional[str] = None,
+                           SubName: Optional[str] = None,
+                           RegexName: Optional[str] = None,
+                           ClassName: Optional[str] = None,
+                           AutomationId: Optional[str] = None,
+                           Depth: Optional[int] = None,
+                           Compare: Optional[Callable[[TreeNode], bool]] = None,
+                           **searchProperties) -> 'ProgressBarControl':
+        return ProgressBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                                  foundIndex=foundIndex, element=element,
+                                  Name=Name,
+                                  SubName=SubName,
+                                  RegexName=RegexName,
+                                  ClassName=ClassName,
+                                  AutomationId=AutomationId,
+                                  Depth=Depth,
+                                  Compare=Compare,
+                                  **searchProperties)
 
-    def RadioButtonControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'RadioButtonControl':
-        return RadioButtonControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def RadioButtonControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                           Name: Optional[str] = None,
+                           SubName: Optional[str] = None,
+                           RegexName: Optional[str] = None,
+                           ClassName: Optional[str] = None,
+                           AutomationId: Optional[str] = None,
+                           Depth: Optional[int] = None,
+                           Compare: Optional[Callable[[TreeNode], bool]] = None,
+                           **searchProperties) -> 'RadioButtonControl':
+        return RadioButtonControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                                  foundIndex=foundIndex, element=element,
+                                  Name=Name,
+                                  SubName=SubName,
+                                  RegexName=RegexName,
+                                  ClassName=ClassName,
+                                  AutomationId=AutomationId,
+                                  Depth=Depth,
+                                  Compare=Compare,
+                                  **searchProperties)
 
-    def ScrollBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ScrollBarControl':
-        return ScrollBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ScrollBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'ScrollBarControl':
+        return ScrollBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                                foundIndex=foundIndex, element=element,
+                                Name=Name,
+                                SubName=SubName,
+                                RegexName=RegexName,
+                                ClassName=ClassName,
+                                AutomationId=AutomationId,
+                                Depth=Depth,
+                                Compare=Compare,
+                                **searchProperties)
 
-    def SemanticZoomControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SemanticZoomControl':
-        return SemanticZoomControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SemanticZoomControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                            Name: Optional[str] = None,
+                            SubName: Optional[str] = None,
+                            RegexName: Optional[str] = None,
+                            ClassName: Optional[str] = None,
+                            AutomationId: Optional[str] = None,
+                            Depth: Optional[int] = None,
+                            Compare: Optional[Callable[[TreeNode], bool]] = None,
+                            **searchProperties) -> 'SemanticZoomControl':
+        return SemanticZoomControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                                   foundIndex=foundIndex, element=element,
+                                   Name=Name,
+                                   SubName=SubName,
+                                   RegexName=RegexName,
+                                   ClassName=ClassName,
+                                   AutomationId=AutomationId,
+                                   Depth=Depth,
+                                   Compare=Compare,
+                                   **searchProperties)
 
-    def SeparatorControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SeparatorControl':
-        return SeparatorControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SeparatorControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'SeparatorControl':
+        return SeparatorControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                                foundIndex=foundIndex, element=element,
+                                Name=Name,
+                                SubName=SubName,
+                                RegexName=RegexName,
+                                ClassName=ClassName,
+                                AutomationId=AutomationId,
+                                Depth=Depth,
+                                Compare=Compare,
+                                **searchProperties)
 
-    def SliderControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SliderControl':
-        return SliderControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SliderControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                      Name: Optional[str] = None,
+                      SubName: Optional[str] = None,
+                      RegexName: Optional[str] = None,
+                      ClassName: Optional[str] = None,
+                      AutomationId: Optional[str] = None,
+                      Depth: Optional[int] = None,
+                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      **searchProperties) -> 'SliderControl':
+        return SliderControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                             foundIndex=foundIndex, element=element,
+                             Name=Name,
+                             SubName=SubName,
+                             RegexName=RegexName,
+                             ClassName=ClassName,
+                             AutomationId=AutomationId,
+                             Depth=Depth,
+                             Compare=Compare,
+                             **searchProperties)
 
-    def SpinnerControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SpinnerControl':
-        return SpinnerControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SpinnerControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                       Name: Optional[str] = None,
+                       SubName: Optional[str] = None,
+                       RegexName: Optional[str] = None,
+                       ClassName: Optional[str] = None,
+                       AutomationId: Optional[str] = None,
+                       Depth: Optional[int] = None,
+                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       **searchProperties) -> 'SpinnerControl':
+        return SpinnerControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                              foundIndex=foundIndex, element=element,
+                              Name=Name,
+                              SubName=SubName,
+                              RegexName=RegexName,
+                              ClassName=ClassName,
+                              AutomationId=AutomationId,
+                              Depth=Depth,
+                              Compare=Compare,
+                              **searchProperties)
 
-    def SplitButtonControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'SplitButtonControl':
-        return SplitButtonControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def SplitButtonControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                           Name: Optional[str] = None,
+                           SubName: Optional[str] = None,
+                           RegexName: Optional[str] = None,
+                           ClassName: Optional[str] = None,
+                           AutomationId: Optional[str] = None,
+                           Depth: Optional[int] = None,
+                           Compare: Optional[Callable[[TreeNode], bool]] = None,
+                           **searchProperties) -> 'SplitButtonControl':
+        return SplitButtonControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                                  foundIndex=foundIndex, element=element,
+                                  Name=Name,
+                                  SubName=SubName,
+                                  RegexName=RegexName,
+                                  ClassName=ClassName,
+                                  AutomationId=AutomationId,
+                                  Depth=Depth,
+                                  Compare=Compare,
+                                  **searchProperties)
 
-    def StatusBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'StatusBarControl':
-        return StatusBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def StatusBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                         Name: Optional[str] = None,
+                         SubName: Optional[str] = None,
+                         RegexName: Optional[str] = None,
+                         ClassName: Optional[str] = None,
+                         AutomationId: Optional[str] = None,
+                         Depth: Optional[int] = None,
+                         Compare: Optional[Callable[[TreeNode], bool]] = None,
+                         **searchProperties) -> 'StatusBarControl':
+        return StatusBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                                foundIndex=foundIndex, element=element,
+                                Name=Name,
+                                SubName=SubName,
+                                RegexName=RegexName,
+                                ClassName=ClassName,
+                                AutomationId=AutomationId,
+                                Depth=Depth,
+                                Compare=Compare,
+                                **searchProperties)
 
-    def TabControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TabControl':
-        return TabControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TabControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                   Name: Optional[str] = None,
+                   SubName: Optional[str] = None,
+                   RegexName: Optional[str] = None,
+                   ClassName: Optional[str] = None,
+                   AutomationId: Optional[str] = None,
+                   Depth: Optional[int] = None,
+                   Compare: Optional[Callable[[TreeNode], bool]] = None,
+                   **searchProperties) -> 'TabControl':
+        return TabControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                          foundIndex=foundIndex, element=element,
+                          Name=Name,
+                          SubName=SubName,
+                          RegexName=RegexName,
+                          ClassName=ClassName,
+                          AutomationId=AutomationId,
+                          Depth=Depth,
+                          Compare=Compare,
+                          **searchProperties)
 
-    def TabItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TabItemControl':
-        return TabItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TabItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                       Name: Optional[str] = None,
+                       SubName: Optional[str] = None,
+                       RegexName: Optional[str] = None,
+                       ClassName: Optional[str] = None,
+                       AutomationId: Optional[str] = None,
+                       Depth: Optional[int] = None,
+                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       **searchProperties) -> 'TabItemControl':
+        return TabItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                              foundIndex=foundIndex, element=element,
+                              Name=Name,
+                              SubName=SubName,
+                              RegexName=RegexName,
+                              ClassName=ClassName,
+                              AutomationId=AutomationId,
+                              Depth=Depth,
+                              Compare=Compare,
+                              **searchProperties)
 
-    def TableControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TableControl':
-        return TableControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TableControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                     Name: Optional[str] = None,
+                     SubName: Optional[str] = None,
+                     RegexName: Optional[str] = None,
+                     ClassName: Optional[str] = None,
+                     AutomationId: Optional[str] = None,
+                     Depth: Optional[int] = None,
+                     Compare: Optional[Callable[[TreeNode], bool]] = None,
+                     **searchProperties) -> 'TableControl':
+        return TableControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                            foundIndex=foundIndex, element=element,
+                            Name=Name,
+                            SubName=SubName,
+                            RegexName=RegexName,
+                            ClassName=ClassName,
+                            AutomationId=AutomationId,
+                            Depth=Depth,
+                            Compare=Compare,
+                            **searchProperties)
 
-    def TextControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TextControl':
-        return TextControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TextControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                    Name: Optional[str] = None,
+                    SubName: Optional[str] = None,
+                    RegexName: Optional[str] = None,
+                    ClassName: Optional[str] = None,
+                    AutomationId: Optional[str] = None,
+                    Depth: Optional[int] = None,
+                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    **searchProperties) -> 'TextControl':
+        return TextControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                           foundIndex=foundIndex, element=element,
+                           Name=Name,
+                           SubName=SubName,
+                           RegexName=RegexName,
+                           ClassName=ClassName,
+                           AutomationId=AutomationId,
+                           Depth=Depth,
+                           Compare=Compare,
+                           **searchProperties)
 
-    def ThumbControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ThumbControl':
-        return ThumbControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ThumbControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                     Name: Optional[str] = None,
+                     SubName: Optional[str] = None,
+                     RegexName: Optional[str] = None,
+                     ClassName: Optional[str] = None,
+                     AutomationId: Optional[str] = None,
+                     Depth: Optional[int] = None,
+                     Compare: Optional[Callable[[TreeNode], bool]] = None,
+                     **searchProperties) -> 'ThumbControl':
+        return ThumbControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                            foundIndex=foundIndex, element=element,
+                            Name=Name,
+                            SubName=SubName,
+                            RegexName=RegexName,
+                            ClassName=ClassName,
+                            AutomationId=AutomationId,
+                            Depth=Depth,
+                            Compare=Compare,
+                            **searchProperties)
 
-    def TitleBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TitleBarControl':
-        return TitleBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TitleBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'TitleBarControl':
+        return TitleBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                               foundIndex=foundIndex, element=element,
+                               Name=Name,
+                               SubName=SubName,
+                               RegexName=RegexName,
+                               ClassName=ClassName,
+                               AutomationId=AutomationId,
+                               Depth=Depth,
+                               Compare=Compare,
+                               **searchProperties)
 
-    def ToolBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ToolBarControl':
-        return ToolBarControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ToolBarControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                       Name: Optional[str] = None,
+                       SubName: Optional[str] = None,
+                       RegexName: Optional[str] = None,
+                       ClassName: Optional[str] = None,
+                       AutomationId: Optional[str] = None,
+                       Depth: Optional[int] = None,
+                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       **searchProperties) -> 'ToolBarControl':
+        return ToolBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                              foundIndex=foundIndex, element=element,
+                              Name=Name,
+                              SubName=SubName,
+                              RegexName=RegexName,
+                              ClassName=ClassName,
+                              AutomationId=AutomationId,
+                              Depth=Depth,
+                              Compare=Compare,
+                              **searchProperties)
 
-    def ToolTipControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'ToolTipControl':
-        return ToolTipControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def ToolTipControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                       Name: Optional[str] = None,
+                       SubName: Optional[str] = None,
+                       RegexName: Optional[str] = None,
+                       ClassName: Optional[str] = None,
+                       AutomationId: Optional[str] = None,
+                       Depth: Optional[int] = None,
+                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       **searchProperties) -> 'ToolTipControl':
+        return ToolTipControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                              foundIndex=foundIndex, element=element,
+                              Name=Name,
+                              SubName=SubName,
+                              RegexName=RegexName,
+                              ClassName=ClassName,
+                              AutomationId=AutomationId,
+                              Depth=Depth,
+                              Compare=Compare,
+                              **searchProperties)
 
-    def TreeControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TreeControl':
-        return TreeControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TreeControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                    Name: Optional[str] = None,
+                    SubName: Optional[str] = None,
+                    RegexName: Optional[str] = None,
+                    ClassName: Optional[str] = None,
+                    AutomationId: Optional[str] = None,
+                    Depth: Optional[int] = None,
+                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    **searchProperties) -> 'TreeControl':
+        return TreeControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                           foundIndex=foundIndex, element=element,
+                           Name=Name,
+                           SubName=SubName,
+                           RegexName=RegexName,
+                           ClassName=ClassName,
+                           AutomationId=AutomationId,
+                           Depth=Depth,
+                           Compare=Compare,
+                           **searchProperties)
 
-    def TreeItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'TreeItemControl':
-        return TreeItemControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def TreeItemControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                        Name: Optional[str] = None,
+                        SubName: Optional[str] = None,
+                        RegexName: Optional[str] = None,
+                        ClassName: Optional[str] = None,
+                        AutomationId: Optional[str] = None,
+                        Depth: Optional[int] = None,
+                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        **searchProperties) -> 'TreeItemControl':
+        return TreeItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                               foundIndex=foundIndex, element=element,
+                               Name=Name,
+                               SubName=SubName,
+                               RegexName=RegexName,
+                               ClassName=ClassName,
+                               AutomationId=AutomationId,
+                               Depth=Depth,
+                               Compare=Compare,
+                               **searchProperties)
 
-    def WindowControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0, **searchProperties) -> 'WindowControl':
-        return WindowControl(searchDepth=searchDepth, searchInterval=searchInterval, foundIndex=foundIndex, element=element, searchFromControl=self, **searchProperties)
+    def WindowControl(self, searchDepth=0xFFFFFFFF, searchInterval=SEARCH_INTERVAL, foundIndex=1, element=0,
+                      Name: Optional[str] = None,
+                      SubName: Optional[str] = None,
+                      RegexName: Optional[str] = None,
+                      ClassName: Optional[str] = None,
+                      AutomationId: Optional[str] = None,
+                      Depth: Optional[int] = None,
+                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      **searchProperties) -> 'WindowControl':
+        return WindowControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
+                             foundIndex=foundIndex, element=element,
+                             Name=Name,
+                             SubName=SubName,
+                             RegexName=RegexName,
+                             ClassName=ClassName,
+                             AutomationId=AutomationId,
+                             Depth=Depth,
+                             Compare=Compare,
+                             **searchProperties)
 
 
 class AppBarControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.AppBarControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.AppBarControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
 
 class ButtonControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ButtonControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ButtonControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
         """
@@ -7583,9 +8349,29 @@ class ButtonControl(Control):
 
 
 class CalendarControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.CalendarControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.CalendarControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetGridPattern(self) -> GridPattern:
         """
@@ -7613,9 +8399,29 @@ class CalendarControl(Control):
 
 
 class CheckBoxControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.CheckBoxControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.CheckBoxControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetTogglePattern(self) -> TogglePattern:
         """
@@ -7632,9 +8438,29 @@ class CheckBoxControl(Control):
 
 
 class ComboBoxControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ComboBoxControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ComboBoxControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
         """
@@ -7706,15 +8532,55 @@ class ComboBoxControl(Control):
 
 
 class CustomControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.CustomControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.CustomControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
 
 class DataGridControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.DataGridControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.DataGridControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetGridPattern(self) -> GridPattern:
         """
@@ -7742,9 +8608,29 @@ class DataGridControl(Control):
 
 
 class DataItemControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.DataItemControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.DataItemControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetSelectionItemPattern(self) -> SelectionItemPattern:
         """
@@ -7790,9 +8676,29 @@ class DataItemControl(Control):
 
 
 class DocumentControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.DocumentControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.DocumentControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetTextPattern(self) -> TextPattern:
         """
@@ -7814,9 +8720,29 @@ class DocumentControl(Control):
 
 
 class EditControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.EditControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.EditControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
         """
@@ -7838,9 +8764,29 @@ class EditControl(Control):
 
 
 class GroupControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.GroupControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.GroupControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
         """
@@ -7850,9 +8796,29 @@ class GroupControl(Control):
 
 
 class HeaderControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.HeaderControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.HeaderControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetTransformPattern(self) -> TransformPattern:
         """
@@ -7862,9 +8828,29 @@ class HeaderControl(Control):
 
 
 class HeaderItemControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.HeaderItemControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.HeaderItemControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetInvokePattern(self) -> InvokePattern:
         """
@@ -7880,9 +8866,29 @@ class HeaderItemControl(Control):
 
 
 class HyperlinkControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.HyperlinkControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.HyperlinkControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetInvokePattern(self) -> InvokePattern:
         """
@@ -7898,9 +8904,29 @@ class HyperlinkControl(Control):
 
 
 class ImageControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ImageControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ImageControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetGridItemPattern(self) -> GridItemPattern:
         """
@@ -7916,9 +8942,29 @@ class ImageControl(Control):
 
 
 class ListControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ListControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ListControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetGridPattern(self) -> GridPattern:
         """
@@ -7946,9 +8992,29 @@ class ListControl(Control):
 
 
 class ListItemControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ListItemControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ListItemControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetSelectionItemPattern(self) -> SelectionItemPattern:
         """
@@ -7994,15 +9060,55 @@ class ListItemControl(Control):
 
 
 class MenuControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.MenuControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.MenuControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
 
 class MenuBarControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.MenuBarControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.MenuBarControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetDockPattern(self) -> DockPattern:
         """
@@ -8024,9 +9130,29 @@ class MenuBarControl(Control):
 
 
 class MenuItemControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.MenuItemControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.MenuItemControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
         """
@@ -8141,9 +9267,29 @@ class TopLevel():
 
 
 class PaneControl(Control, TopLevel):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.PaneControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.PaneControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetDockPattern(self) -> DockPattern:
         """
@@ -8165,9 +9311,29 @@ class PaneControl(Control, TopLevel):
 
 
 class ProgressBarControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ProgressBarControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ProgressBarControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
         """
@@ -8183,9 +9349,29 @@ class ProgressBarControl(Control):
 
 
 class RadioButtonControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.RadioButtonControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.RadioButtonControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetSelectionItemPattern(self) -> SelectionItemPattern:
         """
@@ -8195,9 +9381,29 @@ class RadioButtonControl(Control):
 
 
 class ScrollBarControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ScrollBarControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ScrollBarControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
         """
@@ -8207,21 +9413,81 @@ class ScrollBarControl(Control):
 
 
 class SemanticZoomControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.SemanticZoomControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.SemanticZoomControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
 
 class SeparatorControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.SeparatorControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.SeparatorControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
 
 class SliderControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.SliderControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.SliderControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
         """
@@ -8243,9 +9509,29 @@ class SliderControl(Control):
 
 
 class SpinnerControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.SpinnerControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.SpinnerControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetRangeValuePattern(self) -> RangeValuePattern:
         """
@@ -8267,9 +9553,29 @@ class SpinnerControl(Control):
 
 
 class SplitButtonControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.SplitButtonControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.SplitButtonControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
         """
@@ -8285,9 +9591,29 @@ class SplitButtonControl(Control):
 
 
 class StatusBarControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.StatusBarControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.StatusBarControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetGridPattern(self) -> GridPattern:
         """
@@ -8297,9 +9623,29 @@ class StatusBarControl(Control):
 
 
 class TabControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.TabControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.TabControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetSelectionPattern(self) -> SelectionPattern:
         """
@@ -8315,9 +9661,29 @@ class TabControl(Control):
 
 
 class TabItemControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.TabItemControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.TabItemControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetSelectionItemPattern(self) -> SelectionItemPattern:
         """
@@ -8327,9 +9693,29 @@ class TabItemControl(Control):
 
 
 class TableControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.TableControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.TableControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetGridPattern(self) -> GridPattern:
         """
@@ -8375,9 +9761,29 @@ class TableControl(Control):
 
 
 class TextControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.TextControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.TextControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetGridItemPattern(self) -> GridItemPattern:
         """
@@ -8399,9 +9805,29 @@ class TextControl(Control):
 
 
 class ThumbControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ThumbControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ThumbControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetTransformPattern(self) -> TransformPattern:
         """
@@ -8411,15 +9837,55 @@ class ThumbControl(Control):
 
 
 class TitleBarControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.TitleBarControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.TitleBarControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
 
 class ToolBarControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ToolBarControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ToolBarControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetDockPattern(self) -> DockPattern:
         """
@@ -8441,9 +9907,29 @@ class ToolBarControl(Control):
 
 
 class ToolTipControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.ToolTipControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.ToolTipControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetTextPattern(self) -> TextPattern:
         """
@@ -8459,9 +9945,29 @@ class ToolTipControl(Control):
 
 
 class TreeControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.TreeControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.TreeControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetScrollPattern(self) -> ScrollPattern:
         """
@@ -8477,9 +9983,29 @@ class TreeControl(Control):
 
 
 class TreeItemControl(Control):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.TreeItemControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.TreeItemControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
 
     def GetExpandCollapsePattern(self) -> ExpandCollapsePattern:
         """
@@ -8513,9 +10039,29 @@ class TreeItemControl(Control):
 
 
 class WindowControl(Control, TopLevel):
-    def __init__(self, searchFromControl: Optional[Control] = None, searchDepth: int = 0xFFFFFFFF, searchInterval: float = SEARCH_INTERVAL, foundIndex: int = 1, element=None, **searchProperties):
-        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element, **searchProperties)
-        self.AddSearchProperties(ControlType=ControlType.WindowControl)
+    def __init__(self, searchFromControl: Optional[Control] = None,
+                 searchDepth: int = 0xFFFFFFFF,
+                 searchInterval: float = SEARCH_INTERVAL,
+                 foundIndex: int = 1,
+                 element=None,
+                 Name: Optional[str] = None,
+                 SubName: Optional[str] = None,
+                 RegexName: Optional[str] = None,
+                 ClassName: Optional[str] = None,
+                 AutomationId: Optional[str] = None,
+                 Depth: Optional[int] = None,
+                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 **searchProperties):
+        Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
+                         ControlType=ControlType.WindowControl,
+                         Name=Name,
+                         SubName=SubName,
+                         RegexName=RegexName,
+                         ClassName=ClassName,
+                         AutomationId=AutomationId,
+                         Depth=Depth,
+                         Compare=Compare,
+                         **searchProperties)
         self._DockPattern = None
         self._TransformPattern = None
 
