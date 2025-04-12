@@ -58,7 +58,7 @@ A control should support some patterns or conditionally supports some patterns a
 
 ![patterns](images/control_pattern.png)
 
-Refer [Control Pattern Mapping for UI Automation Clients](https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-controlpatternmapping) for the full control pattern table.
+Refer [Control Pattern Mapping for UI Automation Clients](https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-controlpatternmapping) for the complete control pattern table.
 
 
 uiautomation searches controls from the control tree based on the controls' properties you supply.
@@ -132,12 +132,14 @@ Run the following code
 
 ```python
 # -*- coding: utf-8 -*-
+# this script only works with Win32 notepad.exe
+# if you notepad.exe is the Windows Store version in Windows 11, you need to uninstall it.
 import subprocess
 import uiautomation as auto
 
 def test():
     print(auto.GetRootControl())
-    subprocess.Popen('notepad.exe')
+    subprocess.Popen('notepad.exe', shell=True)
     # you should find the top level window first, then find children from the top level window
     notepadWindow = auto.WindowControl(searchDepth=1, ClassName='Notepad')
     if not notepadWindow.Exists(3, 1):
@@ -153,17 +155,20 @@ def test():
         # use value pattern to get or set value
         edit.GetValuePattern().SetValue('Hello')# or edit.GetPattern(auto.PatternId.ValuePattern)
     except auto.comtypes.COMError as ex:
-        # maybe you don't run python as administrator 
+        # maybe you don't run python as administrator
         # or the control doesn't have a implementation for the pattern method(I have no solution for this)
         pass
+    edit.Click() # this step is optional, but some edits need it
     edit.SendKeys('{Ctrl}{End}{Enter}World')
     print('current text:', edit.GetValuePattern().Value)
-    # find the first TitleBarControl in notepadWindow, 
+    # find the first TitleBarControl in notepadWindow,
     # then find the second ButtonControl in TitleBarControl, which is the Maximize button
-    notepadWindow.TitleBarControl().ButtonControl(foundIndex=2).Click()
-    # find the first button in notepadWindow whose Name is '关闭', the close button
+    maximizeButton = notepadWindow.TitleBarControl().ButtonControl(foundIndex=2)
+    maximizeButton.Click(waitTime=2)
+    maximizeButton.Click()
+    # find the first button in notepadWindow whose Name is '关闭' or 'Close', the close button
     # the relative depth from Close button to Notepad window is 2
-    notepadWindow.ButtonControl(searchDepth=2, Name='关闭').Click()
+    notepadWindow.ButtonControl(searchDepth=2, Compare=lambda c, d: c.Name in ['Close', '关闭']).Click()
     # then notepad will popup a window askes you to save or not, press hotkey alt+n not to save
     auto.SendKeys('{Alt}n')
 
@@ -203,13 +208,15 @@ For example:
 ```python
 #!python3
 # -*- coding:utf-8 -*-
+# this script only works with Win32 notepad.exe
+# if you notepad.exe is the Windows Store version in Windows 11, you need to uninstall it.
 import subprocess
 import uiautomation as auto
 auto.uiautomation.SetGlobalSearchTimeout(15)  # set new timeout 15
 
 
 def main():
-    subprocess.Popen('notepad.exe')
+    subprocess.Popen('notepad.exe', shell=True)
     window = auto.WindowControl(searchDepth=1, ClassName='Notepad')
     # or use Compare for custom search
     # window = auto.WindowControl(searchDepth=1, ClassName='Notepad', Compare=lambda control,depth:control.ProcessId==100)

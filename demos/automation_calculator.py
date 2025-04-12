@@ -134,6 +134,7 @@ def CalcOnWindows10():
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
+    calcWindow.GetTransformPattern().Move(40, 40)
     calcWindow.ButtonControl(AutomationId='TogglePaneButton').Click()
     calcWindow.ListItemControl(AutomationId='Scientific').Click()
     calcWindow.ButtonControl(AutomationId='clearButton').Click()

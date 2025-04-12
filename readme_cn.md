@@ -122,12 +122,14 @@ ControlType: PaneControl    ClassName: #32769    Name: 桌面    Depth: 0    **(
 
 ```python
 # -*- coding: utf-8 -*-
+# this script only works with Win32 notepad.exe
+# if you notepad.exe is the Windows Store version in Windows 11, you need to uninstall it.
 import subprocess
 import uiautomation as auto
 
 def test():
     print(auto.GetRootControl())
-    subprocess.Popen('notepad.exe')
+    subprocess.Popen('notepad.exe', shell=True)
     # 首先从桌面的第一层子控件中找到记事本程序的窗口WindowControl，再从这个窗口查找子控件
     notepadWindow = auto.WindowControl(searchDepth=1, ClassName='Notepad')
     print(notepadWindow.Name)
@@ -141,13 +143,16 @@ def test():
         # 如果遇到COMError, 一般是没有以管理员权限运行Python, 或者这个控件没有实现pattern的方法(如果是这种情况，基本没有解决方法)
         # 大多数情况不需要捕捉COMError，如果遇到了就加到try block
         pass
+    edit.Click() # 不调用Click也能打字，但有的Edit可能需要先点击获取焦点
     edit.SendKeys('{Ctrl}{End}{Enter}World')# 在文本末尾打字
     print('current text:', edit.GetValuePattern().Value)# 获取当前文本
     # 先从notepadWindow的第一层子控件中查找TitleBarControl, 
     # 然后从TitleBarControl的子孙控件中找第二个ButtonControl, 即最大化按钮，并点击按钮
-    notepadWindow.TitleBarControl(Depth=1).ButtonControl(foundIndex=2).Click()
-    # 从notepadWindow前两层子孙控件中查找Name为'关闭'的按钮并点击按钮
-    notepadWindow.ButtonControl(searchDepth=2, Name='关闭').Click()
+    maximizeButton = notepadWindow.TitleBarControl().ButtonControl(foundIndex=2)
+    maximizeButton.Click(waitTime=2)
+    maximizeButton.Click()
+    # 从notepadWindow前两层子孙控件中查找Name为'关闭'或'Close'的按钮并点击按钮
+    notepadWindow.ButtonControl(searchDepth=2, Compare=lambda c, d: c.Name in ['Close', '关闭']).Click()
     # 这时记事本弹出是否保存提示，按热键Alt+N不保存退出。
     auto.SendKeys('{Alt}n')
 
@@ -188,13 +193,15 @@ Control.Element返回IUIAutomation底层COM对象[IUIAutomationElement](https://
 ```python
 #!python3
 # -*- coding:utf-8 -*-
+# this script only works with Win32 notepad.exe
+# if you notepad.exe is the Windows Store version in Windows 11, you need to uninstall it.
 import subprocess
 import uiautomation as auto
 auto.uiautomation.SetGlobalSearchTimeout(15)  # 设置全局搜索超时 15
 
 
 def main():
-    subprocess.Popen('notepad.exe')
+    subprocess.Popen('notepad.exe', shell=True)
     window = auto.WindowControl(searchDepth=1, ClassName='Notepad')
     # 或者使用Compare自定义搜索条件
     # window = auto.WindowControl(searchDepth=1, ClassName='Notepad', Compare=lambda control,depth:control.ProcessId==100)

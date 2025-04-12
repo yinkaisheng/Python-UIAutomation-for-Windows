@@ -24,7 +24,7 @@ This means that the code can be freely copied and distributed, and costs nothing
 
 tip = """
 If your monitor is not 100% DPI and OS is Windows 10 x64, please run this script with 64 bit Python.
-Windows 10 has a bug that 32 bit progroms can't get the correct BoundingRectangle of some controls of Notepad.
+Windows 10 has a bug that 32 bit programs can't get the correct BoundingRectangle of some controls of Notepad.
 See https://github.com/microsoft/accessibility-insights-windows/issues/1122
 """
 
@@ -38,7 +38,7 @@ def testNotepadCN():
     time.sleep(2)
     auto.ShowDesktop()
     # 打开notepad
-    subprocess.Popen('notepad')
+    subprocess.Popen('notepad.exe', shell=True)
     # 查找notepad
     window = auto.WindowControl(searchDepth=1, ClassName='Notepad', RegexName='.* - 记事本')
     # 可以判断window是否存在，如果不判断，找不到window的话会抛出异常
@@ -85,6 +85,12 @@ def testNotepadCN():
     combo = windowFont.ComboBoxControl(AutomationId='1140')
     combo.Select(condition=select3rd)
     combo.Select('中文 GB2312')
+    valuePt = combo.GetValuePattern()
+    if valuePt:
+        print('current selection:', valuePt.Value)
+    selectPt = combo.GetSelectionPattern()
+    if selectPt:
+        print('current selection:', selectPt.GetSelection())
     windowFont.ButtonControl(Name='确定').Click()
     window.GetWindowPattern().Close()
     if auto.WaitForDisappear(window, 3):
@@ -112,7 +118,7 @@ def testNotepadEN():
     auto.Logger.ColorfullyWriteLine('\nI will open <Color=Green>Notepad</Color> and <Color=Yellow>automate</Color> it. Please wait for a while.')
     time.sleep(2)
     auto.ShowDesktop()
-    subprocess.Popen('notepad')
+    subprocess.Popen('notepad.exe', shell=True)
     # search notepad window, if searchFromControl is None, search from RootControl
     # searchDepth = 1 makes searching faster, only searches RootControl's children, not children's children
     window = auto.WindowControl(searchDepth=1, ClassName='Notepad', RegexName='.* - Notepad')
@@ -155,7 +161,7 @@ def testNotepadEN():
     combo.Select('Western')
 
     windowFont.ButtonControl(Name='OK').Click()
-    window.Close()
+    window.GetWindowPattern().Close()
     if auto.WaitForDisappear(window, 3):
         auto.Logger.WriteLine("Notepad closed")
     else:
