@@ -146,6 +146,19 @@ def test():
     edit.Click() # 不调用Click也能打字，但有的Edit可能需要先点击获取焦点
     edit.SendKeys('{Ctrl}{End}{Enter}World')# 在文本末尾打字
     print('current text:', edit.GetValuePattern().Value)# 获取当前文本
+    notepadWindow.CaptureToImage('notepad.png')
+    notepadWindow.MenuBarControl(searchDepth=1).CaptureToImage('notepad_menubar.png')
+
+    # generate an animated gif
+    bitmap = notepadWindow.ToBitmap(x=0, y=0, width=160, height=160)
+    side = int(bitmap.Width * 1.42)
+    gifBmp = auto.Bitmap(side, side)
+    gifBmp.Clear(0xFFFF_FFFF) # set bitmap background color to white
+    gifBmp.Paste(x=(side-bitmap.Width)//2, y=(side-bitmap.Height)//2, bitmap=bitmap)
+    gifFrameCount = 20
+    bmps = [gifBmp.RotateWithSameSize(gifBmp.Width//2, gifBmp.Height//2, i*360/gifFrameCount) for i in range(0, gifFrameCount)]
+    auto.GIF.ToGifFile('notepad_part.gif', bitmaps=bmps, delays=[100]*gifFrameCount)
+
     # 先从notepadWindow的第一层子控件中查找TitleBarControl, 
     # 然后从TitleBarControl的子孙控件中找第二个ButtonControl, 即最大化按钮，并点击按钮
     maximizeButton = notepadWindow.TitleBarControl().ButtonControl(foundIndex=2)
@@ -154,6 +167,7 @@ def test():
     # 从notepadWindow前两层子孙控件中查找Name为'关闭'或'Close'的按钮并点击按钮
     notepadWindow.ButtonControl(searchDepth=2, Compare=lambda c, d: c.Name in ['Close', '关闭']).Click()
     # 这时记事本弹出是否保存提示，按热键Alt+N不保存退出。
+    notepadWindow.WindowControl(searchDepth=1).CaptureToImage('notepad_save.png')
     auto.SendKeys('{Alt}n')
 
 if __name__ == '__main__':

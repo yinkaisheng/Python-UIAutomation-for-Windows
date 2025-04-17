@@ -161,6 +161,19 @@ def test():
     edit.Click() # this step is optional, but some edits need it
     edit.SendKeys('{Ctrl}{End}{Enter}World')
     print('current text:', edit.GetValuePattern().Value)
+    notepadWindow.CaptureToImage('notepad.png')
+    notepadWindow.MenuBarControl(searchDepth=1).CaptureToImage('notepad_menubar.png')
+
+    # generate an animated gif
+    bitmap = notepadWindow.ToBitmap(x=0, y=0, width=160, height=160)
+    side = int(bitmap.Width * 1.42)
+    gifBmp = auto.Bitmap(side, side)
+    gifBmp.Clear(0xFFFF_FFFF) # set bitmap background color to white
+    gifBmp.Paste(x=(side-bitmap.Width)//2, y=(side-bitmap.Height)//2, bitmap=bitmap)
+    gifFrameCount = 20
+    bmps = [gifBmp.RotateWithSameSize(gifBmp.Width//2, gifBmp.Height//2, i*360/gifFrameCount) for i in range(0, gifFrameCount)]
+    auto.GIF.ToGifFile('notepad_part.gif', bitmaps=bmps, delays=[100]*gifFrameCount)
+
     # find the first TitleBarControl in notepadWindow,
     # then find the second ButtonControl in TitleBarControl, which is the Maximize button
     maximizeButton = notepadWindow.TitleBarControl().ButtonControl(foundIndex=2)
@@ -170,11 +183,16 @@ def test():
     # the relative depth from Close button to Notepad window is 2
     notepadWindow.ButtonControl(searchDepth=2, Compare=lambda c, d: c.Name in ['Close', '关闭']).Click()
     # then notepad will popup a window askes you to save or not, press hotkey alt+n not to save
+    notepadWindow.WindowControl(searchDepth=1).CaptureToImage('notepad_save.png')
     auto.SendKeys('{Alt}n')
 
 if __name__ == '__main__':
     test()
 ```
+
+The above code automates notepad.exe and generates a gif file.
+
+![Gif](images/notepad_part.gif)
 
 auto.GetRootControl() returns the root control(the Desktop window)  
 auto.WindowControl(searchDepth=1, ClassName='Notepad') creates a WindowControl, the parameters specify how to search the control  

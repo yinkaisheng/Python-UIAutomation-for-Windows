@@ -33,6 +33,17 @@ def test():
     print('current text:', edit.GetValuePattern().Value)
     notepadWindow.CaptureToImage('notepad.png')
     notepadWindow.MenuBarControl(searchDepth=1).CaptureToImage('notepad_menubar.png')
+
+    # generate an animated gif
+    bitmap = notepadWindow.ToBitmap(x=0, y=0, width=160, height=160)
+    side = int(bitmap.Width * 1.42)
+    gifBmp = auto.Bitmap(side, side)
+    gifBmp.Clear(0xFFFF_FFFF) # set bitmap background color to white
+    gifBmp.Paste(x=(side-bitmap.Width)//2, y=(side-bitmap.Height)//2, bitmap=bitmap)
+    gifFrameCount = 20
+    bmps = [gifBmp.RotateWithSameSize(gifBmp.Width//2, gifBmp.Height//2, i*360/gifFrameCount) for i in range(0, gifFrameCount)]
+    auto.GIF.ToGifFile('notepad_part.gif', bitmaps=bmps, delays=[100]*gifFrameCount)
+
     # find the first TitleBarControl in notepadWindow,
     # then find the second ButtonControl in TitleBarControl, which is the Maximize button
     maximizeButton = notepadWindow.TitleBarControl().ButtonControl(foundIndex=2)
