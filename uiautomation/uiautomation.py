@@ -2440,6 +2440,63 @@ def GetForegroundWindow() -> int:
     return ctypes.windll.user32.GetForegroundWindow()
 
 
+def DwmIsCompositionEnabled() -> bool:
+    """
+    DwmIsCompositionEnabled from dwmapi.
+    Return bool.
+    """
+    try:
+        dwmapi = ctypes.WinDLL('dwmapi')
+        dwmapi.DwmIsCompositionEnabled.restype = ctypes.HRESULT
+        isEnabled = ctypes.wintypes.BOOL()
+        hr = dwmapi.DwmIsCompositionEnabled(ctypes.byref(isEnabled))
+        if hr == S_OK:
+            return bool(isEnabled.value)
+        else:
+            return False
+    except:
+        return False
+
+
+def DwmGetWindowExtendFrameBounds(handle: int) -> Optional[Rect]:
+    """
+    Get Native Window Rect without invisible resize borders.
+    Return Rect or None. If handle is not top level, return None.
+    """
+    try:
+        DWMWA_EXTENDED_FRAME_BOUNDS: ctypes.wintypes.DWORD = 9
+        dwmapi = ctypes.WinDLL('dwmapi')
+        dwmapi.DwmGetWindowAttribute.restype = ctypes.HRESULT
+        rect = ctypes.wintypes.RECT()
+        hr = dwmapi.DwmGetWindowAttribute(
+            ctypes.c_void_p(handle),
+            DWMWA_EXTENDED_FRAME_BOUNDS,
+            ctypes.byref(rect),
+            ctypes.sizeof(ctypes.wintypes.RECT)
+        )
+        if hr == S_OK:
+            return Rect(rect.left, rect.top, rect.right, rect.bottom)
+        return None
+    except:
+        return None
+
+
+def GetWindowRect(handle: int) -> Optional[Rect]:
+    """
+    GetWindowRect from user32.
+    Return RECT.
+    """
+    user32 = ctypes.windll.user32
+    rect = ctypes.wintypes.RECT()
+    success: ctypes.wintypes.BOOL = user32.GetWindowRect(
+        ctypes.c_void_p(handle),
+        ctypes.byref(rect)
+    )
+    if success:
+        return Rect(rect.left, rect.top, rect.right, rect.bottom)
+    return None
+
+
 def IsDesktopLocked() -> bool:
     """
     Check if desktop is locked.
@@ -2694,7 +2751,7 @@ def SendKeys(text: str, interval: float = 0.01, waitTime: float = OPERATION_WAIT
     Examples:
     {Ctrl}, {Delete} ... are special keys' name in SpecialKeyNames.
     SendKeys('{Ctrl}a{Delete}{Ctrl}v{Ctrl}s{Ctrl}{Shift}s{Win}e{PageDown}') #press Ctrl+a, Delete, Ctrl+v, Ctrl+s, Ctrl+Shift+s, Win+e, PageDown
-    SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type '(', press Shift+1+2+3, type ')', if '()' follows a hold key, hold key won't release util ')'
+    SendKeys('{Ctrl}(AB)({Shift}(123))') #press Ctrl+A+B, type '(', press Shift+1+2+3, type ')', if '()' follows a hold key, hold key won't release until ')'
     SendKeys('{Ctrl}{a 3}') #press Ctrl+a at the same time, release Ctrl+a, then type 'a' 2 times
     SendKeys('{a 3}{B 5}') #type 'a' 3 times, type 'B' 5 times
     SendKeys('{{}Hello{}}abc {a}{b}{c} test{} 3}{!}{a} (){(}{)}') #type: '{Hello}abc abc test}}}!a ()()'
@@ -3387,71 +3444,6 @@ class Bitmap:
         return self._height
 
     @staticmethod
-    def IsDwmCompositionEnabled() -> bool:
-        """
-        DwmIsCompositionEnabled from dwmapi.
-        Return bool.
-        """
-        dwmapi = ctypes.WinDLL('dwmapi')
-        dwmapi.DwmIsCompositionEnabled.argtypes = [ctypes.POINTER(ctypes.wintypes.BOOL)]
-        dwmapi.DwmIsCompositionEnabled.restype = ctypes.HRESULT
-
-        is_enabled = ctypes.wintypes.BOOL()
-        result = dwmapi.DwmIsCompositionEnabled(ctypes.byref(is_enabled))
-
-        if result == 0:  
-            return is_enabled
-        else:
-            return False
-
-    @staticmethod
-    def GetVisibleWindowBounds(handle: int) -> Optional[ctypes.wintypes.RECT]:
-        """
-        DwmGetWindowAttribute from dwmapi.
-        Return RECT.
-        """
-        DWMWA_EXTENDED_FRAME_BOUNDS: ctypes.wintypes.DWORD = 9
-        dwmapi = ctypes.WinDLL('dwmapi')
-        dwmapi.DwmGetWindowAttribute.argtypes = [
-            ctypes.wintypes.HWND, 
-            ctypes.wintypes.DWORD, 
-            ctypes.POINTER(ctypes.wintypes.RECT), 
-            ctypes.wintypes.DWORD]
-        dwmapi.DwmGetWindowAttribute.restype = ctypes.HRESULT
-
-        rect = ctypes.wintypes.RECT()
-
-        hr = dwmapi.DwmGetWindowAttribute(
-            ctypes.c_void_p(handle),
-            DWMWA_EXTENDED_FRAME_BOUNDS,
-            ctypes.byref(rect),
-            ctypes.sizeof(ctypes.wintypes.RECT)
-        )
-        if hr == 0:  
-            return rect
-        return None
-
-    @staticmethod
-    def GetWindowRect(handle: int) -> Optional[ctypes.wintypes.RECT]:
-        """
-        GetWindowRect from user32.
-        Return RECT.
-        """
-        user32 = ctypes.windll.user32
-        user32.GetWindowRect.argtypes = [ctypes.wintypes.HWND, ctypes.POINTER(ctypes.wintypes.RECT)]
-        user32.GetWindowRect.restype = ctypes.HRESULT
-
-        rect = ctypes.wintypes.RECT()
-
-        hr = user32.GetWindowRect(
-            ctypes.c_void_p(handle), 
-            ctypes.byref(rect)
-        )
-        if hr == 0: 
-            return rect
-        return None
-        
-    @staticmethod
     def FromHandle(handle: int, left: int, top: int, right: int, bottom: int) -> Optional['MemoryBMP']:
         """
         Create a `Bitmap` from a native window handle.
@@ -3464,16 +3456,18 @@ class Bitmap:
         Return `Bitmap` or None.
         """
         rect = None
-        if Bitmap.IsDwmCompositionEnabled():
-            rect = Bitmap.GetVisibleWindowBounds(handle)
-        else:
-            rect = Bitmap.GetWindowRect(handle)
-        if rect is not None:
-            root = GetRootControl()
-            left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
-            cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
-            return Bitmap._FromGdiplusBitmap(cbmp)
-        return None
+        toplevelHandle = GetAncestor(handle, GAFlag.Root)
+        if toplevelHandle and toplevelHandle == handle:
+            if DwmIsCompositionEnabled():
+                rect = DwmGetWindowExtendFrameBounds(handle)
+        if rect is None:
+            rect = GetWindowRect(handle)
+        if rect is None:
+            return None
+        root = GetRootControl()
+        left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
+        cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
+        return Bitmap._FromGdiplusBitmap(cbmp)
 
     @staticmethod
     def FromControl(control: 'Control', x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> Optional['MemoryBMP']:
@@ -3491,26 +3485,40 @@ class Bitmap:
         """
         rect = control.BoundingRectangle
         while rect.width() == 0 or rect.height() == 0:
-            # some controls maybe visible but their BoundingRectangle are all 0, capture its parent util valid
+            # some controls maybe visible but their BoundingRectangle are all 0, capture its parent until valid
             control = control.GetParentControl()
             if not control:
                 return None
             rect = control.BoundingRectangle
+        handle = control.NativeWindowHandle
+        if handle:
+            toplevelHandle = GetAncestor(handle, GAFlag.Root)
+            if toplevelHandle and toplevelHandle == handle:
+                if DwmIsCompositionEnabled():
+                    rect = DwmGetWindowExtendFrameBounds(handle) or rect
+            if width <= 0:
+                width = rect.width() + width
+            if height <= 0:
+                height = rect.height() + height
+            root = GetRootControl()
+            left, top = rect.left + x, rect.top + y
+            right, bottom = left + width, top + height
+            cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
+            return Bitmap._FromGdiplusBitmap(cbmp)
         if width <= 0:
             width = rect.width() + width
         if height <= 0:
             height = rect.height() + height
-        handle = control.NativeWindowHandle        
-        left = x + rect.left
-        top = y + rect.top
-        right = left + width
-        bottom = top + height
-   
-        if not handle:
-            while True:
-                control = control.GetParentControl()
-                prect = control.BoundingRectangle
-                return Bitmap.FromControl(control, left - prect.left , top - prect.top, width, height)     
+        while True:
+            control = control.GetParentControl()
+            handle = control.NativeWindowHandle
+            if handle:
+                pRect = control.BoundingRectangle
+                left = rect.left - pRect.left + x
+                top = rect.top - pRect.top + y
+                right = left + width
+                bottom = top + height
+                break
         return Bitmap.FromHandle(handle, left, top, right, bottom)
 
     @staticmethod
@@ -3690,16 +3698,17 @@ class Bitmap:
                   }
         gdiplusImageFormat = extMap.get(format.lower(), 'image/png')
         stream = ctypes.c_size_t()
-        gdiStatus = _DllClient.instance().dll.BitmapToStream(ctypes.c_size_t(self._bitmap), ctypes.byref(stream), ctypes.c_wchar_p(gdiplusImageFormat), quality or 80)
+        gdiStatus = _DllClient.instance().dll.BitmapToStream(
+            ctypes.c_size_t(self._bitmap), ctypes.byref(stream), ctypes.c_wchar_p(gdiplusImageFormat), quality or 80)
         if stream.value == 0:
             return None
-        streamSize = _DllClient.instance().dll.GetStreamSize(stream.value)
+        streamSize = _DllClient.instance().dll.GetStreamSize(stream)
         if streamSize == 0:
             return None
         data = bytearray(streamSize)
         cdata = (ctypes.c_ubyte * streamSize).from_buffer(data)
-        streamSize = _DllClient.instance().dll.CopyStreamData(stream.value, cdata, streamSize)
-        _DllClient.instance().dll.ReleaseStream(stream.value)
+        streamSize = _DllClient.instance().dll.CopyStreamData(stream, cdata, streamSize)
+        _DllClient.instance().dll.ReleaseStream(stream)
         return data
 
     def ToPILImage(self) -> 'PIL.Image.Image':
@@ -3716,7 +3725,7 @@ class Bitmap:
 
     def ToNDArray(self) -> 'numpy.ndarray':
         """
-        Convert to a numpy.ndarray(compatible with OpenCV).
+        Convert to a numpy.ndarray(shape=(height,width,4), compatible with OpenCV).
         usage:
         bgraImage = bitmap.ToNDArray()
         bgrImage = cv2.cvtColor(bgraImage, cv2.COLOR_BGRA2BGR)
