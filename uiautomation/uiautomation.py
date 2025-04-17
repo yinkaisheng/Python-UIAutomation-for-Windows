@@ -3387,6 +3387,71 @@ class Bitmap:
         return self._height
 
     @staticmethod
+    def IsDwmCompositionEnabled() -> bool:
+        """
+        DwmIsCompositionEnabled from dwmapi.
+        Return bool.
+        """
+        dwmapi = ctypes.WinDLL('dwmapi')
+        dwmapi.DwmIsCompositionEnabled.argtypes = [ctypes.POINTER(ctypes.wintypes.BOOL)]
+        dwmapi.DwmIsCompositionEnabled.restype = ctypes.HRESULT
+
+        is_enabled = ctypes.wintypes.BOOL()
+        result = dwmapi.DwmIsCompositionEnabled(ctypes.byref(is_enabled))
+
+        if result == 0:  
+            return is_enabled
+        else:
+            return False
+
+    @staticmethod
+    def GetVisibleWindowBounds(handle: int) -> Optional[ctypes.wintypes.RECT]:
+        """
+        DwmGetWindowAttribute from dwmapi.
+        Return RECT.
+        """
+        DWMWA_EXTENDED_FRAME_BOUNDS: ctypes.wintypes.DWORD = 9
+        dwmapi = ctypes.WinDLL('dwmapi')
+        dwmapi.DwmGetWindowAttribute.argtypes = [
+            ctypes.wintypes.HWND, 
+            ctypes.wintypes.DWORD, 
+            ctypes.POINTER(ctypes.wintypes.RECT), 
+            ctypes.wintypes.DWORD]
+        dwmapi.DwmGetWindowAttribute.restype = ctypes.HRESULT
+
+        rect = ctypes.wintypes.RECT()
+
+        hr = dwmapi.DwmGetWindowAttribute(
+            ctypes.c_void_p(handle),
+            DWMWA_EXTENDED_FRAME_BOUNDS,
+            ctypes.byref(rect),
+            ctypes.sizeof(ctypes.wintypes.RECT)
+        )
+        if hr == 0:  
+            return rect
+        return None
+
+    @staticmethod
+    def GetWindowRect(handle: int) -> Optional[ctypes.wintypes.RECT]:
+        """
+        GetWindowRect from user32.
+        Return RECT.
+        """
+        user32 = ctypes.windll.user32
+        user32.GetWindowRect.argtypes = [ctypes.wintypes.HWND, ctypes.POINTER(ctypes.wintypes.RECT)]
+        user32.GetWindowRect.restype = ctypes.HRESULT
+
+        rect = ctypes.wintypes.RECT()
+
+        hr = user32.GetWindowRect(
+            ctypes.c_void_p(handle), 
+            ctypes.byref(rect)
+        )
+        if hr == 0: 
+            return rect
+        return None
+        
+    @staticmethod
     def FromHandle(handle: int, left: int, top: int, right: int, bottom: int) -> Optional['MemoryBMP']:
         """
         Create a `Bitmap` from a native window handle.
@@ -3398,8 +3463,12 @@ class Bitmap:
         left, top, right and bottom are control's internal postion(from 0,0).
         Return `Bitmap` or None.
         """
-        rect = ctypes.wintypes.RECT()
-        if ctypes.windll.user32.GetWindowRect(ctypes.c_void_p(handle), ctypes.byref(rect)):
+        rect = None
+        if Bitmap.IsDwmCompositionEnabled():
+            rect = Bitmap.GetVisibleWindowBounds(handle)
+        else:
+            rect = Bitmap.GetWindowRect(handle)
+        if rect is not None:
             root = GetRootControl()
             left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
             cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
@@ -3431,23 +3500,17 @@ class Bitmap:
             width = rect.width() + width
         if height <= 0:
             height = rect.height() + height
-        handle = control.NativeWindowHandle
-        if handle:
-            left = x
-            top = y
-            right = left + width
-            bottom = top + height
-        else:
+        handle = control.NativeWindowHandle        
+        left = x + rect.left
+        top = y + rect.top
+        right = left + width
+        bottom = top + height
+   
+        if not handle:
             while True:
                 control = control.GetParentControl()
-                handle = control.NativeWindowHandle
-                if handle:
-                    pRect = control.BoundingRectangle
-                    left = rect.left - pRect.left + x
-                    top = rect.top - pRect.top + y
-                    right = left + width
-                    bottom = top + height
-                    break
+                prect = control.BoundingRectangle
+                return Bitmap.FromControl(control, left - prect.left , top - prect.top, width, height)     
         return Bitmap.FromHandle(handle, left, top, right, bottom)
 
     @staticmethod
