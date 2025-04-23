@@ -2464,7 +2464,7 @@ def DwmGetWindowExtendFrameBounds(handle: int) -> Optional[Rect]:
     Return Rect or None. If handle is not top level, return None.
     """
     try:
-        DWMWA_EXTENDED_FRAME_BOUNDS: ctypes.wintypes.DWORD = 9
+        DWMWA_EXTENDED_FRAME_BOUNDS = 9
         dwmapi = ctypes.WinDLL('dwmapi')
         dwmapi.DwmGetWindowAttribute.restype = ctypes.HRESULT
         rect = ctypes.wintypes.RECT()
@@ -2488,7 +2488,7 @@ def GetWindowRect(handle: int) -> Optional[Rect]:
     """
     user32 = ctypes.windll.user32
     rect = ctypes.wintypes.RECT()
-    success: ctypes.wintypes.BOOL = user32.GetWindowRect(
+    success = user32.GetWindowRect(
         ctypes.c_void_p(handle),
         ctypes.byref(rect)
     )
@@ -3414,7 +3414,7 @@ class Bitmap:
 
     def _GetSize(self) -> None:
         size = _DllClient.instance().dll.BitmapGetWidthAndHeight(ctypes.c_size_t(self._bitmap))
-        self._width = size & 0xFFFF_FFFF
+        self._width = size & 0xFFFFFFFF
         self._height = size >> 32
 
     def Close(self) -> None:
