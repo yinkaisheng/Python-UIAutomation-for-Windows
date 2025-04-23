@@ -38,7 +38,7 @@ def test():
     bitmap = notepadWindow.ToBitmap(x=0, y=0, width=160, height=160)
     side = int(bitmap.Width * 1.42)
     gifBmp = auto.Bitmap(side, side)
-    gifBmp.Clear(0xFFFF_FFFF) # set bitmap background color to white
+    gifBmp.Clear(0xFFFFFFFF) # set bitmap background color to white
     gifBmp.Paste(x=(side-bitmap.Width)//2, y=(side-bitmap.Height)//2, bitmap=bitmap)
     gifFrameCount = 20
     bmps = [gifBmp.RotateWithSameSize(gifBmp.Width//2, gifBmp.Height//2, i*360/gifFrameCount) for i in range(0, gifFrameCount)]
