@@ -7719,7 +7719,7 @@ class Control():
                     Compare: Optional[Callable[[TreeNode], bool]] = None,
                     **searchProperties) -> 'EditControl':
         return EditControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
-                           oundIndex=foundIndex, element=element,
+                           foundIndex=foundIndex, element=element,
                            Name=Name,
                            SubName=SubName,
                            RegexName=RegexName,
