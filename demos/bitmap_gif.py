@@ -17,7 +17,7 @@ def main():
     bitmap.ToFile('desk_part.png')
     side = int(bitmap.Width * 1.42)
     bitmap2 = auto.Bitmap(side, side)
-    bitmap2.Clear(0xFFFF_FFFF)
+    bitmap2.Clear(0xFFFFFFFF)
     bitmap2.Paste(x=(side-bitmap.Width)//2, y=(side-bitmap.Height)//2, bitmap=bitmap)
 
     num = 20
@@ -32,7 +32,7 @@ def main():
     print('save bitmaps to multiple frames gif cost {:.3f}s'.format(cost))
     # subprocess.Popen('desk_part.gif', shell=True)
 
-    gif: auto.GIF
+    # gif: auto.GIF
     gif = auto.Bitmap.FromFile('desk_part.gif')
     print('desk_part.gif is {}'.format(gif))
     for i, bmp in enumerate(gif):
