@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import subprocess
+import multiprocessing as mp
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # not required after 'pip install uiautomation'
 import uiautomation as auto
@@ -16,6 +17,16 @@ print('timeout: {}, old {} is not effective'.format(auto.uiautomation.TIME_OUT_S
 auto.uiautomation.SetGlobalSearchTimeout(6)  # global time out
 print('timeout: {}, old {} is not effective'.format(auto.uiautomation.TIME_OUT_SECOND, auto.TIME_OUT_SECOND))
 
+def GifProcess(stopEvent: mp.Event, calcHandle: int):
+    calcWindow = auto.ControlFromHandle(calcHandle)
+    bmps = []
+    intervalMs = 50
+    while True:
+        if stopEvent.is_set():
+            break
+        bmps.append(calcWindow.ToBitmap(captureCursor=True))
+        time.sleep(intervalMs / 1000)
+    auto.GIF.ToGifFile('calc.gif', bmps, [intervalMs]*len(bmps))
 
 def Calc(window, btns, expression):
     expression = ''.join(expression.split())
@@ -30,7 +41,6 @@ def Calc(window, btns, expression):
     auto.Logger.WriteLine(result, auto.ConsoleColor.Cyan, writeToFile=False)
     time.sleep(1)
 
-
 def CalcOnXP():
     chars = '0123456789.+-*/=()'
     # Desc is not a valid search property, but it can be used for debug printing
@@ -38,6 +48,11 @@ def CalcOnXP():
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
+    calcWindow.GetTransformPattern().Move(40, 40)
+    stopEvent = mp.Event()
+    process = mp.Process(target=GifProcess, args=(stopEvent, calcWindow.NativeWindowHandle))
+    process.start()
+    time.sleep(0.1)
     calcWindow.SendKeys('{Alt}vs', 0.5)
     clearBtn = calcWindow.ButtonControl(Name='CE')
     clearBtn.Click()
@@ -54,10 +69,12 @@ def CalcOnXP():
     Calc(calcWindow, char2Button, '2*3.14159*10')
     calcWindow.CaptureToImage('calc.png')
     char2Button['8'].CaptureToImage('calc_8.png')
+    stopEvent.set()
     calcWindow.Disappears(1)
     calcWindow.GetWindowPattern().Close()
     calcWindow.Exists(1)
-
+    process.join()
+    subprocess.Popen('calc.gif', shell=True)
 
 def CalcOnWindows7And8():
     char2Id = {
@@ -85,6 +102,11 @@ def CalcOnWindows7And8():
     if not calcWindow.Exists(0, 0):
         subprocess.Popen('calc')
     calcWindow.SetActive()
+    calcWindow.GetTransformPattern().Move(40, 40)
+    stopEvent = mp.Event()
+    process = mp.Process(target=GifProcess, args=(stopEvent, calcWindow.NativeWindowHandle))
+    process.start()
+    time.sleep(0.1)
     calcWindow.SendKeys('{Alt}2')
     clearBtn = calcWindow.ButtonControl(foundIndex=8, Depth=3)  # test foundIndex and Depth, the 8th button is clear
     if clearBtn.Exists() and clearBtn.AutomationId == '82':
@@ -101,12 +123,14 @@ def CalcOnWindows7And8():
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90.8')
     Calc(calcWindow, char2Button, '3*3+4*4')
     Calc(calcWindow, char2Button, '2*3.14159*10')
+    stopEvent.set()
     calcWindow.CaptureToImage('calc.png')
     char2Button['8'].CaptureToImage('calc_8.png')
     calcWindow.Disappears(1)
     calcWindow.GetWindowPattern().Close()
     calcWindow.Exists(1)
-
+    process.join()
+    subprocess.Popen('calc.gif', shell=True)
 
 def CalcOnWindows10():
     """works on Windows 10.0.19042"""
@@ -137,6 +161,10 @@ def CalcOnWindows10():
         subprocess.Popen('calc')
     calcWindow.SetActive()
     calcWindow.GetTransformPattern().Move(40, 40)
+    stopEvent = mp.Event()
+    process = mp.Process(target=GifProcess, args=(stopEvent, calcWindow.NativeWindowHandle))
+    process.start()
+    time.sleep(0.1)
     calcWindow.ButtonControl(AutomationId='TogglePaneButton').Click()
     calcWindow.ListItemControl(AutomationId='Scientific').Click()
     calcWindow.ButtonControl(AutomationId='clearButton').Click()
@@ -152,15 +180,17 @@ def CalcOnWindows10():
     Calc(calcWindow, char2Button, '1234 * (4 + 5 + 6) - 78 / 90.8')
     Calc(calcWindow, char2Button, '3*3+4*4')
     Calc(calcWindow, char2Button, '2*3.14159*10')
+    stopEvent.set()
     calcWindow.CaptureToImage('calc.png')
     char2Button['8'].CaptureToImage('calc_8.png')
     calcWindow.Disappears(1)
     calcWindow.GetWindowPattern().Close()
     calcWindow.Exists(1)
-
+    process.join()
+    subprocess.Popen('calc.gif', shell=True)
 
 if __name__ == '__main__':
-    osVersion = os.sys.getwindowsversion().major
+    osVersion = sys.getwindowsversion().major
     if osVersion < 6:
         CalcOnXP()
     elif osVersion == 6:

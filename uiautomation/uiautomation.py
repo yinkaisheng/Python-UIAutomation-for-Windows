@@ -2488,10 +2488,7 @@ def GetWindowRect(handle: int) -> Optional[Rect]:
     """
     user32 = ctypes.windll.user32
     rect = ctypes.wintypes.RECT()
-    success = user32.GetWindowRect(
-        ctypes.c_void_p(handle),
-        ctypes.byref(rect)
-    )
+    success = user32.GetWindowRect(ctypes.c_void_p(handle), ctypes.byref(rect))
     if success:
         return Rect(rect.left, rect.top, rect.right, rect.bottom)
     return None
@@ -3444,7 +3441,8 @@ class Bitmap:
         return self._height
 
     @staticmethod
-    def FromHandle(handle: int, left: int, top: int, right: int, bottom: int) -> Optional['MemoryBMP']:
+    def FromHandle(handle: int, left: int, top: int, right: int, bottom: int,
+                   captureCursor: bool = False) -> Optional['MemoryBMP']:
         """
         Create a `Bitmap` from a native window handle.
         handle: int, the handle of a native window.
@@ -3466,11 +3464,14 @@ class Bitmap:
             return None
         root = GetRootControl()
         left, top, right, bottom = left + rect.left, top + rect.top, right + rect.left, bottom + rect.top
-        cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
+        cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle),
+                                                          left, top, right, bottom,
+                                                          0, 0, int(captureCursor))
         return Bitmap._FromGdiplusBitmap(cbmp)
 
     @staticmethod
-    def FromControl(control: 'Control', x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> Optional['MemoryBMP']:
+    def FromControl(control: 'Control', x: int = 0, y: int = 0, width: int = 0, height: int = 0,
+                    captureCursor: bool = False) -> Optional['MemoryBMP']:
         """
         Create a `Bitmap` from a `Control`.
         control: `Control` or its subclass.
@@ -3503,7 +3504,9 @@ class Bitmap:
             root = GetRootControl()
             left, top = rect.left + x, rect.top + y
             right, bottom = left + width, top + height
-            cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle), left, top, right, bottom)
+            cbmp = _DllClient.instance().dll.BitmapFromWindow(ctypes.c_size_t(root.NativeWindowHandle),
+                                                              left, top, right, bottom,
+                                                              0, 0, int(captureCursor))
             return Bitmap._FromGdiplusBitmap(cbmp)
         if width <= 0:
             width = rect.width() + width
@@ -3519,7 +3522,7 @@ class Bitmap:
                 right = left + width
                 bottom = top + height
                 break
-        return Bitmap.FromHandle(handle, left, top, right, bottom)
+        return Bitmap.FromHandle(handle, left, top, right, bottom, captureCursor)
 
     @staticmethod
     def _FromGdiplusBitmap(cbmp: int) -> 'Bitmap':
@@ -7468,16 +7471,18 @@ class Control():
             return GetPixelColor(x, y, handle)
         return None
 
-    def ToBitmap(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> Optional[Bitmap]:
+    def ToBitmap(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0,
+                 captureCursor: bool = False) -> Optional[Bitmap]:
         """
         Capture control to a `Bitmap` object.
         x, y: int, the point in control's internal position(from 0,0).
         width, height: int, image's width and height from x, y, use 0 for entire area.
                        If width(or height) < 0, image size will be control's width(or height) - width(or height).
         """
-        return Bitmap.FromControl(self, x, y, width, height)
+        return Bitmap.FromControl(self, x, y, width, height, captureCursor)
 
-    def CaptureToImage(self, savePath: str, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> bool:
+    def CaptureToImage(self, savePath: str, x: int = 0, y: int = 0, width: int = 0, height: int = 0,
+                       captureCursor: bool = False) -> bool:
         """
         Capture control to a image file.
         savePath: str, should end with .bmp, .jpg, .jpeg, .png, .gif, .tif, .tiff.
@@ -7486,7 +7491,7 @@ class Control():
                        If width(or height) < 0, image size will be control's width(or height) - width(or height).
         Return bool, True if succeed otherwise False.
         """
-        bitmap = Bitmap.FromControl(self, x, y, width, height)
+        bitmap = Bitmap.FromControl(self, x, y, width, height, captureCursor)
         if bitmap:
             with bitmap:
                 return bitmap.ToFile(savePath)
