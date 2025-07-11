@@ -3517,6 +3517,10 @@ class Bitmap:
             handle = control.NativeWindowHandle
             if handle:
                 pRect = control.BoundingRectangle
+                toplevelHandle = GetAncestor(handle, GAFlag.Root)
+                if toplevelHandle and toplevelHandle == handle:
+                    if DwmIsCompositionEnabled():
+                        pRect = DwmGetWindowExtendFrameBounds(handle) or pRect
                 left = rect.left - pRect.left + x
                 top = rect.top - pRect.top + y
                 right = left + width
