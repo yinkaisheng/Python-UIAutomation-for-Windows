@@ -6378,7 +6378,7 @@ class Control():
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         """
         searchFromControl: `Control` or its subclass, if it is None, search from root control(Desktop).
@@ -7545,7 +7545,7 @@ class Control():
                 ClassName: Optional[str] = None,
                 AutomationId: Optional[str] = None,
                 Depth: Optional[int] = None,
-                Compare: Optional[Callable[[TreeNode], bool]] = None,
+                Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                 **searchProperties) -> 'Control':
         return Control(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                        foundIndex=foundIndex, element=element,
@@ -7565,7 +7565,7 @@ class Control():
                       ClassName: Optional[str] = None,
                       AutomationId: Optional[str] = None,
                       Depth: Optional[int] = None,
-                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                       **searchProperties) -> 'ButtonControl':
         return ButtonControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                              foundIndex=foundIndex, element=element,
@@ -7585,7 +7585,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'CalendarControl':
         return CalendarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                foundIndex=foundIndex, element=element,
@@ -7605,7 +7605,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'CheckBoxControl':
         return CheckBoxControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                foundIndex=foundIndex, element=element,
@@ -7625,7 +7625,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'ComboBoxControl':
         return ComboBoxControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                foundIndex=foundIndex, element=element,
@@ -7645,7 +7645,7 @@ class Control():
                       ClassName: Optional[str] = None,
                       AutomationId: Optional[str] = None,
                       Depth: Optional[int] = None,
-                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                       **searchProperties) -> 'CustomControl':
         return CustomControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                              foundIndex=foundIndex, element=element,
@@ -7665,7 +7665,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'DataGridControl':
         return DataGridControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                foundIndex=foundIndex, element=element,
@@ -7685,7 +7685,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'DataItemControl':
         return DataItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                foundIndex=foundIndex, element=element,
@@ -7705,7 +7705,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'DocumentControl':
         return DocumentControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                foundIndex=foundIndex, element=element,
@@ -7725,7 +7725,7 @@ class Control():
                     ClassName: Optional[str] = None,
                     AutomationId: Optional[str] = None,
                     Depth: Optional[int] = None,
-                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                     **searchProperties) -> 'EditControl':
         return EditControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                            foundIndex=foundIndex, element=element,
@@ -7745,7 +7745,7 @@ class Control():
                      ClassName: Optional[str] = None,
                      AutomationId: Optional[str] = None,
                      Depth: Optional[int] = None,
-                     Compare: Optional[Callable[[TreeNode], bool]] = None,
+                     Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                      **searchProperties) -> 'GroupControl':
         return GroupControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                             foundIndex=foundIndex, element=element,
@@ -7765,7 +7765,7 @@ class Control():
                       ClassName: Optional[str] = None,
                       AutomationId: Optional[str] = None,
                       Depth: Optional[int] = None,
-                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                       **searchProperties) -> 'HeaderControl':
         return HeaderControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                              foundIndex=foundIndex, element=element,
@@ -7785,7 +7785,7 @@ class Control():
                           ClassName: Optional[str] = None,
                           AutomationId: Optional[str] = None,
                           Depth: Optional[int] = None,
-                          Compare: Optional[Callable[[TreeNode], bool]] = None,
+                          Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                           **searchProperties) -> 'HeaderItemControl':
         return HeaderItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                  foundIndex=foundIndex, element=element,
@@ -7805,7 +7805,7 @@ class Control():
                          ClassName: Optional[str] = None,
                          AutomationId: Optional[str] = None,
                          Depth: Optional[int] = None,
-                         Compare: Optional[Callable[[TreeNode], bool]] = None,
+                         Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                          **searchProperties) -> 'HyperlinkControl':
         return HyperlinkControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                 foundIndex=foundIndex, element=element,
@@ -7825,7 +7825,7 @@ class Control():
                      ClassName: Optional[str] = None,
                      AutomationId: Optional[str] = None,
                      Depth: Optional[int] = None,
-                     Compare: Optional[Callable[[TreeNode], bool]] = None,
+                     Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                      **searchProperties) -> 'ImageControl':
         return ImageControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                             foundIndex=foundIndex, element=element,
@@ -7845,7 +7845,7 @@ class Control():
                     ClassName: Optional[str] = None,
                     AutomationId: Optional[str] = None,
                     Depth: Optional[int] = None,
-                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                     **searchProperties) -> 'ListControl':
         return ListControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                            foundIndex=foundIndex, element=element,
@@ -7865,7 +7865,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'ListItemControl':
         return ListItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                foundIndex=foundIndex, element=element,
@@ -7885,7 +7885,7 @@ class Control():
                     ClassName: Optional[str] = None,
                     AutomationId: Optional[str] = None,
                     Depth: Optional[int] = None,
-                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                     **searchProperties) -> 'MenuControl':
         return MenuControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                            foundIndex=foundIndex, element=element,
@@ -7905,7 +7905,7 @@ class Control():
                        ClassName: Optional[str] = None,
                        AutomationId: Optional[str] = None,
                        Depth: Optional[int] = None,
-                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                        **searchProperties) -> 'MenuBarControl':
         return MenuBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                               foundIndex=foundIndex, element=element,
@@ -7925,7 +7925,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'MenuItemControl':
         return MenuItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                               foundIndex=foundIndex, element=element,
@@ -7945,7 +7945,7 @@ class Control():
                     ClassName: Optional[str] = None,
                     AutomationId: Optional[str] = None,
                     Depth: Optional[int] = None,
-                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                     **searchProperties) -> 'PaneControl':
         return PaneControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                            foundIndex=foundIndex, element=element,
@@ -7965,7 +7965,7 @@ class Control():
                            ClassName: Optional[str] = None,
                            AutomationId: Optional[str] = None,
                            Depth: Optional[int] = None,
-                           Compare: Optional[Callable[[TreeNode], bool]] = None,
+                           Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                            **searchProperties) -> 'ProgressBarControl':
         return ProgressBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                   foundIndex=foundIndex, element=element,
@@ -7985,7 +7985,7 @@ class Control():
                            ClassName: Optional[str] = None,
                            AutomationId: Optional[str] = None,
                            Depth: Optional[int] = None,
-                           Compare: Optional[Callable[[TreeNode], bool]] = None,
+                           Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                            **searchProperties) -> 'RadioButtonControl':
         return RadioButtonControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                   foundIndex=foundIndex, element=element,
@@ -8005,7 +8005,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'ScrollBarControl':
         return ScrollBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                 foundIndex=foundIndex, element=element,
@@ -8025,7 +8025,7 @@ class Control():
                             ClassName: Optional[str] = None,
                             AutomationId: Optional[str] = None,
                             Depth: Optional[int] = None,
-                            Compare: Optional[Callable[[TreeNode], bool]] = None,
+                            Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                             **searchProperties) -> 'SemanticZoomControl':
         return SemanticZoomControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                    foundIndex=foundIndex, element=element,
@@ -8045,7 +8045,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'SeparatorControl':
         return SeparatorControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                 foundIndex=foundIndex, element=element,
@@ -8065,7 +8065,7 @@ class Control():
                       ClassName: Optional[str] = None,
                       AutomationId: Optional[str] = None,
                       Depth: Optional[int] = None,
-                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                       **searchProperties) -> 'SliderControl':
         return SliderControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                              foundIndex=foundIndex, element=element,
@@ -8085,7 +8085,7 @@ class Control():
                        ClassName: Optional[str] = None,
                        AutomationId: Optional[str] = None,
                        Depth: Optional[int] = None,
-                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                        **searchProperties) -> 'SpinnerControl':
         return SpinnerControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                               foundIndex=foundIndex, element=element,
@@ -8105,7 +8105,7 @@ class Control():
                            ClassName: Optional[str] = None,
                            AutomationId: Optional[str] = None,
                            Depth: Optional[int] = None,
-                           Compare: Optional[Callable[[TreeNode], bool]] = None,
+                           Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                            **searchProperties) -> 'SplitButtonControl':
         return SplitButtonControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                   foundIndex=foundIndex, element=element,
@@ -8125,7 +8125,7 @@ class Control():
                          ClassName: Optional[str] = None,
                          AutomationId: Optional[str] = None,
                          Depth: Optional[int] = None,
-                         Compare: Optional[Callable[[TreeNode], bool]] = None,
+                         Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                          **searchProperties) -> 'StatusBarControl':
         return StatusBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                 foundIndex=foundIndex, element=element,
@@ -8145,7 +8145,7 @@ class Control():
                    ClassName: Optional[str] = None,
                    AutomationId: Optional[str] = None,
                    Depth: Optional[int] = None,
-                   Compare: Optional[Callable[[TreeNode], bool]] = None,
+                   Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                    **searchProperties) -> 'TabControl':
         return TabControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                           foundIndex=foundIndex, element=element,
@@ -8165,7 +8165,7 @@ class Control():
                        ClassName: Optional[str] = None,
                        AutomationId: Optional[str] = None,
                        Depth: Optional[int] = None,
-                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                        **searchProperties) -> 'TabItemControl':
         return TabItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                               foundIndex=foundIndex, element=element,
@@ -8185,7 +8185,7 @@ class Control():
                      ClassName: Optional[str] = None,
                      AutomationId: Optional[str] = None,
                      Depth: Optional[int] = None,
-                     Compare: Optional[Callable[[TreeNode], bool]] = None,
+                     Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                      **searchProperties) -> 'TableControl':
         return TableControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                             foundIndex=foundIndex, element=element,
@@ -8205,7 +8205,7 @@ class Control():
                     ClassName: Optional[str] = None,
                     AutomationId: Optional[str] = None,
                     Depth: Optional[int] = None,
-                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                     **searchProperties) -> 'TextControl':
         return TextControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                            foundIndex=foundIndex, element=element,
@@ -8225,7 +8225,7 @@ class Control():
                      ClassName: Optional[str] = None,
                      AutomationId: Optional[str] = None,
                      Depth: Optional[int] = None,
-                     Compare: Optional[Callable[[TreeNode], bool]] = None,
+                     Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                      **searchProperties) -> 'ThumbControl':
         return ThumbControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                             foundIndex=foundIndex, element=element,
@@ -8245,7 +8245,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'TitleBarControl':
         return TitleBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                foundIndex=foundIndex, element=element,
@@ -8265,7 +8265,7 @@ class Control():
                        ClassName: Optional[str] = None,
                        AutomationId: Optional[str] = None,
                        Depth: Optional[int] = None,
-                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                        **searchProperties) -> 'ToolBarControl':
         return ToolBarControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                               foundIndex=foundIndex, element=element,
@@ -8285,7 +8285,7 @@ class Control():
                        ClassName: Optional[str] = None,
                        AutomationId: Optional[str] = None,
                        Depth: Optional[int] = None,
-                       Compare: Optional[Callable[[TreeNode], bool]] = None,
+                       Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                        **searchProperties) -> 'ToolTipControl':
         return ToolTipControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                               foundIndex=foundIndex, element=element,
@@ -8305,7 +8305,7 @@ class Control():
                     ClassName: Optional[str] = None,
                     AutomationId: Optional[str] = None,
                     Depth: Optional[int] = None,
-                    Compare: Optional[Callable[[TreeNode], bool]] = None,
+                    Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                     **searchProperties) -> 'TreeControl':
         return TreeControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                            foundIndex=foundIndex, element=element,
@@ -8325,7 +8325,7 @@ class Control():
                         ClassName: Optional[str] = None,
                         AutomationId: Optional[str] = None,
                         Depth: Optional[int] = None,
-                        Compare: Optional[Callable[[TreeNode], bool]] = None,
+                        Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                         **searchProperties) -> 'TreeItemControl':
         return TreeItemControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                                foundIndex=foundIndex, element=element,
@@ -8345,7 +8345,7 @@ class Control():
                       ClassName: Optional[str] = None,
                       AutomationId: Optional[str] = None,
                       Depth: Optional[int] = None,
-                      Compare: Optional[Callable[[TreeNode], bool]] = None,
+                      Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                       **searchProperties) -> 'WindowControl':
         return WindowControl(searchFromControl=self, searchDepth=searchDepth, searchInterval=searchInterval,
                              foundIndex=foundIndex, element=element,
@@ -8371,7 +8371,7 @@ class AppBarControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.AppBarControl,
@@ -8397,7 +8397,7 @@ class ButtonControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ButtonControl,
@@ -8441,7 +8441,7 @@ class CalendarControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.CalendarControl,
@@ -8491,7 +8491,7 @@ class CheckBoxControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.CheckBoxControl,
@@ -8530,7 +8530,7 @@ class ComboBoxControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ComboBoxControl,
@@ -8624,7 +8624,7 @@ class CustomControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.CustomControl,
@@ -8650,7 +8650,7 @@ class DataGridControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.DataGridControl,
@@ -8700,7 +8700,7 @@ class DataItemControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.DataItemControl,
@@ -8768,7 +8768,7 @@ class DocumentControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.DocumentControl,
@@ -8812,7 +8812,7 @@ class EditControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.EditControl,
@@ -8856,7 +8856,7 @@ class GroupControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.GroupControl,
@@ -8888,7 +8888,7 @@ class HeaderControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.HeaderControl,
@@ -8920,7 +8920,7 @@ class HeaderItemControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.HeaderItemControl,
@@ -8958,7 +8958,7 @@ class HyperlinkControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.HyperlinkControl,
@@ -8996,7 +8996,7 @@ class ImageControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ImageControl,
@@ -9034,7 +9034,7 @@ class ListControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ListControl,
@@ -9084,7 +9084,7 @@ class ListItemControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ListItemControl,
@@ -9152,7 +9152,7 @@ class MenuControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.MenuControl,
@@ -9178,7 +9178,7 @@ class MenuBarControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.MenuBarControl,
@@ -9222,7 +9222,7 @@ class MenuItemControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.MenuItemControl,
@@ -9359,7 +9359,7 @@ class PaneControl(Control, TopLevel):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.PaneControl,
@@ -9403,7 +9403,7 @@ class ProgressBarControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ProgressBarControl,
@@ -9441,7 +9441,7 @@ class RadioButtonControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.RadioButtonControl,
@@ -9473,7 +9473,7 @@ class ScrollBarControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ScrollBarControl,
@@ -9505,7 +9505,7 @@ class SemanticZoomControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.SemanticZoomControl,
@@ -9531,7 +9531,7 @@ class SeparatorControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.SeparatorControl,
@@ -9557,7 +9557,7 @@ class SliderControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.SliderControl,
@@ -9601,7 +9601,7 @@ class SpinnerControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.SpinnerControl,
@@ -9645,7 +9645,7 @@ class SplitButtonControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.SplitButtonControl,
@@ -9683,7 +9683,7 @@ class StatusBarControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.StatusBarControl,
@@ -9715,7 +9715,7 @@ class TabControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.TabControl,
@@ -9753,7 +9753,7 @@ class TabItemControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.TabItemControl,
@@ -9785,7 +9785,7 @@ class TableControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.TableControl,
@@ -9853,7 +9853,7 @@ class TextControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.TextControl,
@@ -9897,7 +9897,7 @@ class ThumbControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ThumbControl,
@@ -9929,7 +9929,7 @@ class TitleBarControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.TitleBarControl,
@@ -9955,7 +9955,7 @@ class ToolBarControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ToolBarControl,
@@ -9999,7 +9999,7 @@ class ToolTipControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.ToolTipControl,
@@ -10037,7 +10037,7 @@ class TreeControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.TreeControl,
@@ -10075,7 +10075,7 @@ class TreeItemControl(Control):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.TreeItemControl,
@@ -10131,7 +10131,7 @@ class WindowControl(Control, TopLevel):
                  ClassName: Optional[str] = None,
                  AutomationId: Optional[str] = None,
                  Depth: Optional[int] = None,
-                 Compare: Optional[Callable[[TreeNode], bool]] = None,
+                 Compare: Optional[Callable[[TreeNode, int], bool]] = None,
                  **searchProperties):
         Control.__init__(self, searchFromControl, searchDepth, searchInterval, foundIndex, element,
                          ControlType=ControlType.WindowControl,
